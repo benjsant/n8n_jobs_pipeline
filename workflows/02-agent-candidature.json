@@ -1,0 +1,85 @@
+{
+  "name": "02 - Agent candidature DeepSeek",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Générer une candidature",
+        "formFields": {
+          "values": [
+            { "fieldLabel": "Titre du poste", "requiredField": true },
+            { "fieldLabel": "Entreprise", "requiredField": true },
+            { "fieldLabel": "Description de l'offre", "fieldType": "textarea", "requiredField": true },
+            { "fieldLabel": "Infos entreprise (site, valeurs, stack)", "fieldType": "textarea" }
+          ]
+        }
+      },
+      "id": "trigger-form",
+      "name": "Formulaire offre",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "fileSelector": "/prompts/agent-system-prompt.md",
+        "options": {}
+      },
+      "id": "read-prompt",
+      "name": "Lire system prompt",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "operation": "text",
+        "sourceProperty": "data",
+        "options": {}
+      },
+      "id": "extract-prompt",
+      "name": "Extraire texte prompt",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [660, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.DEEPSEEK_BASE_URL }}/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{ $env.DEEPSEEK_API_KEY }}" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"{{ $env.DEEPSEEK_MODEL }}\",\n  \"messages\": [\n    { \"role\": \"system\", \"content\": {{ JSON.stringify($node['Extraire texte prompt'].json.data) }} },\n    { \"role\": \"user\", \"content\": {{ JSON.stringify('Offre: ' + $node['Formulaire offre'].json['Titre du poste'] + ' chez ' + $node['Formulaire offre'].json['Entreprise'] + '\\n\\nDescription:\\n' + $node['Formulaire offre'].json[\"Description de l'offre\"] + '\\n\\nInfos entreprise:\\n' + ($node['Formulaire offre'].json['Infos entreprise (site, valeurs, stack)'] || 'Non fournies')) }} }\n  ],\n  \"response_format\": { \"type\": \"json_object\" },\n  \"temperature\": 0.7\n}",
+        "options": {}
+      },
+      "id": "call-deepseek",
+      "name": "Appel DeepSeek",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [880, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json.choices[0].message.content;\nlet parsed;\ntry { parsed = JSON.parse(raw); } catch (e) { parsed = { erreur: 'JSON invalide', brut: raw }; }\nreturn [{ json: parsed }];"
+      },
+      "id": "parse-output",
+      "name": "Parser sortie agent",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1100, 300]
+    }
+  ],
+  "connections": {
+    "Formulaire offre": { "main": [[{ "node": "Lire system prompt", "type": "main", "index": 0 }]] },
+    "Lire system prompt": { "main": [[{ "node": "Extraire texte prompt", "type": "main", "index": 0 }]] },
+    "Extraire texte prompt": { "main": [[{ "node": "Appel DeepSeek", "type": "main", "index": 0 }]] },
+    "Appel DeepSeek": { "main": [[{ "node": "Parser sortie agent", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" }
+}

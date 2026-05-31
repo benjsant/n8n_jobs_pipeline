@@ -1,0 +1,29 @@
+# Secrets — NE JAMAIS committer
+.env
+.env.*
+!.env.example
+
+# Données locales
+*.sqlite
+*.db
+data/
+exports/
+
+# CV / lettres générées (données perso)
+output/
+candidatures/
+*.pdf
+!docs/**/*.pdf
+
+# Système
+.DS_Store
+Thumbs.db
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Logs
+*.log
+logs/
