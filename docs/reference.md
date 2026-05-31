@@ -186,20 +186,9 @@ Source orientée tech / startups / IA, via flux RSS (pas d'API officielle publiq
 
 ---
 
-## 5. Telegram (notifications)
+## 5. Discord (notifications via webhook)
 
-- Créer un bot via @BotFather → récupérer le `TELEGRAM_BOT_TOKEN`.
-- Récupérer ton `chat_id` : envoyer un message au bot puis
-  `GET https://api.telegram.org/bot<TOKEN>/getUpdates` et lire `chat.id`.
-- Envoi : `POST https://api.telegram.org/bot<TOKEN>/sendMessage`
-  body `{"chat_id": "<id>", "text": "...", "parse_mode": "HTML"}`.
-- Dans n8n : nœud Telegram natif (credential = token) ou HTTP Request.
-
----
-
-## 5b. Discord (notifications via webhook)
-
-Alternative / complément à Telegram pour recevoir les offres dans un salon Discord.
+Canal de notification pour recevoir les offres dans un salon Discord.
 
 - **Créer le webhook** : sur ton serveur Discord, va dans le salon cible →
   `Modifier le salon` (roue crantée) → `Intégrations` → `Webhooks` →
@@ -228,8 +217,7 @@ Toutes lisibles via `{{ $env.NOM }}` dans les expressions (grâce à
 `DEEPSEEK_API_KEY`, `DEEPSEEK_BASE_URL`, `DEEPSEEK_MODEL`, `NOTION_API_KEY`,
 `NOTION_DB_OFFRES`, `NOTION_DB_ENTREPRISES`, `FRANCE_TRAVAIL_CLIENT_ID`,
 `FRANCE_TRAVAIL_CLIENT_SECRET`, `ADZUNA_APP_ID`, `ADZUNA_APP_KEY`,
-`JOBSPY_API_URL`, `WTTJ_RSS_URL`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`,
-`DISCORD_WEBHOOK_URL`.
+`JOBSPY_API_URL`, `WTTJ_RSS_URL`, `DISCORD_WEBHOOK_URL`.
 
 ---
 

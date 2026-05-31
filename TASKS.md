@@ -122,14 +122,14 @@ Le squelette existe déjà : `docker-compose.yml`, `.env.example`, `.gitignore`,
 - [ ] Déclencheur : Schedule (ex. tous les jours à 8h).
 - [ ] Mots-clés et filtres paramétrables en tête de workflow (Set node).
 - [ ] Déduplication contre les offres déjà en base Notion.
-- [ ] Pour chaque nouvelle offre pertinente → notification Telegram.
+- [ ] Pour chaque nouvelle offre pertinente → notification Discord (webhook).
 - [ ] (Optionnel) Ajouter JobSpy comme 2e source via un petit service Python
       ou un nœud Execute Command (voir reference.md).
 
 **Critères d'acceptation**
 - Une exécution manuelle récupère des offres réelles correspondant aux mots-clés.
 - Les doublons sont filtrés.
-- Une notification Telegram arrive pour une nouvelle offre.
+- Une notification Discord arrive pour une nouvelle offre.
 
 ---
 

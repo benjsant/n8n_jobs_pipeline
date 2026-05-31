@@ -6,8 +6,8 @@ adaptations de CV personnalisées par entreprise via un agent LLM (DeepSeek).
 
 ## Stack
 
-n8n (Docker) · PostgreSQL · DeepSeek · Notion · France Travail / JobSpy ·
-Telegram · piloté avec Claude Code.
+n8n (Docker) · PostgreSQL · DeepSeek · Notion · France Travail / Adzuna /
+JobSpy / WTTJ · Discord · piloté avec Claude Code.
 
 ## Démarrage rapide
 
@@ -30,7 +30,7 @@ docker compose up -d
 
 **Phase 1 — Recherche d'offres**
 Déclencheur planifié → requêtes API (France Travail) + JobSpy + RSS →
-déduplication → stockage Notion → notification Telegram.
+déduplication → stockage Notion → notification Discord.
 
 **Phase 2 — Candidature (l'agent)**
 Sélection d'une offre → l'agent DeepSeek évalue l'adéquation, analyse
