@@ -52,33 +52,38 @@ qui est demandé.
 > honnête, meilleures seront les lettres.
 
 **Identité**
-- Nom : [Ton nom]
-- Intitulé visé : [ex. Développeur IA / Ingénieur Machine Learning]
-- Localisation : [ex. Hauts-de-France, ouvert au remote / hybride]
-- Mobilité : [ex. France entière en remote, sur site dans un rayon de 50 km]
+- Nom : [À COMPLÉTER — ton nom]
+- Intitulé visé : [À COMPLÉTER — ex. Développeur IA / Ingénieur ML junior]
+- Localisation : [À COMPLÉTER — ta ville / région]
+- Mobilité : flexible — ouvert au remote, à l'hybride et au présentiel selon
+  l'opportunité. [À PRÉCISER si tu as une zone géographique de prédilection]
 
 **Compétences techniques** (indique le niveau : notions / intermédiaire / solide / expert)
-- Langages : [ex. Python (solide), TypeScript (intermédiaire), SQL (solide)]
-- IA / ML : [ex. PyTorch (intermédiaire), LangChain (solide), RAG (solide),
-  fine-tuning LLM (notions), prompt engineering (expert)]
-- Outils / infra : [ex. Docker (solide), n8n (solide), Git, Postgres,
-  vector databases (intermédiaire)]
-- Cloud : [ex. AWS (notions), pas de GCP]
+- Langages : [À COMPLÉTER — ex. Python (solide), SQL (intermédiaire)]
+- IA / ML : [À COMPLÉTER — ex. LangChain (intermédiaire), RAG (notions),
+  prompt engineering (solide)]
+- Outils / infra : [À COMPLÉTER — ex. Docker (intermédiaire), n8n (solide),
+  Git, Postgres]
+- Cloud : [À COMPLÉTER — ex. AWS (notions), ou « aucun pour l'instant »]
 
 **Expérience**
-- [Poste / projet 1 — durée — réalisations chiffrées si possible]
-- [Poste / projet 2 — ...]
-- [Projets perso / open-source pertinents, ex. ce projet job-hunter lui-même]
+- [À COMPLÉTER — poste / stage / projet 1 — durée — réalisations concrètes]
+- [À COMPLÉTER — poste / projet 2 — ...]
+- Projets perso / open-source : ce projet job-hunter (pipeline n8n + agent
+  DeepSeek pour automatiser la recherche d'emploi). [Ajoute tes autres projets]
 
 **Formation**
-- [Diplôme(s), certifications]
+- [À COMPLÉTER — diplôme(s), formation, certifications]
 
 **Préférences et contraintes**
-- Type de contrat : [CDI / freelance / alternance]
-- Secteurs qui m'intéressent : [ex. startups IA, éditeurs de logiciels]
-- Secteurs à éviter : [ex. ...]
+- Niveau visé : junior / débutant.
+- Type de contrat : CDI, alternance ou CDD (les trois conviennent).
+- Mode de travail : flexible (remote / hybride / sur site).
+- Secteurs qui m'intéressent : [À COMPLÉTER — ex. startups IA, éditeurs logiciels]
+- Secteurs à éviter : [À COMPLÉTER ou « aucun en particulier »]
 - Fourchette de salaire : [optionnel]
-- Valeurs importantes : [ex. impact produit, qualité du code, équipe technique forte]
+- Valeurs importantes : [À COMPLÉTER — ex. apprentissage, qualité du code,
+  équipe technique bienveillante]
 
 ---
 

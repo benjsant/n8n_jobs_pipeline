@@ -76,6 +76,30 @@ Champs intéressants par offre : `intitule`, `description`, `entreprise.nom`,
 
 ---
 
+## 2b. Adzuna (API agrégateur, source complémentaire)
+
+API officielle gratuite qui agrège de nombreux jobboards, avec un pays `fr`.
+
+- Inscription : https://developer.adzuna.com → créer une application →
+  récupérer `app_id` et `app_key` (variables `ADZUNA_APP_ID`, `ADZUNA_APP_KEY`).
+- **Recherche d'offres** :
+  - `GET https://api.adzuna.com/v1/api/jobs/fr/search/{page}`
+  - Paramètres (en query string) :
+    - `app_id` et `app_key` : les credentials
+    - `what` : mots-clés (ex. `développeur intelligence artificielle`)
+    - `where` : localisation (ex. `Paris`, `France`)
+    - `results_per_page` : nb de résultats (ex. `50`)
+    - `max_days_old` : ancienneté max en jours
+    - `content-type=application/json`
+  - Exemple :
+    `https://api.adzuna.com/v1/api/jobs/fr/search/1?app_id=$ID&app_key=$KEY&what=développeur%20IA&where=France&results_per_page=50`
+- Champs utiles par offre (dans `results[]`) : `title`, `description`,
+  `company.display_name`, `location.display_name`, `redirect_url`, `created`, `id`.
+- Pas d'OAuth : les clés passent en query string. Dans n8n, simple nœud
+  **HTTP Request** GET.
+
+---
+
 ## 3. JobSpy (source complémentaire multi-boards)
 
 Librairie Python qui agrège LinkedIn, Indeed, Glassdoor, Google Jobs, etc.
@@ -104,6 +128,24 @@ Intégration dans n8n : deux options.
 
 ⚠️ LinkedIn via JobSpy peut être rate-limité / nécessiter des proxies. Indeed
 et Glassdoor sont plus fiables sans proxy.
+
+Choix retenu pour ce projet : **option 1** (micro-service FastAPI dans un
+conteneur séparé). n8n l'appelle via `{{ $env.JOBSPY_API_URL }}` (par défaut
+`http://jobspy:8000`). Le service est mis en place en Tâche 6.
+
+---
+
+## 3b. Welcome to the Jungle (RSS)
+
+Source orientée tech / startups / IA, via flux RSS (pas d'API officielle publique).
+
+- Le flux RSS se construit à partir d'une recherche sur le site WTTJ. Récupère
+  l'URL du flux correspondant à tes mots-clés / filtres et mets-la dans le
+  workflow (ou dans `WTTJ_RSS_URL`).
+- Dans n8n : nœud **RSS Read** (ou HTTP Request + parse XML) sur l'URL du flux.
+- Champs typiques par item : `title`, `link`, `pubDate`, `content`/`description`.
+- ⚠️ La disponibilité et le format des flux RSS WTTJ peuvent évoluer : vérifier
+  l'URL réelle au moment de l'intégration (Tâche 6).
 
 ---
 
@@ -155,6 +197,29 @@ et Glassdoor sont plus fiables sans proxy.
 
 ---
 
+## 5b. Discord (notifications via webhook)
+
+Alternative / complément à Telegram pour recevoir les offres dans un salon Discord.
+
+- **Créer le webhook** : sur ton serveur Discord, va dans le salon cible →
+  `Modifier le salon` (roue crantée) → `Intégrations` → `Webhooks` →
+  `Nouveau webhook` → donne-lui un nom (ex. « job-hunter ») → `Copier l'URL`.
+  L'URL ressemble à `https://discord.com/api/webhooks/<id>/<token>`.
+- **Envoyer un message** : `POST` sur l'URL du webhook, body JSON :
+  ```json
+  { "content": "🆕 Nouvelle offre : Dév IA chez Acme — score 82\nhttps://..." }
+  ```
+  - `content` : texte simple (max 2000 caractères), supporte le Markdown Discord.
+  - Pour un rendu plus riche, utiliser `embeds` (titre, description, URL, couleur).
+- **Dans n8n** : nœud **HTTP Request** (`POST` vers `{{ $env.DISCORD_WEBHOOK_URL }}`,
+  body JSON `{ "content": "..." }`) — pas besoin de credential, le token est
+  dans l'URL. Un nœud Discord natif existe aussi mais le webhook HTTP est le
+  plus simple pour du push mono-salon.
+- ⚠️ Le webhook ne sert qu'à **poster** dans un salon ; il ne lit pas les
+  messages. Parfait pour recevoir des notifs d'offres.
+
+---
+
 ## 6. Variables d'environnement disponibles dans n8n
 
 Toutes lisibles via `{{ $env.NOM }}` dans les expressions (grâce à
@@ -162,7 +227,9 @@ Toutes lisibles via `{{ $env.NOM }}` dans les expressions (grâce à
 
 `DEEPSEEK_API_KEY`, `DEEPSEEK_BASE_URL`, `DEEPSEEK_MODEL`, `NOTION_API_KEY`,
 `NOTION_DB_OFFRES`, `NOTION_DB_ENTREPRISES`, `FRANCE_TRAVAIL_CLIENT_ID`,
-`FRANCE_TRAVAIL_CLIENT_SECRET`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`.
+`FRANCE_TRAVAIL_CLIENT_SECRET`, `ADZUNA_APP_ID`, `ADZUNA_APP_KEY`,
+`JOBSPY_API_URL`, `WTTJ_RSS_URL`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`,
+`DISCORD_WEBHOOK_URL`.
 
 ---
 

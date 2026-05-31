@@ -28,7 +28,7 @@ Automatiser la recherche d'emploi pour un développeur IA :
 - **Suivi candidatures** : Notion (nœud natif n8n + API).
 - **Sources d'offres** : API France Travail, JobSpy (LinkedIn/Indeed/Glassdoor),
   RSS Welcome to the Jungle, Wellfound pour les jobs IA/startup.
-- **Notifications** : Telegram.
+- **Notifications** : Telegram et/ou Discord (webhook).
 - **Dev assistant** : Claude Code.
 
 ## Arborescence
