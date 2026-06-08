@@ -5,11 +5,13 @@ Contexte projet pour Claude Code. Lis ce fichier en début de session.
 ## 👉 Par où commencer
 
 1. Lis ce fichier en entier.
-2. Lis `docs/reference.md` (toutes les infos API exactes).
-3. Lis `docs/reste-a-faire.md` (état d'avancement + clés à fournir).
-4. Ouvre `TASKS.md` : c'est le plan de build ordonné. Exécute les tâches dans
+2. Lis `docs/contexte-claude.md` (mémoire portable : décisions, préférences,
+   ce qui est en attente — remplace le `.claude/` non exportable).
+3. Lis `docs/reference.md` (toutes les infos API exactes).
+4. Lis `docs/reste-a-faire.md` (état d'avancement + clés à fournir).
+5. Ouvre `TASKS.md` : c'est le plan de build ordonné. Exécute les tâches dans
    l'ordre, coche-les, et vérifie les critères d'acceptation de chacune.
-5. Ne committe jamais `.env`. Ne demande jamais à inventer une info perso :
+6. Ne committe jamais `.env`. Ne demande jamais à inventer une info perso :
    demande à l'utilisateur.
 
 > Première installation sur cette machine ? Suis `docs/installation.md`.
