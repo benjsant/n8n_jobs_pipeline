@@ -1,13 +1,30 @@
 {
+  "_dummy": "DONNÉES FICTIVES — à remplacer (Tâche 3).",
   "experiences": [
     {
-      "id": "",
-      "role": "",
-      "company": "",
-      "location": "",
-      "start": "",
-      "end": "",
-      "bullets": []
+      "id": "stage-data",
+      "role": "Stagiaire Data / IA",
+      "company": "Acme Analytics (fictif)",
+      "location": "Lyon, France",
+      "start": "2024-03",
+      "end": "2024-08",
+      "bullets": [
+        "Construit un pipeline de préparation de données réduisant le temps de traitement de 40 %.",
+        "Prototypé un modèle de prédiction de churn (scikit-learn) mis à disposition via une API FastAPI.",
+        "Mis en place des tests et une CI légère sur le dépôt de l'équipe."
+      ]
+    },
+    {
+      "id": "projet-asso",
+      "role": "Développeur bénévole",
+      "company": "Association Open Data (fictif)",
+      "location": "Remote",
+      "start": "2023-09",
+      "end": "2024-02",
+      "bullets": [
+        "Automatisé la collecte de données publiques et leur publication hebdomadaire.",
+        "Documenté le projet pour faciliter la reprise par d'autres contributeurs."
+      ]
     }
   ]
 }

@@ -48,42 +48,45 @@ qui est demandé.
 
 ## 3. Profil du candidat
 
-> ⚠️ REMPLIS CETTE SECTION AVEC TES VRAIES INFOS. Plus elle est précise et
-> honnête, meilleures seront les lettres.
+> ⚠️ **DONNÉES FICTIVES (DUMMY)** — placées temporairement pour pouvoir tester
+> le pipeline de bout en bout. **À REMPLACER par les vraies infos avant tout
+> usage réel** (cf. Tâche 3). Source unique : `cv/*.json`, à garder cohérent.
 
 **Identité**
-- Nom : [À COMPLÉTER — ton nom]
-- Intitulé visé : [À COMPLÉTER — ex. Développeur IA / Ingénieur ML junior]
-- Localisation : [À COMPLÉTER — ta ville / région]
+- Nom : Alex Martin *(dummy)*
+- Intitulé visé : Développeur IA junior
+- Localisation : Lyon, France
 - Mobilité : flexible — ouvert au remote, à l'hybride et au présentiel selon
-  l'opportunité. [À PRÉCISER si tu as une zone géographique de prédilection]
+  l'opportunité.
 
-**Compétences techniques** (indique le niveau : notions / intermédiaire / solide / expert)
-- Langages : [À COMPLÉTER — ex. Python (solide), SQL (intermédiaire)]
-- IA / ML : [À COMPLÉTER — ex. LangChain (intermédiaire), RAG (notions),
-  prompt engineering (solide)]
-- Outils / infra : [À COMPLÉTER — ex. Docker (intermédiaire), n8n (solide),
-  Git, Postgres]
-- Cloud : [À COMPLÉTER — ex. AWS (notions), ou « aucun pour l'instant »]
+**Compétences techniques** (niveau : notions / intermédiaire / solide / expert)
+- Langages : Python (solide), SQL (intermédiaire), JavaScript (intermédiaire)
+- IA / ML : scikit-learn (solide), PyTorch (intermédiaire), Hugging Face
+  (intermédiaire), RAG / LLM (intermédiaire)
+- Outils / infra : Git (solide), Docker (intermédiaire), FastAPI (intermédiaire)
+- Cloud : GCP (notions), PostgreSQL (intermédiaire)
 
 **Expérience**
-- [À COMPLÉTER — poste / stage / projet 1 — durée — réalisations concrètes]
-- [À COMPLÉTER — poste / projet 2 — ...]
-- Projets perso / open-source : ce projet job-hunter (pipeline n8n + agent
-  DeepSeek pour automatiser la recherche d'emploi). [Ajoute tes autres projets]
+- Stagiaire Data / IA — Acme Analytics *(fictif)*, 6 mois : pipeline de données
+  (-40 % de temps de traitement), modèle de churn exposé via API FastAPI, CI.
+- Développeur bénévole — Association Open Data *(fictif)*, 6 mois : automatisation
+  de collecte et de publication de données publiques.
+- Projets perso : assistant documentaire RAG (FastAPI + LLM + pgvector),
+  classifieur d'images de défauts (PyTorch), ce pipeline job-hunter (n8n + agent).
 
 **Formation**
-- [À COMPLÉTER — diplôme(s), formation, certifications]
+- Master Informatique — parcours IA, Université Exemple *(fictif)*, 2024.
+- Licence Informatique, Université Exemple *(fictif)*, 2022.
 
 **Préférences et contraintes**
 - Niveau visé : junior / débutant.
 - Type de contrat : CDI, alternance ou CDD (les trois conviennent).
 - Mode de travail : flexible (remote / hybride / sur site).
-- Secteurs qui m'intéressent : [À COMPLÉTER — ex. startups IA, éditeurs logiciels]
-- Secteurs à éviter : [À COMPLÉTER ou « aucun en particulier »]
-- Fourchette de salaire : [optionnel]
-- Valeurs importantes : [À COMPLÉTER — ex. apprentissage, qualité du code,
-  équipe technique bienveillante]
+- Secteurs qui m'intéressent : startups IA, éditeurs logiciels *(dummy)*.
+- Secteurs à éviter : aucun en particulier *(dummy)*.
+- Fourchette de salaire : non précisée.
+- Valeurs importantes : apprentissage, qualité du code, équipe technique
+  bienveillante *(dummy)*.
 
 ---
 

@@ -1,11 +1,26 @@
 {
+  "_dummy": "DONNÉES FICTIVES — à remplacer (Tâche 3).",
   "projects": [
     {
-      "id": "",
-      "name": "",
-      "description": "",
-      "tech": [],
-      "url": ""
+      "id": "rag-assistant",
+      "name": "Assistant documentaire RAG",
+      "description": "Chatbot de recherche sur une base documentaire interne (retrieval + LLM), avec citations des sources.",
+      "tech": ["Python", "FastAPI", "Hugging Face", "PostgreSQL", "pgvector"],
+      "url": "https://github.com/example-alex/rag-assistant"
+    },
+    {
+      "id": "image-classifier",
+      "name": "Classifieur d'images de défauts",
+      "description": "Modèle de vision entraîné pour détecter des défauts sur pièces industrielles, exposé via une API.",
+      "tech": ["PyTorch", "scikit-learn", "Docker"],
+      "url": "https://github.com/example-alex/defect-classifier"
+    },
+    {
+      "id": "jobs-pipeline",
+      "name": "Pipeline d'agrégation d'offres",
+      "description": "Collecte multi-sources d'offres d'emploi avec déduplication et scoring.",
+      "tech": ["Python", "PostgreSQL", "n8n"],
+      "url": "https://github.com/example-alex/jobs-pipeline"
     }
   ]
 }

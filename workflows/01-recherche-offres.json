@@ -1,0 +1,164 @@
+{
+  "name": "01 - Recherche d'offres",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            { "field": "cronExpression", "expression": "0 8 * * *" }
+          ]
+        }
+      },
+      "id": "a1000000-0000-4000-8000-000000000001",
+      "name": "Tous les jours 8h",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [-100, 300]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            { "id": "k1", "name": "keywords", "value": "développeur intelligence artificielle", "type": "string" },
+            { "id": "k2", "name": "location", "value": "France", "type": "string" },
+            { "id": "k3", "name": "scoreThreshold", "value": 70, "type": "number" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a1000000-0000-4000-8000-000000000002",
+      "name": "Paramètres recherche",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [120, 300]
+    },
+    {
+      "parameters": {
+        "url": "=https://api.adzuna.com/v1/api/jobs/fr/search/1",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            { "name": "app_id", "value": "={{ $env.ADZUNA_APP_ID }}" },
+            { "name": "app_key", "value": "={{ $env.ADZUNA_APP_KEY }}" },
+            { "name": "what", "value": "={{ $json.keywords }}" },
+            { "name": "where", "value": "={{ $json.location }}" },
+            { "name": "results_per_page", "value": "50" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a1000000-0000-4000-8000-000000000003",
+      "name": "Adzuna - search",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [360, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Normalise les résultats Adzuna -> schéma offers, calcule le score.\n// Le hash de dédup est produit par le nœud Crypto suivant (SHA256 sur hashSource).\n// Logique de scoring = copie de workflows/lib/offer-utils.mjs (garder synchro).\nconst PREFS = {\n  keywords: ['ia','intelligence artificielle','ml','machine learning','data','llm','python','développeur','developpeur'],\n  juniorTerms: ['junior','débutant','debutant','alternance','apprenti','stage','stagiaire','entry level'],\n  seniorTerms: ['senior','confirmé','confirme','lead','principal','5 ans','expérimenté','experimente'],\n  remoteTerms: ['télétravail','teletravail','remote','hybride','distanciel'],\n  goodContracts: ['cdi','alternance','cdd','apprentissage'],\n  preferredLocations: ['lyon','remote','télétravail','teletravail','france'],\n};\nconst norm = (s) => String(s ?? '').toLowerCase().normalize('NFKD').replace(/\\s+/g,' ').trim();\nfunction scoreOffer(o) {\n  const hay = norm(`${o.title} ${o.description} ${o.contract_type}`);\n  const loc = norm(o.location);\n  let score = 0;\n  score += Math.min(35, PREFS.keywords.filter(k => hay.includes(norm(k))).length * 9);\n  const isJ = PREFS.juniorTerms.some(t => hay.includes(norm(t)));\n  const isS = PREFS.seniorTerms.some(t => hay.includes(norm(t)));\n  if (isJ && !isS) score += 25; else if (!isS) score += 12;\n  if (PREFS.remoteTerms.some(t => hay.includes(norm(t)) || loc.includes(norm(t)))) score += 15;\n  if (PREFS.preferredLocations.some(l => loc.includes(norm(l)))) score += 10;\n  if (PREFS.goodContracts.some(c => hay.includes(norm(c)))) score += 10;\n  if (norm(o.salary)) score += 5;\n  return Math.max(0, Math.min(100, Math.round(score)));\n}\nconst results = $input.first().json.results || [];\nreturn results.map((r) => {\n  const o = {\n    source: 'adzuna',\n    source_id: String(r.id ?? ''),\n    title: r.title ?? '',\n    company: r.company?.display_name ?? '',\n    location: r.location?.display_name ?? '',\n    contract_type: r.contract_time ?? r.contract_type ?? '',\n    salary: r.salary_min ? String(r.salary_min) : '',\n    description: r.description ?? '',\n    url: r.redirect_url ?? '',\n  };\n  o.score = scoreOffer(o);\n  o.hashSource = [o.title, o.company, o.location].map(norm).join('|');\n  return { json: o };\n});"
+      },
+      "id": "a1000000-0000-4000-8000-000000000004",
+      "name": "Normaliser + Scorer",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [580, 300]
+    },
+    {
+      "parameters": {
+        "action": "hash",
+        "type": "SHA256",
+        "value": "={{ $json.hashSource }}",
+        "dataPropertyName": "hash",
+        "options": {}
+      },
+      "id": "a1000000-0000-4000-8000-000000000005",
+      "name": "Hash dédup",
+      "type": "n8n-nodes-base.crypto",
+      "typeVersion": 1,
+      "position": [800, 300]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "schema": { "__rl": true, "mode": "list", "value": "public" },
+        "table": { "__rl": true, "mode": "list", "value": "offers" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "source": "={{ $json.source }}",
+            "source_id": "={{ $json.source_id }}",
+            "hash": "={{ $json.hash }}",
+            "title": "={{ $json.title }}",
+            "company": "={{ $json.company }}",
+            "location": "={{ $json.location }}",
+            "contract_type": "={{ $json.contract_type }}",
+            "salary": "={{ $json.salary }}",
+            "description": "={{ $json.description }}",
+            "url": "={{ $json.url }}",
+            "score": "={{ $json.score }}"
+          }
+        },
+        "options": { "skipOnConflict": true }
+      },
+      "id": "a1000000-0000-4000-8000-000000000006",
+      "name": "Insert offers (dédup)",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [1020, 300],
+      "credentials": {
+        "postgres": { "id": "REMPLACER", "name": "Postgres job-hunter" }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "version": 2 },
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.score }}",
+              "rightValue": "={{ $('Paramètres recherche').first().json.scoreThreshold }}",
+              "operator": { "type": "number", "operation": "gte" }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a1000000-0000-4000-8000-000000000007",
+      "name": "Score suffisant ?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [1240, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.DISCORD_WEBHOOK_URL }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { \"content\": `🆕 **${$json.title}** — ${$json.company || 'Entreprise inconnue'}\\nScore ${$json.score} · ${$json.location}\\n${$json.url}` } }}",
+        "options": {}
+      },
+      "id": "a1000000-0000-4000-8000-000000000008",
+      "name": "Discord jobs-alerts",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1460, 200]
+    }
+  ],
+  "connections": {
+    "Tous les jours 8h": { "main": [[{ "node": "Paramètres recherche", "type": "main", "index": 0 }]] },
+    "Paramètres recherche": { "main": [[{ "node": "Adzuna - search", "type": "main", "index": 0 }]] },
+    "Adzuna - search": { "main": [[{ "node": "Normaliser + Scorer", "type": "main", "index": 0 }]] },
+    "Normaliser + Scorer": { "main": [[{ "node": "Hash dédup", "type": "main", "index": 0 }]] },
+    "Hash dédup": { "main": [[{ "node": "Insert offers (dédup)", "type": "main", "index": 0 }]] },
+    "Insert offers (dédup)": { "main": [[{ "node": "Score suffisant ?", "type": "main", "index": 0 }]] },
+    "Score suffisant ?": { "main": [[{ "node": "Discord jobs-alerts", "type": "main", "index": 0 }], []] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "active": false,
+  "meta": {
+    "note": "BROUILLON à vérifier à l'import dans n8n (versions de nœuds, credential Postgres). Source câblée : Adzuna. À ajouter : France Travail (OAuth2), JobSpy (HTTP vers http://jobspy:8000/search), WTTJ (RSS Read), + un log dans le canal jobs-log. Logique dédup/scoring = workflows/lib/offer-utils.mjs."
+  }
+}

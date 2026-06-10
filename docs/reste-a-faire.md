@@ -19,6 +19,17 @@
   rendu), lettres typées, scoring 0-100, dédup SHA256, Gmail brouillon, Drive.
 - **Schéma PostgreSQL** (`db/schema.sql`, 5 tables) écrit, validé (idempotent +
   dédup), et monté en init dans `docker-compose.yml` (Tâche 2).
+- **Profil DUMMY** en place (`cv/*.json` + section 3 du system prompt), clairement
+  marqué `_dummy` / *(fictif)* — **à remplacer** par les vraies infos (Tâche 3).
+- **Script de test DeepSeek** (`scripts/test_deepseek.py`) : valide le schéma de
+  sortie ; mode `--mock` vérifié sans clé (appel réel dès `DEEPSEEK_API_KEY`).
+- **Micro-service JobSpy** (`services/jobspy/`, FastAPI + Dockerfile + tests OK)
+  câblé dans `docker-compose.yml`.
+- **Rendu CV Astro** (`cv/`) : projet initialisé, **rendu HTML vérifié** (perso
+  appliquée), export **PDF conteneurisé** (`cv/Dockerfile`, Chromium inclus).
+- **Logique dédup+scoring** (`workflows/lib/offer-utils.mjs`, 7 tests OK) et
+  **workflow `01-recherche-offres.json`** (brouillon Adzuna, scoring inline en
+  parité avec le module) — à vérifier à l'import n8n.
 
 ## 🔑 À me fournir (toi)
 
@@ -49,15 +60,18 @@ cloud, avec niveau) · expérience · projets · formation · secteurs visés / 
 |---|---|---|---|
 | 1 | Démarrer la stack n8n + valider l'UI | `DEEPSEEK_API_KEY` dans `.env` | ⬜ |
 | 2 | Schéma PostgreSQL (`db/schema.sql`, 5 tables + dédup) | — | ✅ fait |
-| 3 | Finaliser profil candidat (system prompt + `cv/*.json`) | tes infos profil | ⬜ en attente |
-| 4 | Tester l'agent DeepSeek seul (script/curl) | clé DeepSeek + Tâche 3 | ⬜ |
-| 5 | Workflow `01-recherche-offres` (sources + dédup + scoring + Postgres + jobs-log) + micro-service JobSpy | clés FT/Adzuna/Discord + Tâche 2 | ⬜ |
-| 6 | Notif offres pertinentes (Discord jobs-alerts + statuts) | Tâche 5 | ⬜ |
+| 3 | Finaliser profil candidat (system prompt + `cv/*.json`) | tes infos profil | 🟡 DUMMY en place, à remplacer |
+| 4 | Tester l'agent DeepSeek seul (script/curl) | clé DeepSeek | 🟡 script prêt (`--mock` OK), appel réel en attente de la clé |
+| 5 | Workflow `01-recherche-offres` (sources + dédup + scoring + Postgres + jobs-log) + micro-service JobSpy | clés FT/Adzuna/Discord | 🟡 JobSpy + logique + brouillon 01 ; à vérifier à l'import n8n, sources FT/JobSpy/WTTJ + jobs-log à ajouter |
+| 6 | Notif offres pertinentes (Discord jobs-alerts + statuts) | Tâche 5 | 🟡 alerte câblée dans 01 ; statuts `selected/ignored` à ajouter |
 | 7 | Importer + fiabiliser `02-agent-candidature` (→ `applications`) | Tâches 4, 6 | ⬜ |
-| 8 | Génération CV Astro→PDF + lettre (templates) | Tâche 7 | ⬜ |
+| 8 | Génération CV Astro→PDF + lettre (templates) | Tâche 7 | 🟡 rendu CV (HTML vérifié, PDF conteneurisé) ; lettre à brancher |
 | 9 | Brouillon Gmail + archivage Drive (**garde-fou humain**) | Tâche 8 + OAuth Google | ⬜ |
 | 10 | Orchestration de bout en bout + statuts Postgres | Tâches 5-9 | ⬜ |
 | 11 | Documentation finale + vérif aucun secret commité | tout | ⬜ |
+
+> 🟡 = avancé avec données/artefacts vérifiables hors stack ; reste la
+> vérification dans n8n lancé et/ou le remplacement des données DUMMY.
 
 ## 🆕 Idées / évolutions notées (hors V1)
 

@@ -1,13 +1,23 @@
 {
+  "_dummy": "DONNÉES FICTIVES — à remplacer (Tâche 3).",
   "education": [
     {
-      "id": "",
-      "degree": "",
-      "school": "",
-      "location": "",
-      "start": "",
-      "end": "",
-      "details": ""
+      "id": "master-info",
+      "degree": "Master Informatique — parcours IA",
+      "school": "Université Exemple (fictif)",
+      "location": "Lyon, France",
+      "start": "2022",
+      "end": "2024",
+      "details": "Machine learning, NLP, ingénierie de données."
+    },
+    {
+      "id": "licence-info",
+      "degree": "Licence Informatique",
+      "school": "Université Exemple (fictif)",
+      "location": "Lyon, France",
+      "start": "2019",
+      "end": "2022",
+      "details": "Algorithmique, bases de données, développement logiciel."
     }
   ]
 }

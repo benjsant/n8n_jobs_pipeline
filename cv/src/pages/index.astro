@@ -1,0 +1,14 @@
+---
+// Page de rendu du CV. Charge la personnalisation produite par l'agent (si
+// fournie via CV_PERSONALIZATION) et la passe au template maître.
+import fs from "node:fs";
+import Cv from "../../template.astro";
+
+const file = process.env.CV_PERSONALIZATION;
+let personalization = {};
+if (file && fs.existsSync(file)) {
+  personalization = JSON.parse(fs.readFileSync(file, "utf-8"));
+}
+---
+
+<Cv personalization={personalization} />

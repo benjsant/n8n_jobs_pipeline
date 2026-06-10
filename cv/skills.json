@@ -1,8 +1,25 @@
 {
+  "_dummy": "DONNÉES FICTIVES — à remplacer (Tâche 3).",
   "categories": [
-    { "name": "Langages", "items": [] },
-    { "name": "IA / ML", "items": [] },
-    { "name": "Outils", "items": [] },
-    { "name": "Cloud", "items": [] }
+    { "name": "Langages", "items": [
+      { "name": "Python", "level": "avancé" },
+      { "name": "SQL", "level": "intermédiaire" },
+      { "name": "JavaScript", "level": "intermédiaire" }
+    ] },
+    { "name": "IA / ML", "items": [
+      { "name": "PyTorch", "level": "intermédiaire" },
+      { "name": "scikit-learn", "level": "avancé" },
+      { "name": "Hugging Face", "level": "intermédiaire" },
+      { "name": "RAG / LLM", "level": "intermédiaire" }
+    ] },
+    { "name": "Outils", "items": [
+      { "name": "Git", "level": "avancé" },
+      { "name": "Docker", "level": "intermédiaire" },
+      { "name": "FastAPI", "level": "intermédiaire" }
+    ] },
+    { "name": "Cloud", "items": [
+      { "name": "GCP", "level": "débutant" },
+      { "name": "PostgreSQL", "level": "intermédiaire" }
+    ] }
   ]
 }

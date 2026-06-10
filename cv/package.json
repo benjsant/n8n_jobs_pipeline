@@ -1,0 +1,16 @@
+{
+  "name": "cv-astro",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "astro build",
+    "preview": "astro preview",
+    "pdf": "node scripts/render-pdf.mjs"
+  },
+  "dependencies": {
+    "astro": "^5.7.0"
+  },
+  "devDependencies": {
+    "playwright": "^1.49.0"
+  }
+}

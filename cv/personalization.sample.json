@@ -1,0 +1,8 @@
+{
+  "_dummy": "Exemple de sortie d'agent pour une offre 'Dev IA junior' — sert à tester le rendu CV. En prod, ce JSON est produit par DeepSeek par offre.",
+  "summary": "Développeur IA junior passionné par le RAG et la mise en production de modèles. Je cherche à rejoindre une équipe qui construit des produits IA utiles, pour apprendre vite et livrer concrètement.",
+  "highlight_skills": ["PyTorch", "RAG / LLM", "Hugging Face", "Python"],
+  "highlight_projects": ["rag-assistant", "image-classifier"],
+  "highlight_experiences": ["stage-data"],
+  "hidden_sections": []
+}

@@ -40,21 +40,38 @@ Tous les `id` / noms référencés **doivent exister** dans les fichiers de
 données. Le template applique simplement : réordonnancement (éléments mis en
 avant en premier), surlignage des compétences, masquage de sections.
 
-## Rendu (reste à faire — Tâche 8)
+## Rendu (en place)
 
-`template.astro` est prêt à être déposé dans un projet Astro. Il reçoit la
-personnalisation via `Astro.props.personalization` (par défaut : CV maître brut).
-Restent à câbler en Tâche 8 :
+Le projet Astro est initialisé ici même (`package.json`, `astro.config.mjs`,
+`src/pages/index.astro`). `index.astro` charge la personnalisation de l'agent
+via la variable d'env `CV_PERSONALIZATION` (chemin d'un JSON) et la passe au
+template maître ; sans elle, le CV maître brut est rendu.
 
-1. Initialiser le projet Astro (`package.json`, `astro.config.mjs`) et exposer
-   `template.astro` comme page.
-2. Injecter la sortie de l'agent dans `personalization`.
-3. Générer le PDF (impression headless, ex. Playwright/Puppeteer, format A4 —
-   le CSS `@page size: A4` est déjà en place).
-4. Enregistrer le chemin du PDF dans `generated_documents.cv_path`.
+### Aperçu HTML (dev, sur l'hôte)
+```bash
+cd cv
+npm install
+CV_PERSONALIZATION=$PWD/personalization.sample.json npm run build   # -> dist/index.html
+npm run preview                                                     # serveur local
+```
 
-## Aperçu rapide (sans projet Astro complet)
+### Export PDF (conteneurisé — Chromium inclus, rien à installer sur l'hôte)
+```bash
+cd cv
+docker build -t cv-render .
+# le JSON de l'agent est monté en /perso.json ; le PDF ressort dans ./dist
+docker run --rm \
+  -e CV_PERSONALIZATION=/perso.json \
+  -v "$PWD/personalization.sample.json:/perso.json:ro" \
+  -v "$PWD/dist:/app/dist" \
+  cv-render
+# -> cv/dist/cv.pdf
+```
 
-Tant que le projet Astro n'est pas initialisé, on peut visualiser la mise en
-page en ouvrant le HTML rendu dans un navigateur (les styles sont inline). Le
-rendu réel se fera via Astro en Tâche 8.
+Format A4 (`@page size: A4` + `page.pdf({format:'A4'})`). Le chemin du PDF est
+ensuite enregistré dans `generated_documents.cv_path` (Tâche 8/9).
+
+> Statut de vérif : le **rendu HTML** est validé (données du profil + réordon-
+> nancement / surlignage issus de `personalization.sample.json`). L'**export
+> PDF** est conteneurisé mais l'image Playwright (~1,5 Go) n'a pas été buildée
+> ici — à lancer dans ton environnement.

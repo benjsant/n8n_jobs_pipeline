@@ -1,13 +1,14 @@
 {
-  "name": "",
-  "title": "",
-  "email": "",
-  "phone": "",
-  "location": "",
+  "_dummy": "DONNÉES FICTIVES — à remplacer par les vraies infos (Tâche 3). Ne pas utiliser en production.",
+  "name": "Alex Martin",
+  "title": "Développeur IA junior",
+  "email": "alex.martin@example.com",
+  "phone": "+33 6 00 00 00 00",
+  "location": "Lyon, France",
   "links": {
-    "github": "",
-    "linkedin": "",
-    "portfolio": ""
+    "github": "https://github.com/example-alex",
+    "linkedin": "https://www.linkedin.com/in/example-alex",
+    "portfolio": "https://example-alex.dev"
   },
-  "summary": ""
+  "summary": "Développeur junior orienté IA, à l'aise en Python et sur les pipelines de données. J'aime transformer un modèle en service utile et fiable. Je cherche un poste où apprendre vite au contact d'une équipe technique exigeante."
 }
