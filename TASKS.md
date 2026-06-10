@@ -45,22 +45,27 @@ Le squelette existe déjà : `docker-compose.yml`, `.env.example`, `.gitignore`,
 
 ---
 
-## ⬜ Tâche 2 — Schéma PostgreSQL (source de vérité)
+## ✅ Tâche 2 — Schéma PostgreSQL (source de vérité)
 
 **Objectif** : créer les tables métier dans Postgres (distinctes des tables
 internes de n8n).
 
 **Étapes**
-- [ ] Écrire `db/schema.sql` avec les tables `offers`, `companies`,
+- [x] Écrire `db/schema.sql` avec les tables `offers`, `companies`,
       `applications`, `generated_documents`, `profile` (schéma exact dans
       `docs/reference.md`).
-- [ ] Inclure : `hash` unique sur `offers`, contraintes de statut, index sur
+- [x] Inclure : `hash` unique sur `offers`, contraintes de statut, index sur
       `offers.hash` et `offers.status`.
-- [ ] Appliquer le schéma (montage d'init Postgres ou exécution manuelle).
+- [x] Appliquer le schéma : monté dans `/docker-entrypoint-initdb.d` au premier
+      démarrage (docker-compose), réapplicable à la main (cf. en-tête du fichier).
 
 **Critères d'acceptation**
-- Les 5 tables existent dans la base.
-- Insérer deux fois la même offre (même `hash`) ne crée pas de doublon.
+- [x] Les 5 tables existent dans la base.
+- [x] Insérer deux fois la même offre (même `hash`) ne crée pas de doublon.
+
+> Validé hors stack via un conteneur `postgres:16-alpine` jetable : schéma
+> idempotent, dédup `hash` et contraintes de statut rejettent bien les
+> violations.
 
 ---
 

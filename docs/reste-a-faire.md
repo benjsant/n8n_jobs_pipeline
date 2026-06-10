@@ -17,6 +17,8 @@
 - Workflow `02-agent-candidature.json` présent (à fiabiliser).
 - **Vision V2 fusionnée** : Postgres source de vérité, CV Astro (données vs
   rendu), lettres typées, scoring 0-100, dédup SHA256, Gmail brouillon, Drive.
+- **Schéma PostgreSQL** (`db/schema.sql`, 5 tables) écrit, validé (idempotent +
+  dédup), et monté en init dans `docker-compose.yml` (Tâche 2).
 
 ## 🔑 À me fournir (toi)
 
@@ -46,7 +48,7 @@ cloud, avec niveau) · expérience · projets · formation · secteurs visés / 
 | # | Tâche | Bloqué par | État |
 |---|---|---|---|
 | 1 | Démarrer la stack n8n + valider l'UI | `DEEPSEEK_API_KEY` dans `.env` | ⬜ |
-| 2 | Schéma PostgreSQL (`db/schema.sql`, 5 tables + dédup) | — | ⬜ |
+| 2 | Schéma PostgreSQL (`db/schema.sql`, 5 tables + dédup) | — | ✅ fait |
 | 3 | Finaliser profil candidat (system prompt + `cv/*.json`) | tes infos profil | ⬜ en attente |
 | 4 | Tester l'agent DeepSeek seul (script/curl) | clé DeepSeek + Tâche 3 | ⬜ |
 | 5 | Workflow `01-recherche-offres` (sources + dédup + scoring + Postgres + jobs-log) + micro-service JobSpy | clés FT/Adzuna/Discord + Tâche 2 | ⬜ |
