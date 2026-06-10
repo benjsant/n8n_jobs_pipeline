@@ -1,0 +1,202 @@
+---
+// CV maître — template fixe. DeepSeek ne touche JAMAIS à ce fichier ni au CSS.
+// Il fournit seulement `personalization` (cf. personalization.example.json),
+// qui sert à réordonner / mettre en avant / masquer — jamais à inventer.
+import profile from "./profile.json";
+import skillsData from "./skills.json";
+import projectsData from "./projects.json";
+import experiencesData from "./experiences.json";
+import educationData from "./education.json";
+
+// Sortie de l'agent (injectée par le pipeline n8n en Tâche 8).
+// Par défaut : aucune personnalisation → CV maître brut.
+const { personalization = {} } = Astro.props;
+const {
+  summary: customSummary = "",
+  highlight_skills = [],
+  highlight_projects = [],
+  highlight_experiences = [],
+  hidden_sections = [],
+} = personalization;
+
+const isHidden = (key) => hidden_sections.includes(key);
+const summary = customSummary || profile.summary;
+
+// Les éléments dont la clé figure dans `highlights` passent en premier (tri stable).
+function reorder(items, highlights, keyFn) {
+  const hi = items.filter((i) => highlights.includes(keyFn(i)));
+  const rest = items.filter((i) => !highlights.includes(keyFn(i)));
+  return [...hi, ...rest];
+}
+
+// On ignore les entrées vides (utile tant que les JSON sont des squelettes).
+const projects = reorder(
+  projectsData.projects.filter((p) => p.name),
+  highlight_projects,
+  (p) => p.id,
+);
+const experiences = reorder(
+  experiencesData.experiences.filter((e) => e.role || e.company),
+  highlight_experiences,
+  (e) => e.id,
+);
+const education = educationData.education.filter((e) => e.degree || e.school);
+const skillCategories = skillsData.categories
+  .map((cat) => ({
+    name: cat.name,
+    items: reorder(
+      cat.items.filter((s) => s.name),
+      highlight_skills,
+      (s) => s.name,
+    ).map((s) => ({ ...s, highlighted: highlight_skills.includes(s.name) })),
+  }))
+  .filter((cat) => cat.items.length > 0);
+---
+
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{profile.name || "CV"}{profile.title ? ` — ${profile.title}` : ""}</title>
+    <style>
+      :root {
+        --accent: #1a4d7a;
+        --text: #1f2329;
+        --muted: #5c6670;
+        --rule: #d9dee3;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; }
+      body {
+        font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+        color: var(--text);
+        font-size: 10.5pt;
+        line-height: 1.45;
+      }
+      /* Page A4 imprimable (utilisée pour l'export PDF) */
+      .page {
+        width: 210mm;
+        min-height: 297mm;
+        padding: 16mm 18mm;
+        margin: 0 auto;
+        background: #fff;
+      }
+      header { border-bottom: 2px solid var(--accent); padding-bottom: 8px; margin-bottom: 14px; }
+      h1 { font-size: 20pt; margin: 0; color: var(--accent); }
+      .role { font-size: 11.5pt; color: var(--muted); margin-top: 2px; }
+      .contact { font-size: 9pt; color: var(--muted); margin-top: 6px; display: flex; flex-wrap: wrap; gap: 4px 14px; }
+      .contact a { color: var(--muted); text-decoration: none; }
+      section { margin-top: 16px; }
+      h2 {
+        font-size: 11pt; text-transform: uppercase; letter-spacing: 0.06em;
+        color: var(--accent); margin: 0 0 8px; padding-bottom: 3px;
+        border-bottom: 1px solid var(--rule);
+      }
+      .summary { margin: 0; }
+      .skill-cat { margin-bottom: 5px; }
+      .skill-cat .cat-name { font-weight: 600; }
+      .skill.hl { font-weight: 600; color: var(--accent); }
+      .item { margin-bottom: 10px; }
+      .item-head { display: flex; justify-content: space-between; gap: 12px; }
+      .item-title { font-weight: 600; }
+      .item-sub { color: var(--muted); }
+      .item-dates { color: var(--muted); white-space: nowrap; font-size: 9.5pt; }
+      ul.bullets { margin: 4px 0 0; padding-left: 18px; }
+      ul.bullets li { margin-bottom: 2px; }
+      .tech { color: var(--muted); font-size: 9.5pt; margin-top: 2px; }
+      .empty { color: #b3001b; font-style: italic; }
+      @page { size: A4; margin: 0; }
+      @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <header>
+        <h1>{profile.name || "[Nom à compléter]"}</h1>
+        {profile.title && <div class="role">{profile.title}</div>}
+        <div class="contact">
+          {profile.email && <span>{profile.email}</span>}
+          {profile.phone && <span>{profile.phone}</span>}
+          {profile.location && <span>{profile.location}</span>}
+          {profile.links?.github && <a href={profile.links.github}>GitHub</a>}
+          {profile.links?.linkedin && <a href={profile.links.linkedin}>LinkedIn</a>}
+          {profile.links?.portfolio && <a href={profile.links.portfolio}>Portfolio</a>}
+        </div>
+      </header>
+
+      {!isHidden("summary") && summary && (
+        <section>
+          <h2>Profil</h2>
+          <p class="summary">{summary}</p>
+        </section>
+      )}
+
+      {!isHidden("skills") && skillCategories.length > 0 && (
+        <section>
+          <h2>Compétences</h2>
+          {skillCategories.map((cat) => (
+            <div class="skill-cat">
+              <span class="cat-name">{cat.name} : </span>
+              {cat.items.map((s, i) => (
+                <span class={s.highlighted ? "skill hl" : "skill"}>
+                  {s.name}{s.level ? ` (${s.level})` : ""}{i < cat.items.length - 1 ? ", " : ""}
+                </span>
+              ))}
+            </div>
+          ))}
+        </section>
+      )}
+
+      {!isHidden("experiences") && experiences.length > 0 && (
+        <section>
+          <h2>Expérience</h2>
+          {experiences.map((e) => (
+            <div class="item">
+              <div class="item-head">
+                <span class="item-title">{e.role}{e.company ? ` — ${e.company}` : ""}</span>
+                <span class="item-dates">{[e.start, e.end].filter(Boolean).join(" – ")}</span>
+              </div>
+              {e.location && <div class="item-sub">{e.location}</div>}
+              {e.bullets?.length > 0 && (
+                <ul class="bullets">{e.bullets.map((b) => <li>{b}</li>)}</ul>
+              )}
+            </div>
+          ))}
+        </section>
+      )}
+
+      {!isHidden("projects") && projects.length > 0 && (
+        <section>
+          <h2>Projets</h2>
+          {projects.map((p) => (
+            <div class="item">
+              <div class="item-head">
+                <span class="item-title">{p.name}</span>
+                {p.url && <a class="item-dates" href={p.url}>{p.url}</a>}
+              </div>
+              {p.description && <div>{p.description}</div>}
+              {p.tech?.length > 0 && <div class="tech">{p.tech.join(" · ")}</div>}
+            </div>
+          ))}
+        </section>
+      )}
+
+      {!isHidden("education") && education.length > 0 && (
+        <section>
+          <h2>Formation</h2>
+          {education.map((e) => (
+            <div class="item">
+              <div class="item-head">
+                <span class="item-title">{e.degree}{e.school ? ` — ${e.school}` : ""}</span>
+                <span class="item-dates">{[e.start, e.end].filter(Boolean).join(" – ")}</span>
+              </div>
+              {e.location && <div class="item-sub">{e.location}</div>}
+              {e.details && <div>{e.details}</div>}
+            </div>
+          ))}
+        </section>
+      )}
+    </main>
+  </body>
+</html>
