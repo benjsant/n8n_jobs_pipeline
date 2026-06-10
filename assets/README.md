@@ -1,17 +1,17 @@
-# assets/ — CV et modèles de lettre
+# assets/ — modèles de lettre
 
-Sources documentaires utilisées par l'agent DeepSeek pour personnaliser les
-candidatures (prévu, pas encore branché dans un workflow).
+Sources documentaires versionnées (génériques, sans données perso) utilisées par
+l'agent DeepSeek pour personnaliser les candidatures.
 
 ```
 assets/
-├── cv/        # CV du candidat (formats source : .md, .docx, .pdf)
-└── lettres/   # modèles / exemples de lettres de motivation
+└── letters/   # modèles de lettres de motivation, typés (voir letters/README.md)
 ```
 
-- Les **modèles génériques** (sans données perso sensibles) peuvent être versionnés.
-- Le **CV réel** et les lettres contenant des données personnelles sont des
-  données perso : les PDF et le dossier `candidatures/` sont déjà ignorés par
-  `.gitignore`. Vérifie avant de committer.
-- L'agent (voir `prompts/agent-system-prompt.md`) s'appuiera sur ces fichiers
-  pour adapter le CV et rédiger la lettre par entreprise.
+- Le **CV maître** ne vit plus ici : il est à la racine dans `cv/` (template
+  Astro + données structurées). Voir `cv/README.md`.
+- Les **modèles génériques** (sans données perso) sont versionnés.
+- Les documents **générés** (CV/lettres remplis, PDF) contiennent des données
+  personnelles : ils ne sont pas versionnés (cf. `.gitignore`) et sont archivés
+  sur Google Drive. Vérifie avant de committer.
+- Comportement de l'agent : voir `prompts/agent-system-prompt.md`.
