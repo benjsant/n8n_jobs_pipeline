@@ -30,6 +30,10 @@
 - **Logique dédup+scoring** (`workflows/lib/offer-utils.mjs`, 7 tests OK) et
   **workflow `01-recherche-offres.json`** (brouillon Adzuna, scoring inline en
   parité avec le module) — à vérifier à l'import n8n.
+- **Outillage** : `Makefile` (points d'entrée), `scripts/run-tests.sh` (suites
+  hors stack), et **garde-fou anti-fuite** (`scripts/check-no-personal-data.sh`
+  + hook `.githooks/pre-commit`, à activer via `make install-hooks`) qui bloque
+  un commit de `.env` ou d'un profil ayant perdu son marqueur DUMMY.
 
 ## 🔑 À me fournir (toi)
 

@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Hook pre-commit versionné. Activation : `make install-hooks`
+# (ou : git config core.hooksPath .githooks)
+set -euo pipefail
+ROOT="$(git rev-parse --show-toplevel)"
+exec "$ROOT/scripts/check-no-personal-data.sh"
