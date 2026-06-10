@@ -48,10 +48,12 @@ Définis aussi `N8N_BASIC_AUTH_USER` (login de l'UI n8n, ex. `admin`).
 | `DEEPSEEK_API_KEY` | l'agent (démarrage minimal) |
 | `ADZUNA_APP_ID` / `ADZUNA_APP_KEY` | source Adzuna |
 | `FRANCE_TRAVAIL_CLIENT_ID` / `_SECRET` | source France Travail |
-| `NOTION_API_KEY`, `NOTION_DB_OFFRES`, `NOTION_DB_ENTREPRISES` | suivi Notion |
-| `DISCORD_WEBHOOK_URL` | notifications |
+| `DISCORD_WEBHOOK_URL` | notifications (jobs-alerts / jobs-log) |
 | `WTTJ_RSS_URL` (optionnel) | source Welcome to the Jungle |
+| Google OAuth (via nœud n8n) | brouillon Gmail + archivage Drive |
+| `NOTION_*` (optionnel, hors V1) | consultation seule par-dessus Postgres |
 
+> Source de vérité = **PostgreSQL** ; Notion n'est plus requis pour V1.
 > Démarrage minimal possible avec **uniquement** `DEEPSEEK_API_KEY` + les
 > secrets locaux. Le reste se branche au fil des Tâches 5 et 6.
 

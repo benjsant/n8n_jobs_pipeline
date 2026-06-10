@@ -35,7 +35,7 @@
 2. **Notifications : Discord uniquement.** Telegram (prévu à l'origine) a été
    **retiré** car il faisait doublon avec le webhook Discord choisi par l'utilisateur.
 3. **Sources d'offres retenues** : France Travail (base, API officielle) +
-   **Adzuna** (API gratuite) + **JobSpy** (micro-service Python, Tâche 6) +
+   **Adzuna** (API gratuite) + **JobSpy** (micro-service Python, Tâche 5) +
    **Welcome to the Jungle** (RSS). Écartées pour l'instant : Jooble, Remotive
    (réactivables). Règle : privilégier API/RSS officiels, éviter le scraping direct.
 4. **Secrets** : `.env` jamais commité (gitignoré, vérifié). Les secrets locaux
@@ -43,23 +43,40 @@
    Les clés externes restent vides tant que l'utilisateur ne les fournit pas.
 5. **Dépôt public** : `github.com/benjsant/n8n_jobs_pipeline`. Donc vigilance
    accrue : rien de sensible dans les fichiers suivis.
-6. **`assets/`** prévu pour de futurs **CV + modèles de lettre**, qui seront
-   exploités par l'agent DeepSeek (évolution voulue, pas encore implémentée).
+6. **PostgreSQL = seule source de vérité** (décision V2, 2026-06-10). Tables
+   métier : `offers`, `companies`, `applications`, `generated_documents`,
+   `profile`. Raison : Postgres est déjà dans la stack, schéma maîtrisé, pas de
+   rate-limit/fragilité d'API comme colonne vertébrale. **Notion rétrogradé** :
+   plus le stockage ; au plus une interface de consultation lecture seule, hors V1.
+7. **CV : DeepSeek produit des données, Astro fait le rendu** (décision V2).
+   L'agent ne sort que du JSON (`highlight_skills`, `highlight_projects`,
+   `summary`, réordonnancement, masquage) à partir de `cv/*.json` ; le template
+   Astro (HTML/CSS fixe) génère le PDF. L'agent ne touche jamais au HTML/CSS et
+   n'invente rien. Garde-fou rendu structurel, pas seulement consigne de prompt.
+8. **Lettres typées** dans `assets/letters/` (`ia-junior`, `backend`,
+   `frontend`, `alternance`, `candidature-spontanee`) : l'agent choisit le
+   modèle le plus adapté.
+9. **Communication aval** : Discord deux canaux (jobs-alerts actionnable /
+   jobs-log technique), **Gmail brouillon uniquement** (jamais d'envoi auto),
+   archivage Google Drive sous `Candidatures/<Entreprise>/`.
+10. **Dédup** = `SHA256(title + company + location)` ; **scoring** = 0-100.
 
 ## ⏳ En attente de l'utilisateur
 
-- **Infos profil (Tâche 2)** : section 3 du system prompt contient encore des
-  champs `[À COMPLÉTER]` (identité, compétences+niveaux, expérience, formation,
-  secteurs, valeurs). Ne **rien inventer** — attendre que l'utilisateur les fournisse.
-- **Clés externes** (DeepSeek, Adzuna, France Travail, Notion, Discord) à coller
-  dans `.env` — voir le tableau dans `reste-a-faire.md`.
+- **Infos profil (Tâche 3)** : section 3 du system prompt contient encore des
+  champs `[À COMPLÉTER]` (identité, compétences+niveaux, expérience, projets,
+  formation, secteurs, valeurs). Ne **rien inventer** — attendre l'utilisateur.
+  Ces infos alimentent aussi les fichiers `cv/*.json`.
+- **Clés externes** (DeepSeek, Adzuna, France Travail, Discord, Google
+  Gmail/Drive) à coller dans `.env` — voir le tableau dans `reste-a-faire.md`.
+  Notion n'est plus requis pour V1.
 
 ## 🚧 État d'avancement
 
 Synthèse vivante dans **`reste-a-faire.md`**. En résumé : squelette + config
-faits ; Tâches 1→9 du `TASKS.md` restent à dérouler (la plupart bloquées par une
-clé manquante ou par le signal de l'utilisateur). Le seul workflow présent,
-`02-agent-candidature.json`, reste à fiabiliser (Tâche 4).
+faits ; Tâches 1→11 du `TASKS.md` (replan V2) restent à dérouler (la plupart
+bloquées par une clé manquante ou par le signal de l'utilisateur). Le seul
+workflow présent, `02-agent-candidature.json`, reste à fiabiliser (Tâche 7).
 
 ## 🧭 Règles de travail avec cet utilisateur
 

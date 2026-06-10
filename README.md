@@ -1,13 +1,15 @@
 # 🎯 job-hunter
 
-Automatisation de recherche d'emploi pour développeur IA : recherche d'offres
-par mots-clés, suivi dans Notion, et génération de lettres de motivation +
-adaptations de CV personnalisées par entreprise via un agent LLM (DeepSeek).
+Assistant de recherche d'emploi semi-automatique pour développeur IA : collecte
+d'offres multi-sources, déduplication, scoring, suivi dans **PostgreSQL**, et
+génération de CV (Astro→PDF) + lettres de motivation personnalisées par
+entreprise via un agent LLM (DeepSeek). Validation humaine avant tout envoi.
 
 ## Stack
 
-n8n (Docker) · PostgreSQL · DeepSeek · Notion · France Travail / Adzuna /
-JobSpy / WTTJ · Discord · piloté avec Claude Code.
+n8n (Docker) · **PostgreSQL (source de vérité)** · DeepSeek · CV Astro→PDF ·
+France Travail / Adzuna / JobSpy / WTTJ · Discord · Gmail (brouillon) ·
+Google Drive · piloté avec Claude Code.
 
 ## Démarrage rapide
 
@@ -28,13 +30,23 @@ docker compose up -d
 
 ## Architecture
 
+```
+Sources → Collecte → Déduplication (SHA256) → Scoring (0-100) → PostgreSQL
+→ Discord → Validation humaine → Agent candidature → CV Astro/PDF
+→ Lettre → Brouillon Gmail → Google Drive
+```
+
 **Phase 1 — Recherche d'offres**
-Déclencheur planifié → requêtes API (France Travail) + JobSpy + RSS →
-déduplication → stockage Notion → notification Discord.
+Déclencheur planifié → requêtes API (France Travail + Adzuna) + JobSpy + RSS →
+déduplication → scoring → stockage **PostgreSQL** → notification Discord
+(jobs-alerts + jobs-log).
 
 **Phase 2 — Candidature (l'agent)**
 Sélection d'une offre → l'agent DeepSeek évalue l'adéquation, analyse
-l'entreprise, génère lettre + adaptation CV → relecture humaine → envoi.
+l'entreprise, produit des données structurées → CV rendu par Astro (PDF) +
+lettre depuis un template → brouillon Gmail + archivage Drive → relecture
+humaine avant envoi. PostgreSQL est la seule source de vérité ; Notion n'est pas
+le stockage (au plus une vue de consultation ultérieure).
 
 L'agent est entièrement piloté par `prompts/agent-system-prompt.md`. C'est le
 fichier le plus important du projet : son comportement, ses garde-fous et son

@@ -6,6 +6,74 @@ changé.
 
 ---
 
+## 0. PostgreSQL — source de vérité
+
+Le même conteneur Postgres sert la persistance interne de n8n ET les tables
+métier ci-dessous (à créer dans `db/schema.sql`, Tâche 2). C'est la **seule**
+source de vérité du projet.
+
+### Table `offers`
+| Colonne | Type | Notes |
+|---|---|---|
+| id | serial PK | |
+| source | text | `france_travail` / `adzuna` / `jobspy` / `wttj` |
+| source_id | text | identifiant côté source |
+| hash | text UNIQUE | `SHA256(title + company + location)` — dédup |
+| title | text | |
+| company | text | |
+| location | text | |
+| contract_type | text | |
+| salary | text | |
+| description | text | |
+| url | text | |
+| score | int | 0-100 |
+| status | text | `new` / `reviewed` / `selected` / `ignored` / `applied` |
+| created_at | timestamptz | défaut `now()` |
+
+Index : unique sur `hash`, index sur `status`.
+
+### Table `companies`
+| Colonne | Type | Notes |
+|---|---|---|
+| id | serial PK | |
+| name | text | |
+| website | text | |
+| sector | text | |
+| description | text | |
+| ai_summary | text | résumé généré (V2) |
+| last_updated | timestamptz | |
+
+### Table `applications`
+| Colonne | Type | Notes |
+|---|---|---|
+| id | serial PK | |
+| offer_id | int FK → offers.id | |
+| company_id | int FK → companies.id | |
+| status | text | `draft` / `sent` / `interview` / `rejected` / `accepted` |
+| applied_at | timestamptz | |
+| response_at | timestamptz | null tant que pas de réponse (relances V2) |
+| notes | text | |
+
+### Table `generated_documents`
+| Colonne | Type | Notes |
+|---|---|---|
+| id | serial PK | |
+| application_id | int FK → applications.id | |
+| cv_path | text | chemin du CV PDF (Drive) |
+| letter_path | text | chemin de la lettre |
+| generated_at | timestamptz | |
+
+### Table `profile`
+Profil candidat. Peut être une simple ligne JSON, OU vivre dans les fichiers
+`cv/*.json` (profile/skills/projects/experiences/education). Source unique et
+autorisée des compétences/expériences — aucune invention.
+
+**Dédup** : avant insertion dans `offers`, calculer le `hash` ; si présent,
+ignorer. **Scoring** : 0-100 (technos, adéquation profil, niveau junior,
+télétravail, localisation, salaire, contrat).
+
+---
+
 ## 1. DeepSeek (LLM de l'agent)
 
 API compatible OpenAI.
@@ -131,7 +199,7 @@ et Glassdoor sont plus fiables sans proxy.
 
 Choix retenu pour ce projet : **option 1** (micro-service FastAPI dans un
 conteneur séparé). n8n l'appelle via `{{ $env.JOBSPY_API_URL }}` (par défaut
-`http://jobspy:8000`). Le service est mis en place en Tâche 6.
+`http://jobspy:8000`). Le service est mis en place en Tâche 5.
 
 ---
 
@@ -145,11 +213,16 @@ Source orientée tech / startups / IA, via flux RSS (pas d'API officielle publiq
 - Dans n8n : nœud **RSS Read** (ou HTTP Request + parse XML) sur l'URL du flux.
 - Champs typiques par item : `title`, `link`, `pubDate`, `content`/`description`.
 - ⚠️ La disponibilité et le format des flux RSS WTTJ peuvent évoluer : vérifier
-  l'URL réelle au moment de l'intégration (Tâche 6).
+  l'URL réelle au moment de l'intégration (Tâche 5).
 
 ---
 
-## 4. Notion (suivi des candidatures)
+## 4. Notion (OPTIONNEL — consultation seule, hors V1)
+
+> ⚠️ Notion **n'est plus le stockage** : la source de vérité est PostgreSQL
+> (section 0). Cette section ne sert que si tu veux, plus tard, une interface de
+> consultation en lecture seule par-dessus la base. Le schéma ci-dessous reflète
+> alors les colonnes de `offers` / `companies`.
 
 - Créer une intégration interne : https://www.notion.so/profile/integrations
   → récupérer le token (`NOTION_API_KEY`).
@@ -188,6 +261,12 @@ Source orientée tech / startups / IA, via flux RSS (pas d'API officielle publiq
 
 ## 5. Discord (notifications via webhook)
 
+Deux canaux (donc deux webhooks possibles) :
+- **jobs-alerts** : offres pertinentes uniquement (score, titre, entreprise,
+  lien, actions « Générer candidature » / « Ignorer »).
+- **jobs-log** : logs techniques (« 200 offres récupérées », « 15 doublons
+  supprimés », « 12 offres retenues »).
+
 Canal de notification pour recevoir les offres dans un salon Discord.
 
 - **Créer le webhook** : sur ton serveur Discord, va dans le salon cible →
@@ -214,10 +293,14 @@ Canal de notification pour recevoir les offres dans un salon Discord.
 Toutes lisibles via `{{ $env.NOM }}` dans les expressions (grâce à
 `N8N_BLOCK_ENV_ACCESS_IN_NODE=false` dans docker-compose) :
 
-`DEEPSEEK_API_KEY`, `DEEPSEEK_BASE_URL`, `DEEPSEEK_MODEL`, `NOTION_API_KEY`,
-`NOTION_DB_OFFRES`, `NOTION_DB_ENTREPRISES`, `FRANCE_TRAVAIL_CLIENT_ID`,
-`FRANCE_TRAVAIL_CLIENT_SECRET`, `ADZUNA_APP_ID`, `ADZUNA_APP_KEY`,
-`JOBSPY_API_URL`, `WTTJ_RSS_URL`, `DISCORD_WEBHOOK_URL`.
+`DEEPSEEK_API_KEY`, `DEEPSEEK_BASE_URL`, `DEEPSEEK_MODEL`,
+`FRANCE_TRAVAIL_CLIENT_ID`, `FRANCE_TRAVAIL_CLIENT_SECRET`, `ADZUNA_APP_ID`,
+`ADZUNA_APP_KEY`, `JOBSPY_API_URL`, `WTTJ_RSS_URL`, `DISCORD_WEBHOOK_URL`,
+`GOOGLE_DRIVE_FOLDER`. Optionnels (hors V1) : `NOTION_API_KEY`,
+`NOTION_DB_OFFRES`, `NOTION_DB_ENTREPRISES`.
+
+> Gmail/Drive : l'auth Google passe par les credentials OAuth du nœud Google de
+> n8n, pas par une variable d'environnement.
 
 ---
 

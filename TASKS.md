@@ -6,6 +6,9 @@
 >
 > Règle d'or : après chaque tâche, vérifie les critères d'acceptation avant de
 > passer à la suivante. Ne committe jamais `.env`.
+>
+> **Source de vérité = PostgreSQL.** Notion n'est plus le stockage : il pourra
+> servir, plus tard et optionnellement, de simple interface de consultation.
 
 ---
 
@@ -42,22 +45,45 @@ Le squelette existe déjà : `docker-compose.yml`, `.env.example`, `.gitignore`,
 
 ---
 
-## ⬜ Tâche 2 — Configurer le profil candidat dans le system prompt
+## ⬜ Tâche 2 — Schéma PostgreSQL (source de vérité)
 
-**Objectif** : remplir la section 3 de `prompts/agent-system-prompt.md`.
+**Objectif** : créer les tables métier dans Postgres (distinctes des tables
+internes de n8n).
+
+**Étapes**
+- [ ] Écrire `db/schema.sql` avec les tables `offers`, `companies`,
+      `applications`, `generated_documents`, `profile` (schéma exact dans
+      `docs/reference.md`).
+- [ ] Inclure : `hash` unique sur `offers`, contraintes de statut, index sur
+      `offers.hash` et `offers.status`.
+- [ ] Appliquer le schéma (montage d'init Postgres ou exécution manuelle).
+
+**Critères d'acceptation**
+- Les 5 tables existent dans la base.
+- Insérer deux fois la même offre (même `hash`) ne crée pas de doublon.
+
+---
+
+## ⬜ Tâche 3 — Configurer le profil candidat
+
+**Objectif** : remplir la section 3 de `prompts/agent-system-prompt.md` ET les
+données structurées du CV (`cv/*.json`).
 
 **Étapes**
 - [ ] Demander à l'utilisateur ses vraies infos (compétences, expérience,
-      préférences) OU lui rappeler de remplir la section 3 lui-même.
+      projets, formation, préférences) OU lui rappeler de les remplir lui-même.
+- [ ] Reporter ces infos dans `cv/profile.json`, `skills.json`, `projects.json`,
+      `experiences.json`, `education.json`.
 - [ ] Ne RIEN inventer. Si une info manque, laisser un placeholder explicite.
 
 **Critères d'acceptation**
 - La section 3 ne contient plus de `[crochets]` non remplis (ou ils sont
   marqués « à compléter par l'utilisateur »).
+- Les fichiers `cv/*.json` sont valides et cohérents avec le system prompt.
 
 ---
 
-## ⬜ Tâche 3 — Tester l'agent DeepSeek seul
+## ⬜ Tâche 4 — Tester l'agent DeepSeek seul
 
 **Objectif** : valider que l'appel DeepSeek + system prompt produit un JSON conforme.
 
@@ -67,106 +93,138 @@ Le squelette existe déjà : `docker-compose.yml`, `.env.example`, `.gitignore`,
       curl) qui envoie le system prompt + une offre fictive et affiche la sortie.
       Détails API dans `docs/reference.md`.
 - [ ] Vérifier que la réponse est un JSON valide respectant le schéma de la
-      section 6 du system prompt.
+      section 6 du system prompt (score, recommandation, données CV, lettre…).
 
 **Critères d'acceptation**
-- La sortie parse en JSON sans erreur et contient les clés `score`,
-  `recommandation`, `lettre_motivation`, etc.
+- La sortie parse en JSON sans erreur et contient les clés attendues.
+- Le JSON CV ne contient que du réordonnancement / mise en avant — aucune
+  compétence ou expérience inventée.
 
 ---
 
-## ⬜ Tâche 4 — Importer et fiabiliser le workflow agent (02)
+## ⬜ Tâche 5 — Workflow de recherche d'offres (01) : collecte → dédup → scoring → Postgres
 
-**Objectif** : `workflows/02-agent-candidature.json` fonctionne dans n8n.
+**Objectif** : récupérer automatiquement les offres et les stocker dans Postgres.
+
+**Étapes**
+- [ ] Créer `workflows/01-recherche-offres.json`.
+- [ ] Sources : France Travail (OAuth2 client credentials) + Adzuna + JobSpy
+      (micro-service Python) + WTTJ (RSS). Détails dans `docs/reference.md`.
+- [ ] Déclencheur : Schedule (ex. tous les jours à 8h). Mots-clés / filtres
+      paramétrables en tête de workflow (Set node).
+- [ ] **Déduplication** : calculer `hash = SHA256(title + company + location)`,
+      ignorer si le hash existe déjà dans `offers`.
+- [ ] **Scoring** : attribuer un score 0-100 (technos, adéquation profil,
+      niveau junior, télétravail, localisation, salaire, contrat).
+- [ ] Insérer les nouvelles offres dans `offers` (statut `new`).
+- [ ] Logs techniques dans le canal Discord **jobs-log** (nb récupérées,
+      doublons, retenues).
+
+**Critères d'acceptation**
+- Une exécution manuelle récupère des offres réelles et les insère dans Postgres.
+- Les doublons sont filtrés via le hash.
+- Chaque offre a un score 0-100.
+- Un message de log arrive dans **jobs-log**.
+
+---
+
+## ⬜ Tâche 6 — Notification des offres pertinentes (Discord jobs-alerts)
+
+**Objectif** : pousser les offres pertinentes vers l'utilisateur pour décision.
+
+**Étapes**
+- [ ] À la suite de la Tâche 5, sélectionner les offres au-dessus d'un seuil de
+      score.
+- [ ] Envoyer dans le canal **jobs-alerts** : score, titre, entreprise, lien,
+      et actions « Générer candidature » / « Ignorer ».
+- [ ] Une action « Générer candidature » fait passer l'offre en statut
+      `selected` ; « Ignorer » → `ignored`.
+
+**Critères d'acceptation**
+- Une offre pertinente apparaît dans **jobs-alerts** avec son score.
+- Choisir une action met à jour le `status` de l'offre dans Postgres.
+
+---
+
+## ⬜ Tâche 7 — Importer et fiabiliser le workflow agent (02)
+
+**Objectif** : `workflows/02-agent-candidature.json` fonctionne dans n8n et
+écrit dans Postgres.
 
 **Étapes**
 - [ ] Importer le workflow dans n8n.
-- [ ] Tester via le formulaire avec une offre réelle copiée-collée.
-- [ ] Corriger les expressions n8n si la version installée diffère (les nœuds
-      `readWriteFile` / `httpRequest` peuvent avoir des champs légèrement
-      différents selon la version).
-- [ ] Vérifier que le nœud « Parser sortie agent » renvoie bien l'objet JSON.
+- [ ] Déclencher l'agent quand une offre passe en statut `selected` (depuis la
+      Tâche 6).
+- [ ] L'agent évalue l'offre, génère les données CV + la lettre, et enregistre
+      le résultat : création d'une ligne `applications` (statut `draft`) liée à
+      l'offre et à l'entreprise.
+- [ ] Corriger les expressions n8n si la version installée diffère.
 
 **Critères d'acceptation**
-- Soumettre le formulaire produit une lettre de motivation + un score.
+- Une offre `selected` produit une lettre + des données CV + une ligne
+  `applications` en statut `draft`.
 - Réexporter le workflow corrigé dans `workflows/02-agent-candidature.json`.
 
 ---
 
-## ⬜ Tâche 5 — Créer les bases Notion + workflow de suivi (03)
+## ⬜ Tâche 8 — Génération du CV (Astro → PDF) et de la lettre
 
-**Objectif** : stocker offres et candidatures dans Notion.
+**Objectif** : produire le CV PDF personnalisé et la lettre, à partir des
+données structurées de l'agent.
 
 **Étapes**
-- [ ] Guider l'utilisateur pour créer l'intégration Notion et 2 bases
-      (« Offres », « Entreprises ») selon le schéma de `docs/reference.md`.
-- [ ] Récupérer les IDs de bases et les mettre dans `.env`.
-- [ ] Créer `workflows/03-sync-notion.json` : prend la sortie de l'agent et
-      crée/met à jour une page dans la base « Offres » (titre, entreprise, lien,
-      score, statut, lettre, date).
+- [ ] Mettre en place le rendu Astro : `cv/template.astro` consomme
+      `cv/*.json` + les `highlight_*` / `summary` produits par l'agent.
+- [ ] Générer un PDF (export Astro / HTML→PDF). DeepSeek ne touche jamais au
+      HTML/CSS.
+- [ ] Choisir le template de lettre adapté dans `assets/letters/` et le remplir
+      (profil + offre + infos entreprise réelles).
+- [ ] Enregistrer les chemins dans `generated_documents` (`cv_path`,
+      `letter_path`).
 
 **Critères d'acceptation**
-- Une exécution crée une page Notion correctement remplie.
-- Pas de doublon si la même offre repasse (utiliser un identifiant unique).
+- Un PDF propre est généré, mise en page intacte.
+- La lettre s'appuie sur un template existant, sans information inventée.
+- Une ligne `generated_documents` référence les fichiers produits.
 
 ---
 
-## ⬜ Tâche 6 — Workflow de recherche d'offres (01)
+## ⬜ Tâche 9 — Brouillon Gmail + archivage Google Drive (garde-fou humain)
 
-**Objectif** : récupérer automatiquement les offres par mots-clés.
+**Objectif** : préparer l'envoi sans jamais envoyer automatiquement.
 
 **Étapes**
-- [ ] Créer `workflows/01-recherche-offres.json`.
-- [ ] Source principale : API France Travail (OAuth2 client credentials +
-      endpoint search). Détails complets dans `docs/reference.md`.
-- [ ] Déclencheur : Schedule (ex. tous les jours à 8h).
-- [ ] Mots-clés et filtres paramétrables en tête de workflow (Set node).
-- [ ] Déduplication contre les offres déjà en base Notion.
-- [ ] Pour chaque nouvelle offre pertinente → notification Discord (webhook).
-- [ ] (Optionnel) Ajouter JobSpy comme 2e source via un petit service Python
-      ou un nœud Execute Command (voir reference.md).
+- [ ] Créer un **brouillon** Gmail avec CV + lettre en pièces jointes.
+- [ ] IMPORTANT : ne JAMAIS envoyer automatiquement. Le brouillon attend une
+      action humaine.
+- [ ] Archiver `cv.pdf` et `lettre.pdf` sur Google Drive sous
+      `Candidatures/<Entreprise>/`.
 
 **Critères d'acceptation**
-- Une exécution manuelle récupère des offres réelles correspondant aux mots-clés.
-- Les doublons sont filtrés.
-- Une notification Discord arrive pour une nouvelle offre.
+- L'email reste en **brouillon**, jamais envoyé sans action humaine.
+- Les documents sont rangés dans le bon dossier Drive.
 
 ---
 
-## ⬜ Tâche 7 — Chaîner le tout (orchestration)
+## ⬜ Tâche 10 — Orchestration de bout en bout
 
-**Objectif** : pipeline complet recherche → suivi → candidature.
+**Objectif** : pipeline complet recherche → notification → décision →
+candidature.
 
 **Étapes**
-- [ ] Relier 01 (recherche) → 03 (Notion) automatiquement.
-- [ ] Déclencher 02 (agent) quand le statut d'une offre passe à « À postuler »
-      dans Notion (Notion Trigger).
-- [ ] La sortie de l'agent (lettre, score) remonte dans la page Notion de l'offre.
+- [ ] Chaîner 01 (recherche) → jobs-alerts → décision → 02 (agent) → CV/lettre
+      → brouillon Gmail + Drive.
+- [ ] Mettre à jour les statuts Postgres à chaque étape
+      (`new → selected → applied`, `applications.status`).
 
 **Critères d'acceptation**
-- Changer un statut dans Notion déclenche la génération de la candidature.
-- La lettre apparaît dans la page Notion correspondante.
+- Sélectionner une offre depuis Discord déclenche toute la chaîne jusqu'au
+  brouillon Gmail.
+- Les statuts en base reflètent l'avancement.
 
 ---
 
-## ⬜ Tâche 8 — Génération PDF + envoi (optionnel, garde-fou humain)
-
-**Objectif** : produire la lettre en PDF et préparer l'email (sans envoi auto).
-
-**Étapes**
-- [ ] Convertir la lettre en PDF (nœud HTML→PDF ou service).
-- [ ] Préparer un brouillon d'email Gmail avec CV + lettre en pièces jointes.
-- [ ] IMPORTANT : ne PAS envoyer automatiquement. Créer un brouillon ou exiger
-      une validation manuelle (étape d'approbation).
-
-**Critères d'acceptation**
-- Un PDF propre est généré.
-- L'email reste en brouillon / attente de validation, jamais envoyé sans
-  action humaine.
-
----
-
-## ⬜ Tâche 9 — Documentation finale
+## ⬜ Tâche 11 — Documentation finale
 
 **Étapes**
 - [ ] Mettre à jour le README avec les workflows réellement créés.
@@ -175,13 +233,28 @@ Le squelette existe déjà : `docker-compose.yml`, `.env.example`, `.gitignore`,
 
 ---
 
+## 🔭 Évolutions (hors V1)
+
+- **V2** : enrichissement entreprise (table `companies.ai_summary`), relances
+  automatiques (détecter les `applications` sans `response_at`), dashboard
+  Metabase.
+- **V3** : historique intelligent, statistiques de réponse, priorisation
+  automatique des entreprises, mémoire des candidatures.
+- (Optionnel) Notion/Airtable comme interface de consultation en lecture seule
+  au-dessus de Postgres.
+
+---
+
 ## Principes à respecter pendant tout le build
 
 - **KISS** : préférer une solution simple et lisible à une usine à gaz.
+- **Source de vérité** : PostgreSQL. Ne pas réintroduire Notion comme stockage.
 - **Secrets** : toujours via `.env`, jamais en dur.
 - **Sources** : privilégier API/RSS officiels. Le scraping direct de LinkedIn
   est fragile et juridiquement gris — éviter.
-- **Garde-fou humain** : aucune candidature n'est envoyée sans validation.
+- **Garde-fou humain** : aucune candidature n'est envoyée sans validation ;
+  Gmail reste en brouillon.
+- **CV** : DeepSeek produit des données, Astro fait le rendu — jamais d'invention.
 - **Versionner** : chaque workflow validé est réexporté en JSON dans `workflows/`.
 - **Demander avant d'inventer** : si une info perso manque, demander à
   l'utilisateur plutôt que d'inventer.
