@@ -1,0 +1,64 @@
+{
+  "name": "03 - Statut offre (depuis Discord)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "offer-status",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "c3000000-0000-4000-8000-000000000001",
+      "name": "Webhook statut",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [-200, 300],
+      "webhookId": "offer-status"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Récupère hash + action depuis la query string et valide.\n// action doit être 'selected' ou 'ignored' (cf. contrainte offers.status).\nconst q = $input.first().json.query || {};\nconst hash = String(q.hash || '').trim();\nconst action = String(q.action || '').trim();\nif (!hash) throw new Error('hash manquant');\nif (!['selected', 'ignored'].includes(action)) {\n  throw new Error(`action invalide: ${action} (attendu selected|ignored)`);\n}\nreturn [{ json: { hash, action } }];"
+      },
+      "id": "c3000000-0000-4000-8000-000000000002",
+      "name": "Valider hash + action",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [20, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE offers SET status = $1 WHERE hash = $2 RETURNING id, title, status;",
+        "options": { "queryReplacement": "={{ $json.action }},{{ $json.hash }}" }
+      },
+      "id": "c3000000-0000-4000-8000-000000000003",
+      "name": "MAJ statut offre",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [240, 300],
+      "credentials": { "postgres": { "id": "REMPLACER", "name": "Postgres job-hunter" } }
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $items().length ? `OK — offre « ${$json.title} » → ${$json.status}` : 'Aucune offre pour ce hash.' }}",
+        "options": {}
+      },
+      "id": "c3000000-0000-4000-8000-000000000004",
+      "name": "Répondre",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [460, 300]
+    }
+  ],
+  "connections": {
+    "Webhook statut": { "main": [[{ "node": "Valider hash + action", "type": "main", "index": 0 }]] },
+    "Valider hash + action": { "main": [[{ "node": "MAJ statut offre", "type": "main", "index": 0 }]] },
+    "MAJ statut offre": { "main": [[{ "node": "Répondre", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "active": false,
+  "meta": {
+    "note": "BROUILLON à vérifier à l'import. Reçoit GET ...webhook/offer-status?hash=<hash>&action=selected|ignored (liens posés par le workflow 01 dans le canal jobs-alerts). Met à jour offers.status via une requête paramétrée. credential Postgres à associer. Statut 'selected' déclenchera l'agent (Tâche 7) ; 'ignored' classe l'offre."
+  }
+}

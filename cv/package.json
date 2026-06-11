@@ -5,7 +5,8 @@
   "scripts": {
     "build": "astro build",
     "preview": "astro preview",
-    "pdf": "node scripts/render-pdf.mjs"
+    "pdf": "node scripts/render-pdf.mjs",
+    "letter": "node scripts/render-letter.mjs"
   },
   "dependencies": {
     "astro": "^5.7.0"

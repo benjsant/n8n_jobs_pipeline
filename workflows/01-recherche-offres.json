@@ -237,7 +237,7 @@
         "url": "={{ $env.DISCORD_WEBHOOK_ALERTS }}",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ { \"content\": `🆕 **${$json.title}** — ${$json.company || 'Entreprise inconnue'}\\nScore ${$json.score} · ${$json.location} · ${$json.source}\\n${$json.url}` } }}",
+        "jsonBody": "={{ { \"content\": `🆕 **${$json.title}** — ${$json.company || 'Entreprise inconnue'}\\nScore ${$json.score} · ${$json.location} · ${$json.source}\\n${$json.url}\\n✅ Générer: ${$env.WEBHOOK_URL}webhook/offer-status?hash=${$json.hash}&action=selected\\n🚫 Ignorer: ${$env.WEBHOOK_URL}webhook/offer-status?hash=${$json.hash}&action=ignored` } }}",
         "options": {}
       },
       "id": "a1000000-0000-4000-8000-000000000055",

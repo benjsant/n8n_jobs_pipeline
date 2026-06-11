@@ -30,16 +30,12 @@ while IFS= read -r f; do
       echo "✗ $f : un .env ne doit jamais être committé."
       errors=$((errors + 1))
       ;;
-    cv/*.json)
-      case "$f" in
-        *.example.json|*.sample.json) : ;;  # gabarits : exemptés
-        *)
-          if ! staged_blob "$f" | grep -qE "$DUMMY_RE"; then
-            echo "✗ $f : plus de marqueur DUMMY → données personnelles probables."
-            errors=$((errors + 1))
-          fi
-          ;;
-      esac
+    cv/profile.json|cv/skills.json|cv/projects.json|cv/experiences.json|cv/education.json)
+      # Fichiers de profil candidat uniquement (pas package.json, configs, samples).
+      if ! staged_blob "$f" | grep -qE "$DUMMY_RE"; then
+        echo "✗ $f : plus de marqueur DUMMY → données personnelles probables."
+        errors=$((errors + 1))
+      fi
       ;;
     prompts/agent-system-prompt.md)
       if ! staged_blob "$f" | grep -qE "$DUMMY_RE"; then

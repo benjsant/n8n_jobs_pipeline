@@ -16,6 +16,7 @@ run() {
 
 run "Logique offres (dédup + scoring)" node workflows/lib/offer-utils.test.mjs
 run "Normaliseurs de sources" node workflows/lib/sources.test.mjs
+run "Rendu lettre (HTML)" node cv/letter.test.mjs
 run "Agent DeepSeek — schéma (mock)" python3 scripts/test_deepseek.py --mock
 
 echo "── Micro-service JobSpy"

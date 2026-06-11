@@ -41,6 +41,11 @@
   — à vérifier à l'import n8n.
 - **Deux canaux Discord** : `DISCORD_WEBHOOK_ALERTS` / `DISCORD_WEBHOOK_LOG`
   (+ alias rétro-compat `DISCORD_WEBHOOK_URL`) câblés dans `.env*` et compose.
+- **Rendu lettre** (`cv/letter.mjs`, 5 tests OK) : met en page le texte de
+  l'agent → PDF conteneurisé (`make letter-pdf`), alimente `letter_path`.
+- **Statuts depuis Discord** : workflow `03-statut-offre` (webhook
+  `offer-status?hash=&action=selected|ignored` → UPDATE `offers.status`) + liens
+  d'action ajoutés dans l'alerte du workflow `01`.
 
 ## 🔑 À me fournir (toi)
 
@@ -74,9 +79,9 @@ cloud, avec niveau) · expérience · projets · formation · secteurs visés / 
 | 3 | Finaliser profil candidat (system prompt + `cv/*.json`) | tes infos profil | 🟡 DUMMY en place, à remplacer |
 | 4 | Tester l'agent DeepSeek seul (script/curl) | clé DeepSeek | 🟡 script prêt (`--mock` OK), appel réel en attente de la clé |
 | 5 | Workflow `01-recherche-offres` (sources + dédup + scoring + Postgres + jobs-log) + micro-service JobSpy | clés FT/Adzuna/Discord | 🟡 4 sources + merge + jobs-log câblés (normaliseurs testés) ; à vérifier à l'import n8n |
-| 6 | Notif offres pertinentes (Discord jobs-alerts + statuts) | Tâche 5 | 🟡 alerts + log câblés (2 canaux) ; statuts `selected/ignored` à ajouter |
+| 6 | Notif offres pertinentes (Discord jobs-alerts + statuts) | Tâche 5 | 🟡 alerts + log + workflow `03` (statuts `selected/ignored` via liens) ; à vérifier à l'import |
 | 7 | Importer + fiabiliser `02-agent-candidature` (→ `applications`) | Tâches 4, 6 | ⬜ |
-| 8 | Génération CV Astro→PDF + lettre (templates) | Tâche 7 | 🟡 rendu CV (HTML vérifié, PDF conteneurisé) ; lettre à brancher |
+| 8 | Génération CV Astro→PDF + lettre (templates) | Tâche 7 | 🟡 CV (HTML vérifié, PDF conteneurisé) + lettre (5 tests, PDF conteneurisé) ; orchestration à brancher |
 | 9 | Brouillon Gmail + archivage Drive (**garde-fou humain**) | Tâche 8 + OAuth Google | 🟡 squelette `04` + doc OAuth ; à vérifier à l'import |
 | 10 | Orchestration de bout en bout + statuts Postgres | Tâches 5-9 | ⬜ |
 | 11 | Documentation finale + vérif aucun secret commité | tout | ⬜ |

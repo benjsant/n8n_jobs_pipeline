@@ -289,6 +289,12 @@ Canal de notification pour recevoir les offres dans un salon Discord.
   plus simple pour du push mono-salon.
 - ⚠️ Le webhook ne sert qu'à **poster** dans un salon ; il ne lit pas les
   messages. Parfait pour recevoir des notifs d'offres.
+- **Actions sur une offre** : un webhook Discord ne peut pas porter de vrais
+  boutons (il faudrait une application/bot Discord). À la place, le message
+  d'alerte contient deux **liens** vers le webhook n8n du workflow `03` :
+  `…/webhook/offer-status?hash=<hash>&action=selected|ignored`. Cliquer le lien
+  met à jour `offers.status`. Évolution possible (V2) : passer à une vraie
+  application Discord avec des boutons + endpoint d'interactions.
 
 ---
 

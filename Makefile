@@ -47,6 +47,14 @@ cv-pdf: ## Génère le PDF du CV (conteneurisé, Chromium inclus)
 	cd cv && docker build -t cv-render . \
 	  && docker run --rm -v "$$PWD/dist:/app/dist" cv-render
 
+letter-pdf: ## Génère le PDF d'une lettre (LETTER=chemin.json, conteneurisé)
+	cd cv && docker build -t cv-render . \
+	  && docker run --rm \
+	    -e LETTER_DATA=/data.json \
+	    -v "$$PWD/$(or $(LETTER),letter-data.sample.json):/data.json:ro" \
+	    -v "$$PWD/dist:/app/dist" \
+	    cv-render npm run letter
+
 ## --- Services ---
 jobspy-build: ## Build l'image du micro-service JobSpy
 	docker compose build jobspy

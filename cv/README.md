@@ -71,6 +71,21 @@ docker run --rm \
 Format A4 (`@page size: A4` + `page.pdf({format:'A4'})`). Le chemin du PDF est
 ensuite enregistré dans `generated_documents.cv_path` (Tâche 8/9).
 
+### Lettre de motivation → PDF
+Le **texte** de la lettre est produit par l'agent (champ `lettre_motivation`)
+à partir d'un modèle de `assets/letters/`. `cv/letter.mjs` ne fait que la **mise
+en page A4** (aucune invention). Données attendues : `candidate`, `company`,
+`date`, `subject`, `body` (cf. `letter-data.sample.json`).
+
+```bash
+# aperçu HTML (hôte)
+node -e "import('./letter.mjs').then(m=>console.log(m.buildLetterHtml(require('./letter-data.sample.json'))))"
+# PDF (conteneurisé)
+make letter-pdf LETTER=cv/letter-data.sample.json   # -> cv/dist/lettre.pdf
+```
+Le chemin est enregistré dans `generated_documents.letter_path` et alimente le
+`letter_path` du workflow `04`.
+
 > Statut de vérif : le **rendu HTML** est validé (données du profil + réordon-
 > nancement / surlignage issus de `personalization.sample.json`). L'**export
 > PDF** est conteneurisé mais l'image Playwright (~1,5 Go) n'a pas été buildée
