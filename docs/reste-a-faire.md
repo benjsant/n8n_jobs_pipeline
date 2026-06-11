@@ -34,6 +34,13 @@
   hors stack), et **garde-fou anti-fuite** (`scripts/check-no-personal-data.sh`
   + hook `.githooks/pre-commit`, à activer via `make install-hooks`) qui bloque
   un commit de `.env` ou d'un profil ayant perdu son marqueur DUMMY.
+- **Normaliseurs par source** (`workflows/lib/sources.mjs`, 7 tests OK) : FT,
+  Adzuna, JobSpy, WTTJ → schéma commun.
+- **Workflow `01` multi-sources** (4 sources → merge → score → hash → Postgres →
+  alerts + **jobs-log**) et **squelette `04`** (Drive + brouillon Gmail, Tâche 9)
+  — à vérifier à l'import n8n.
+- **Deux canaux Discord** : `DISCORD_WEBHOOK_ALERTS` / `DISCORD_WEBHOOK_LOG`
+  (+ alias rétro-compat `DISCORD_WEBHOOK_URL`) câblés dans `.env*` et compose.
 
 ## 🔑 À me fournir (toi)
 
@@ -66,11 +73,11 @@ cloud, avec niveau) · expérience · projets · formation · secteurs visés / 
 | 2 | Schéma PostgreSQL (`db/schema.sql`, 5 tables + dédup) | — | ✅ fait |
 | 3 | Finaliser profil candidat (system prompt + `cv/*.json`) | tes infos profil | 🟡 DUMMY en place, à remplacer |
 | 4 | Tester l'agent DeepSeek seul (script/curl) | clé DeepSeek | 🟡 script prêt (`--mock` OK), appel réel en attente de la clé |
-| 5 | Workflow `01-recherche-offres` (sources + dédup + scoring + Postgres + jobs-log) + micro-service JobSpy | clés FT/Adzuna/Discord | 🟡 JobSpy + logique + brouillon 01 ; à vérifier à l'import n8n, sources FT/JobSpy/WTTJ + jobs-log à ajouter |
-| 6 | Notif offres pertinentes (Discord jobs-alerts + statuts) | Tâche 5 | 🟡 alerte câblée dans 01 ; statuts `selected/ignored` à ajouter |
+| 5 | Workflow `01-recherche-offres` (sources + dédup + scoring + Postgres + jobs-log) + micro-service JobSpy | clés FT/Adzuna/Discord | 🟡 4 sources + merge + jobs-log câblés (normaliseurs testés) ; à vérifier à l'import n8n |
+| 6 | Notif offres pertinentes (Discord jobs-alerts + statuts) | Tâche 5 | 🟡 alerts + log câblés (2 canaux) ; statuts `selected/ignored` à ajouter |
 | 7 | Importer + fiabiliser `02-agent-candidature` (→ `applications`) | Tâches 4, 6 | ⬜ |
 | 8 | Génération CV Astro→PDF + lettre (templates) | Tâche 7 | 🟡 rendu CV (HTML vérifié, PDF conteneurisé) ; lettre à brancher |
-| 9 | Brouillon Gmail + archivage Drive (**garde-fou humain**) | Tâche 8 + OAuth Google | ⬜ |
+| 9 | Brouillon Gmail + archivage Drive (**garde-fou humain**) | Tâche 8 + OAuth Google | 🟡 squelette `04` + doc OAuth ; à vérifier à l'import |
 | 10 | Orchestration de bout en bout + statuts Postgres | Tâches 5-9 | ⬜ |
 | 11 | Documentation finale + vérif aucun secret commité | tout | ⬜ |
 

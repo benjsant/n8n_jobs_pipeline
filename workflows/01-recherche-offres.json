@@ -3,17 +3,13 @@
   "nodes": [
     {
       "parameters": {
-        "rule": {
-          "interval": [
-            { "field": "cronExpression", "expression": "0 8 * * *" }
-          ]
-        }
+        "rule": { "interval": [ { "field": "cronExpression", "expression": "0 8 * * *" } ] }
       },
       "id": "a1000000-0000-4000-8000-000000000001",
       "name": "Tous les jours 8h",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
-      "position": [-100, 300]
+      "position": [-200, 400]
     },
     {
       "parameters": {
@@ -21,7 +17,8 @@
           "assignments": [
             { "id": "k1", "name": "keywords", "value": "développeur intelligence artificielle", "type": "string" },
             { "id": "k2", "name": "location", "value": "France", "type": "string" },
-            { "id": "k3", "name": "scoreThreshold", "value": 70, "type": "number" }
+            { "id": "k3", "name": "ftCommune", "value": "", "type": "string" },
+            { "id": "k4", "name": "scoreThreshold", "value": 70, "type": "number" }
           ]
         },
         "options": {}
@@ -30,39 +27,159 @@
       "name": "Paramètres recherche",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [120, 300]
+      "position": [0, 400]
     },
+
     {
       "parameters": {
         "url": "=https://api.adzuna.com/v1/api/jobs/fr/search/1",
         "sendQuery": true,
-        "queryParameters": {
-          "parameters": [
-            { "name": "app_id", "value": "={{ $env.ADZUNA_APP_ID }}" },
-            { "name": "app_key", "value": "={{ $env.ADZUNA_APP_KEY }}" },
-            { "name": "what", "value": "={{ $json.keywords }}" },
-            { "name": "where", "value": "={{ $json.location }}" },
-            { "name": "results_per_page", "value": "50" },
-            { "name": "content-type", "value": "application/json" }
-          ]
-        },
+        "queryParameters": { "parameters": [
+          { "name": "app_id", "value": "={{ $env.ADZUNA_APP_ID }}" },
+          { "name": "app_key", "value": "={{ $env.ADZUNA_APP_KEY }}" },
+          { "name": "what", "value": "={{ $('Paramètres recherche').first().json.keywords }}" },
+          { "name": "where", "value": "={{ $('Paramètres recherche').first().json.location }}" },
+          { "name": "results_per_page", "value": "50" },
+          { "name": "content-type", "value": "application/json" }
+        ] },
         "options": {}
       },
-      "id": "a1000000-0000-4000-8000-000000000003",
+      "id": "a1000000-0000-4000-8000-000000000010",
       "name": "Adzuna - search",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [360, 300]
+      "position": [260, 100]
     },
     {
       "parameters": {
-        "jsCode": "// Normalise les résultats Adzuna -> schéma offers, calcule le score.\n// Le hash de dédup est produit par le nœud Crypto suivant (SHA256 sur hashSource).\n// Logique de scoring = copie de workflows/lib/offer-utils.mjs (garder synchro).\nconst PREFS = {\n  keywords: ['ia','intelligence artificielle','ml','machine learning','data','llm','python','développeur','developpeur'],\n  juniorTerms: ['junior','débutant','debutant','alternance','apprenti','stage','stagiaire','entry level'],\n  seniorTerms: ['senior','confirmé','confirme','lead','principal','5 ans','expérimenté','experimente'],\n  remoteTerms: ['télétravail','teletravail','remote','hybride','distanciel'],\n  goodContracts: ['cdi','alternance','cdd','apprentissage'],\n  preferredLocations: ['lyon','remote','télétravail','teletravail','france'],\n};\nconst norm = (s) => String(s ?? '').toLowerCase().normalize('NFKD').replace(/\\s+/g,' ').trim();\nfunction scoreOffer(o) {\n  const hay = norm(`${o.title} ${o.description} ${o.contract_type}`);\n  const loc = norm(o.location);\n  let score = 0;\n  score += Math.min(35, PREFS.keywords.filter(k => hay.includes(norm(k))).length * 9);\n  const isJ = PREFS.juniorTerms.some(t => hay.includes(norm(t)));\n  const isS = PREFS.seniorTerms.some(t => hay.includes(norm(t)));\n  if (isJ && !isS) score += 25; else if (!isS) score += 12;\n  if (PREFS.remoteTerms.some(t => hay.includes(norm(t)) || loc.includes(norm(t)))) score += 15;\n  if (PREFS.preferredLocations.some(l => loc.includes(norm(l)))) score += 10;\n  if (PREFS.goodContracts.some(c => hay.includes(norm(c)))) score += 10;\n  if (norm(o.salary)) score += 5;\n  return Math.max(0, Math.min(100, Math.round(score)));\n}\nconst results = $input.first().json.results || [];\nreturn results.map((r) => {\n  const o = {\n    source: 'adzuna',\n    source_id: String(r.id ?? ''),\n    title: r.title ?? '',\n    company: r.company?.display_name ?? '',\n    location: r.location?.display_name ?? '',\n    contract_type: r.contract_time ?? r.contract_type ?? '',\n    salary: r.salary_min ? String(r.salary_min) : '',\n    description: r.description ?? '',\n    url: r.redirect_url ?? '',\n  };\n  o.score = scoreOffer(o);\n  o.hashSource = [o.title, o.company, o.location].map(norm).join('|');\n  return { json: o };\n});"
+        "jsCode": "// Normalise Adzuna -> schéma commun (cf. workflows/lib/sources.mjs).\nconst s = (v) => String(v ?? '').trim();\nconst results = $input.first().json.results || [];\nreturn results.map((r) => ({ json: {\n  source: 'adzuna', source_id: s(r.id), title: s(r.title),\n  company: s(r.company?.display_name), location: s(r.location?.display_name),\n  contract_type: s(r.contract_time || r.contract_type),\n  salary: r.salary_min ? s(r.salary_min) : '', description: s(r.description),\n  url: s(r.redirect_url),\n} }));"
       },
-      "id": "a1000000-0000-4000-8000-000000000004",
-      "name": "Normaliser + Scorer",
+      "id": "a1000000-0000-4000-8000-000000000011",
+      "name": "norm Adzuna",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [580, 300]
+      "position": [520, 100]
+    },
+
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://entreprise.francetravail.fr/connexion/oauth2/access_token?realm=/partenaire",
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": { "parameters": [
+          { "name": "grant_type", "value": "client_credentials" },
+          { "name": "client_id", "value": "={{ $env.FRANCE_TRAVAIL_CLIENT_ID }}" },
+          { "name": "client_secret", "value": "={{ $env.FRANCE_TRAVAIL_CLIENT_SECRET }}" },
+          { "name": "scope", "value": "api_offresdemploiv2 o2dsoffre" }
+        ] },
+        "options": {}
+      },
+      "id": "a1000000-0000-4000-8000-000000000020",
+      "name": "FT - token",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [260, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://api.francetravail.io/partenaire/offresdemploi/v2/offres/search",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [
+          { "name": "Authorization", "value": "=Bearer {{ $json.access_token }}" }
+        ] },
+        "sendQuery": true,
+        "queryParameters": { "parameters": [
+          { "name": "motsCles", "value": "={{ $('Paramètres recherche').first().json.keywords }}" },
+          { "name": "commune", "value": "={{ $('Paramètres recherche').first().json.ftCommune }}" },
+          { "name": "range", "value": "0-149" }
+        ] },
+        "options": {}
+      },
+      "id": "a1000000-0000-4000-8000-000000000021",
+      "name": "FT - search",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [520, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Normalise France Travail -> schéma commun (cf. workflows/lib/sources.mjs).\nconst s = (v) => String(v ?? '').trim();\nconst results = $input.first().json.resultats || [];\nreturn results.map((r) => ({ json: {\n  source: 'france_travail', source_id: s(r.id), title: s(r.intitule),\n  company: s(r.entreprise?.nom), location: s(r.lieuTravail?.libelle),\n  contract_type: s(r.typeContrat || r.typeContratLibelle),\n  salary: s(r.salaire?.libelle), description: s(r.description),\n  url: s(r.origineOffre?.urlOrigine),\n} }));"
+      },
+      "id": "a1000000-0000-4000-8000-000000000022",
+      "name": "norm FT",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [780, 300]
+    },
+
+    {
+      "parameters": {
+        "url": "={{ $env.JOBSPY_API_URL }}/search",
+        "sendQuery": true,
+        "queryParameters": { "parameters": [
+          { "name": "term", "value": "={{ $('Paramètres recherche').first().json.keywords }}" },
+          { "name": "location", "value": "={{ $('Paramètres recherche').first().json.location }}" },
+          { "name": "results", "value": "50" }
+        ] },
+        "options": {}
+      },
+      "id": "a1000000-0000-4000-8000-000000000030",
+      "name": "JobSpy - search",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [260, 500]
+    },
+    {
+      "parameters": {
+        "jsCode": "// JobSpy est déjà normalisé par le micro-service (cf. sources.mjs).\nconst s = (v) => String(v ?? '').trim();\nconst offers = $input.first().json.offers || [];\nreturn offers.map((o) => ({ json: {\n  source: s(o.source) || 'jobspy', source_id: s(o.source_id || o.url),\n  title: s(o.title), company: s(o.company), location: s(o.location),\n  contract_type: s(o.contract_type), salary: s(o.salary),\n  description: s(o.description), url: s(o.url),\n} }));"
+      },
+      "id": "a1000000-0000-4000-8000-000000000031",
+      "name": "norm JobSpy",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [520, 500]
+    },
+
+    {
+      "parameters": {
+        "url": "={{ $env.WTTJ_RSS_URL }}",
+        "options": {}
+      },
+      "id": "a1000000-0000-4000-8000-000000000040",
+      "name": "WTTJ - RSS",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.1,
+      "position": [260, 700]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Normalise WTTJ RSS -> schéma commun (cf. workflows/lib/sources.mjs).\nconst s = (v) => String(v ?? '').trim();\nreturn $input.all().map(({ json: it }) => {\n  const rawTitle = s(it.title); let title = rawTitle, company = '';\n  const dash = rawTitle.split(/\\s[-–|]\\s/);\n  if (dash.length >= 2) { title = s(dash[0]); company = s(dash[dash.length - 1]); }\n  return { json: {\n    source: 'wttj', source_id: s(it.guid || it.id || it.link), title, company,\n    location: s(it.location), contract_type: '', salary: '',\n    description: s(it.contentSnippet || it.content || it.description), url: s(it.link),\n  } };\n});"
+      },
+      "id": "a1000000-0000-4000-8000-000000000041",
+      "name": "norm WTTJ",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [520, 700]
+    },
+
+    {
+      "parameters": { "numberInputs": 4 },
+      "id": "a1000000-0000-4000-8000-000000000050",
+      "name": "Fusionner sources",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [1040, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Score 0-100 + hashSource (cf. workflows/lib/offer-utils.mjs). Le hash SHA256\n// est calculé par le nœud Crypto suivant. Garder en parité avec le module.\nconst PREFS = {\n  keywords: ['ia','intelligence artificielle','ml','machine learning','data','llm','python','développeur','developpeur'],\n  juniorTerms: ['junior','débutant','debutant','alternance','apprenti','stage','stagiaire','entry level'],\n  seniorTerms: ['senior','confirmé','confirme','lead','principal','5 ans','expérimenté','experimente'],\n  remoteTerms: ['télétravail','teletravail','remote','hybride','distanciel'],\n  goodContracts: ['cdi','alternance','cdd','apprentissage'],\n  preferredLocations: ['lyon','remote','télétravail','teletravail','france'],\n};\nconst norm = (s) => String(s ?? '').toLowerCase().normalize('NFKD').replace(/\\s+/g,' ').trim();\nfunction scoreOffer(o) {\n  const hay = norm(`${o.title} ${o.description} ${o.contract_type}`);\n  const loc = norm(o.location); let score = 0;\n  score += Math.min(35, PREFS.keywords.filter(k => hay.includes(norm(k))).length * 9);\n  const isJ = PREFS.juniorTerms.some(t => hay.includes(norm(t)));\n  const isS = PREFS.seniorTerms.some(t => hay.includes(norm(t)));\n  if (isJ && !isS) score += 25; else if (!isS) score += 12;\n  if (PREFS.remoteTerms.some(t => hay.includes(norm(t)) || loc.includes(norm(t)))) score += 15;\n  if (PREFS.preferredLocations.some(l => loc.includes(norm(l)))) score += 10;\n  if (PREFS.goodContracts.some(c => hay.includes(norm(c)))) score += 10;\n  if (norm(o.salary)) score += 5;\n  return Math.max(0, Math.min(100, Math.round(score)));\n}\nreturn $input.all().map(({ json: o }) => ({ json: {\n  ...o, score: scoreOffer(o), hashSource: [o.title, o.company, o.location].map(norm).join('|'),\n} }));"
+      },
+      "id": "a1000000-0000-4000-8000-000000000051",
+      "name": "Scorer + hashSource",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1280, 400]
     },
     {
       "parameters": {
@@ -72,93 +189,120 @@
         "dataPropertyName": "hash",
         "options": {}
       },
-      "id": "a1000000-0000-4000-8000-000000000005",
+      "id": "a1000000-0000-4000-8000-000000000052",
       "name": "Hash dédup",
       "type": "n8n-nodes-base.crypto",
       "typeVersion": 1,
-      "position": [800, 300]
+      "position": [1500, 400]
     },
     {
       "parameters": {
         "operation": "insert",
         "schema": { "__rl": true, "mode": "list", "value": "public" },
         "table": { "__rl": true, "mode": "list", "value": "offers" },
-        "columns": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "source": "={{ $json.source }}",
-            "source_id": "={{ $json.source_id }}",
-            "hash": "={{ $json.hash }}",
-            "title": "={{ $json.title }}",
-            "company": "={{ $json.company }}",
-            "location": "={{ $json.location }}",
-            "contract_type": "={{ $json.contract_type }}",
-            "salary": "={{ $json.salary }}",
-            "description": "={{ $json.description }}",
-            "url": "={{ $json.url }}",
-            "score": "={{ $json.score }}"
-          }
-        },
+        "columns": { "mappingMode": "defineBelow", "value": {
+          "source": "={{ $json.source }}", "source_id": "={{ $json.source_id }}",
+          "hash": "={{ $json.hash }}", "title": "={{ $json.title }}",
+          "company": "={{ $json.company }}", "location": "={{ $json.location }}",
+          "contract_type": "={{ $json.contract_type }}", "salary": "={{ $json.salary }}",
+          "description": "={{ $json.description }}", "url": "={{ $json.url }}",
+          "score": "={{ $json.score }}"
+        } },
         "options": { "skipOnConflict": true }
       },
-      "id": "a1000000-0000-4000-8000-000000000006",
+      "id": "a1000000-0000-4000-8000-000000000053",
       "name": "Insert offers (dédup)",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
-      "position": [1020, 300],
-      "credentials": {
-        "postgres": { "id": "REMPLACER", "name": "Postgres job-hunter" }
-      }
+      "position": [1720, 400],
+      "credentials": { "postgres": { "id": "REMPLACER", "name": "Postgres job-hunter" } }
     },
     {
       "parameters": {
-        "conditions": {
-          "options": { "caseSensitive": true, "version": 2 },
-          "combinator": "and",
-          "conditions": [
-            {
-              "leftValue": "={{ $json.score }}",
-              "rightValue": "={{ $('Paramètres recherche').first().json.scoreThreshold }}",
-              "operator": { "type": "number", "operation": "gte" }
-            }
-          ]
-        },
+        "conditions": { "options": { "caseSensitive": true, "version": 2 }, "combinator": "and",
+          "conditions": [ { "leftValue": "={{ $json.score }}",
+            "rightValue": "={{ $('Paramètres recherche').first().json.scoreThreshold }}",
+            "operator": { "type": "number", "operation": "gte" } } ] },
         "options": {}
       },
-      "id": "a1000000-0000-4000-8000-000000000007",
+      "id": "a1000000-0000-4000-8000-000000000054",
       "name": "Score suffisant ?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
-      "position": [1240, 300]
+      "position": [1940, 400]
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ $env.DISCORD_WEBHOOK_URL }}",
+        "url": "={{ $env.DISCORD_WEBHOOK_ALERTS }}",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ { \"content\": `🆕 **${$json.title}** — ${$json.company || 'Entreprise inconnue'}\\nScore ${$json.score} · ${$json.location}\\n${$json.url}` } }}",
+        "jsonBody": "={{ { \"content\": `🆕 **${$json.title}** — ${$json.company || 'Entreprise inconnue'}\\nScore ${$json.score} · ${$json.location} · ${$json.source}\\n${$json.url}` } }}",
         "options": {}
       },
-      "id": "a1000000-0000-4000-8000-000000000008",
+      "id": "a1000000-0000-4000-8000-000000000055",
       "name": "Discord jobs-alerts",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1460, 200]
+      "position": [2180, 300]
+    },
+
+    {
+      "parameters": {
+        "jsCode": "// Résumé technique pour le canal jobs-log.\nconst items = $input.all().map(i => i.json);\nconst total = items.length;\nconst threshold = $('Paramètres recherche').first().json.scoreThreshold;\nconst retenues = items.filter(o => o.score >= threshold).length;\nconst parSource = {};\nfor (const o of items) parSource[o.source] = (parSource[o.source] || 0) + 1;\nconst detail = Object.entries(parSource).map(([k,v]) => `${k}: ${v}`).join(' · ');\nreturn [{ json: { total, retenues, threshold, detail } }];"
+      },
+      "id": "a1000000-0000-4000-8000-000000000060",
+      "name": "Résumé log",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1500, 620]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.DISCORD_WEBHOOK_LOG }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { \"content\": `📊 Run recherche — ${$json.total} offres collectées (${$json.detail}) · ${$json.retenues} ≥ ${$json.threshold}` } }}",
+        "options": {}
+      },
+      "id": "a1000000-0000-4000-8000-000000000061",
+      "name": "Discord jobs-log",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1720, 620]
     }
   ],
   "connections": {
     "Tous les jours 8h": { "main": [[{ "node": "Paramètres recherche", "type": "main", "index": 0 }]] },
-    "Paramètres recherche": { "main": [[{ "node": "Adzuna - search", "type": "main", "index": 0 }]] },
-    "Adzuna - search": { "main": [[{ "node": "Normaliser + Scorer", "type": "main", "index": 0 }]] },
-    "Normaliser + Scorer": { "main": [[{ "node": "Hash dédup", "type": "main", "index": 0 }]] },
+    "Paramètres recherche": { "main": [[
+      { "node": "Adzuna - search", "type": "main", "index": 0 },
+      { "node": "FT - token", "type": "main", "index": 0 },
+      { "node": "JobSpy - search", "type": "main", "index": 0 },
+      { "node": "WTTJ - RSS", "type": "main", "index": 0 }
+    ]] },
+    "Adzuna - search": { "main": [[{ "node": "norm Adzuna", "type": "main", "index": 0 }]] },
+    "norm Adzuna": { "main": [[{ "node": "Fusionner sources", "type": "main", "index": 0 }]] },
+    "FT - token": { "main": [[{ "node": "FT - search", "type": "main", "index": 0 }]] },
+    "FT - search": { "main": [[{ "node": "norm FT", "type": "main", "index": 0 }]] },
+    "norm FT": { "main": [[{ "node": "Fusionner sources", "type": "main", "index": 1 }]] },
+    "JobSpy - search": { "main": [[{ "node": "norm JobSpy", "type": "main", "index": 0 }]] },
+    "norm JobSpy": { "main": [[{ "node": "Fusionner sources", "type": "main", "index": 2 }]] },
+    "WTTJ - RSS": { "main": [[{ "node": "norm WTTJ", "type": "main", "index": 0 }]] },
+    "norm WTTJ": { "main": [[{ "node": "Fusionner sources", "type": "main", "index": 3 }]] },
+    "Fusionner sources": { "main": [[
+      { "node": "Scorer + hashSource", "type": "main", "index": 0 },
+      { "node": "Résumé log", "type": "main", "index": 0 }
+    ]] },
+    "Scorer + hashSource": { "main": [[{ "node": "Hash dédup", "type": "main", "index": 0 }]] },
     "Hash dédup": { "main": [[{ "node": "Insert offers (dédup)", "type": "main", "index": 0 }]] },
     "Insert offers (dédup)": { "main": [[{ "node": "Score suffisant ?", "type": "main", "index": 0 }]] },
-    "Score suffisant ?": { "main": [[{ "node": "Discord jobs-alerts", "type": "main", "index": 0 }], []] }
+    "Score suffisant ?": { "main": [[{ "node": "Discord jobs-alerts", "type": "main", "index": 0 }], []] },
+    "Résumé log": { "main": [[{ "node": "Discord jobs-log", "type": "main", "index": 0 }]] }
   },
   "settings": { "executionOrder": "v1" },
   "active": false,
   "meta": {
-    "note": "BROUILLON à vérifier à l'import dans n8n (versions de nœuds, credential Postgres). Source câblée : Adzuna. À ajouter : France Travail (OAuth2), JobSpy (HTTP vers http://jobspy:8000/search), WTTJ (RSS Read), + un log dans le canal jobs-log. Logique dédup/scoring = workflows/lib/offer-utils.mjs."
+    "note": "BROUILLON à vérifier à l'import dans n8n (typeVersions des nœuds, mode du nœud Merge à 4 entrées, credential Postgres à associer). 4 sources : Adzuna, France Travail (OAuth2 token+search), JobSpy (micro-service), WTTJ (RSS). Dédup au niveau base (hash UNIQUE + skipOnConflict). Logique dédup/scoring/normalisation = workflows/lib/offer-utils.mjs + sources.mjs (testées). Discord: DISCORD_WEBHOOK_ALERTS et DISCORD_WEBHOOK_LOG."
   }
 }

@@ -55,7 +55,10 @@ services:
       ADZUNA_APP_KEY: ${ADZUNA_APP_KEY}
       JOBSPY_API_URL: ${JOBSPY_API_URL:-http://jobspy:8000}
       WTTJ_RSS_URL: ${WTTJ_RSS_URL:-}
-      DISCORD_WEBHOOK_URL: ${DISCORD_WEBHOOK_URL}
+      DISCORD_WEBHOOK_ALERTS: ${DISCORD_WEBHOOK_ALERTS:-${DISCORD_WEBHOOK_URL:-}}
+      DISCORD_WEBHOOK_LOG: ${DISCORD_WEBHOOK_LOG:-}
+      DISCORD_WEBHOOK_URL: ${DISCORD_WEBHOOK_URL:-}
+      GOOGLE_DRIVE_FOLDER: ${GOOGLE_DRIVE_FOLDER:-Candidatures}
       # --- Permet de lire les variables d'env dans les expressions n8n ---
       N8N_BLOCK_ENV_ACCESS_IN_NODE: "false"
     volumes:

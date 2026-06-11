@@ -279,7 +279,11 @@ Canal de notification pour recevoir les offres dans un salon Discord.
   ```
   - `content` : texte simple (max 2000 caractères), supporte le Markdown Discord.
   - Pour un rendu plus riche, utiliser `embeds` (titre, description, URL, couleur).
-- **Dans n8n** : nœud **HTTP Request** (`POST` vers `{{ $env.DISCORD_WEBHOOK_URL }}`,
+- **Deux webhooks distincts** : `{{ $env.DISCORD_WEBHOOK_ALERTS }}` pour les
+  offres pertinentes, `{{ $env.DISCORD_WEBHOOK_LOG }}` pour les logs techniques.
+  `DISCORD_WEBHOOK_URL` reste un alias rétro-compatible d'ALERTS (compose le
+  recopie si ALERTS est vide).
+- **Dans n8n** : nœud **HTTP Request** (`POST` vers le webhook voulu,
   body JSON `{ "content": "..." }`) — pas besoin de credential, le token est
   dans l'URL. Un nœud Discord natif existe aussi mais le webhook HTTP est le
   plus simple pour du push mono-salon.
@@ -295,12 +299,37 @@ Toutes lisibles via `{{ $env.NOM }}` dans les expressions (grâce à
 
 `DEEPSEEK_API_KEY`, `DEEPSEEK_BASE_URL`, `DEEPSEEK_MODEL`,
 `FRANCE_TRAVAIL_CLIENT_ID`, `FRANCE_TRAVAIL_CLIENT_SECRET`, `ADZUNA_APP_ID`,
-`ADZUNA_APP_KEY`, `JOBSPY_API_URL`, `WTTJ_RSS_URL`, `DISCORD_WEBHOOK_URL`,
+`ADZUNA_APP_KEY`, `JOBSPY_API_URL`, `WTTJ_RSS_URL`, `DISCORD_WEBHOOK_ALERTS`,
+`DISCORD_WEBHOOK_LOG`, `DISCORD_WEBHOOK_URL` (alias rétro-compat d'ALERTS),
 `GOOGLE_DRIVE_FOLDER`. Optionnels (hors V1) : `NOTION_API_KEY`,
 `NOTION_DB_OFFRES`, `NOTION_DB_ENTREPRISES`.
 
 > Gmail/Drive : l'auth Google passe par les credentials OAuth du nœud Google de
 > n8n, pas par une variable d'environnement.
+
+---
+
+## 6b. Google (Gmail brouillon + Drive archivage)
+
+Étapes finales de la candidature (Tâche 9, workflow `04`). **Garde-fou : Gmail
+crée un BROUILLON, jamais d'envoi automatique.**
+
+- **Auth = OAuth2 via n8n** (pas une clé en clair) :
+  1. Google Cloud Console → créer un projet → activer les API **Gmail** et
+     **Google Drive**.
+  2. Créer des identifiants **OAuth client ID** (type « Web application »).
+  3. Renseigner l'URL de redirection donnée par n8n (Credentials → Google →
+     « OAuth Redirect URL »).
+  4. Dans n8n, créer deux credentials : **Gmail OAuth2** et **Google Drive
+     OAuth2**, coller client id/secret, puis « Connect » (consentement Google).
+- **Drive** : nœud `Google Drive` → créer le dossier `<Entreprise>` (sous le
+  dossier défini par `GOOGLE_DRIVE_FOLDER`, défaut `Candidatures`), puis
+  uploader `cv.pdf` et `lettre.pdf` (un nœud upload par fichier binaire).
+- **Gmail** : nœud `Gmail` → `resource: draft` (créer un brouillon) avec
+  `sendTo`, `subject`, `message` et les pièces jointes binaires (`cv`, `letter`).
+  Ne JAMAIS utiliser l'opération d'envoi.
+- ⚠️ Pour joindre CV **et** lettre, regrouper les deux binaires sur un même item
+  (nœud Merge en mode « combine ») avant le nœud Gmail.
 
 ---
 
