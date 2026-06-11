@@ -53,6 +53,12 @@
   écrit `companies`/`applications` (draft) puis passe l'offre en `applied`.
 - **Orchestration** : `03` (action `selected`) → charge l'offre → lance `02`
   (Execute Workflow) ; chaîne complète documentée dans `workflows/README.md`.
+- **Scoring hybride** (`workflows/lib/llm-scoring.mjs`, 7 tests) : pré-filtre
+  déterministe + affinage DeepSeek du top-N (`score` + `score_reason`) ; intégré
+  au workflow `01` ; colonne `score_reason` ajoutée au schéma.
+- **Enrichissement entreprise** (`workflows/lib/company-enrichment.mjs`, 6 tests)
+  **grounded** (résumé à partir du seul texte de l'offre, sans invention) →
+  `companies.sector`/`ai_summary` ; intégré au workflow `02`.
 
 ## 🔑 À me fournir (toi)
 

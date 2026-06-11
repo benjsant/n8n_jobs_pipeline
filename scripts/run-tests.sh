@@ -16,6 +16,8 @@ run() {
 
 run "Logique offres (dédup + scoring)" node workflows/lib/offer-utils.test.mjs
 run "Normaliseurs de sources" node workflows/lib/sources.test.mjs
+run "Scoring hybride (LLM)" node workflows/lib/llm-scoring.test.mjs
+run "Enrichissement entreprise" node workflows/lib/company-enrichment.test.mjs
 run "Rendu lettre (HTML)" node cv/letter.test.mjs
 run "Agent DeepSeek — schéma (mock)" python3 scripts/test_deepseek.py --mock
 

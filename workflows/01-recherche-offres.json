@@ -18,7 +18,9 @@
             { "id": "k1", "name": "keywords", "value": "développeur intelligence artificielle", "type": "string" },
             { "id": "k2", "name": "location", "value": "France", "type": "string" },
             { "id": "k3", "name": "ftCommune", "value": "", "type": "string" },
-            { "id": "k4", "name": "scoreThreshold", "value": 70, "type": "number" }
+            { "id": "k4", "name": "scoreThreshold", "value": 70, "type": "number" },
+            { "id": "k5", "name": "topN", "value": 20, "type": "number" },
+            { "id": "k6", "name": "profileText", "value": "Développeur IA junior. Stack: Python (solide), FastAPI, PyTorch, scikit-learn, RAG/LLM, Docker, PostgreSQL. Cherche CDI/alternance/CDD, junior, télétravail/hybride accepté, Lyon ou remote.", "type": "string" }
           ]
         },
         "options": {}
@@ -219,6 +221,59 @@
     },
     {
       "parameters": {
+        "jsCode": "// Scoring hybride (cf. workflows/lib/llm-scoring.mjs) : on ne fait affiner\n// par le LLM que le top-N par score déterministe. Construit le lot + les\n// messages DeepSeek. Sort UN item { messages, offers }.\nconst topN = $('Paramètres recherche').first().json.topN || 20;\nconst profileText = $('Paramètres recherche').first().json.profileText || '';\nconst all = $input.all().map(i => i.json);\nconst offers = [...all].sort((a,b)=>(b.score??0)-(a.score??0)).slice(0, topN);\nconst system = \"Tu es un assistant qui évalue la PERTINENCE d'offres d'emploi pour un candidat donné. Tu réponds UNIQUEMENT en JSON valide, sans texte autour, au format {\\\"scores\\\":[{\\\"i\\\":<index>,\\\"score\\\":<0-100>,\\\"reason\\\":\\\"<courte justification>\\\"}]}. N'invente rien.\";\nconst list = offers.map((o,i)=>`#${i} — ${o.title||'?'} @ ${o.company||'?'} (${o.location||'?'})\\n${String(o.description||'').slice(0,600)}`).join('\\n\\n');\nconst user = `PROFIL DU CANDIDAT:\\n${profileText}\\n\\nOFFRES À SCORER (un score par index):\\n${list}`;\nreturn [{ json: { messages: [{role:'system',content:system},{role:'user',content:user}], offers } }];"
+      },
+      "id": "a1000000-0000-4000-8000-000000000056",
+      "name": "Préparer scoring LLM",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1940, 540]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.DEEPSEEK_BASE_URL }}/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [
+          { "name": "Authorization", "value": "=Bearer {{ $env.DEEPSEEK_API_KEY }}" },
+          { "name": "Content-Type", "value": "application/json" }
+        ] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"{{ $env.DEEPSEEK_MODEL }}\",\n  \"messages\": {{ JSON.stringify($json.messages) }},\n  \"response_format\": { \"type\": \"json_object\" },\n  \"temperature\": 0.2\n}",
+        "options": {}
+      },
+      "id": "a1000000-0000-4000-8000-000000000057",
+      "name": "DeepSeek scoring",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2160, 540]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Fusionne la réponse LLM dans les offres top-N (cf. llm-scoring.parseScoringResponse).\n// Emet un item par offre, avec score (LLM) + score_reason. Fallback déterministe.\nconst clamp = (n)=>Math.max(0,Math.min(100,Math.round(Number(n)||0)));\nconst raw = $input.first().json.choices?.[0]?.message?.content ?? '';\nconst offers = $('Préparer scoring LLM').first().json.offers || [];\nlet data; try { data = JSON.parse(raw); } catch { data = null; }\nconst byI = new Map();\nfor (const s of (data?.scores ?? [])) if (Number.isInteger(s.i)) byI.set(s.i, s);\nreturn offers.map((o,i)=>{ const s=byI.get(i); return { json: (!s||s.score==null) ? o : { ...o, score: clamp(s.score), score_reason: String(s.reason ?? '') } }; });"
+      },
+      "id": "a1000000-0000-4000-8000-000000000058",
+      "name": "Fusion scores",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2380, 540]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE offers SET score = $1, score_reason = $2 WHERE hash = $3;",
+        "options": { "queryReplacement": "={{ [$json.score, $json.score_reason || '', $json.hash] }}" }
+      },
+      "id": "a1000000-0000-4000-8000-000000000059",
+      "name": "MAJ score (LLM)",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [2600, 540],
+      "credentials": { "postgres": { "id": "REMPLACER", "name": "Postgres job-hunter" } }
+    },
+    {
+      "parameters": {
         "conditions": { "options": { "caseSensitive": true, "version": 2 }, "combinator": "and",
           "conditions": [ { "leftValue": "={{ $json.score }}",
             "rightValue": "={{ $('Paramètres recherche').first().json.scoreThreshold }}",
@@ -237,7 +292,7 @@
         "url": "={{ $env.DISCORD_WEBHOOK_ALERTS }}",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ { \"content\": `🆕 **${$json.title}** — ${$json.company || 'Entreprise inconnue'}\\nScore ${$json.score} · ${$json.location} · ${$json.source}\\n${$json.url}\\n✅ Générer: ${$env.WEBHOOK_URL}webhook/offer-status?hash=${$json.hash}&action=selected\\n🚫 Ignorer: ${$env.WEBHOOK_URL}webhook/offer-status?hash=${$json.hash}&action=ignored` } }}",
+        "jsonBody": "={{ { \"content\": `🆕 **${$json.title}** — ${$json.company || 'Entreprise inconnue'}\\nScore ${$json.score} · ${$json.location} · ${$json.source}${$json.score_reason ? '\\n💡 ' + $json.score_reason : ''}\\n${$json.url}\\n✅ Générer: ${$env.WEBHOOK_URL}webhook/offer-status?hash=${$json.hash}&action=selected\\n🚫 Ignorer: ${$env.WEBHOOK_URL}webhook/offer-status?hash=${$json.hash}&action=ignored` } }}",
         "options": {}
       },
       "id": "a1000000-0000-4000-8000-000000000055",
@@ -296,13 +351,17 @@
     ]] },
     "Scorer + hashSource": { "main": [[{ "node": "Hash dédup", "type": "main", "index": 0 }]] },
     "Hash dédup": { "main": [[{ "node": "Insert offers (dédup)", "type": "main", "index": 0 }]] },
-    "Insert offers (dédup)": { "main": [[{ "node": "Score suffisant ?", "type": "main", "index": 0 }]] },
+    "Insert offers (dédup)": { "main": [[{ "node": "Préparer scoring LLM", "type": "main", "index": 0 }]] },
+    "Préparer scoring LLM": { "main": [[{ "node": "DeepSeek scoring", "type": "main", "index": 0 }]] },
+    "DeepSeek scoring": { "main": [[{ "node": "Fusion scores", "type": "main", "index": 0 }]] },
+    "Fusion scores": { "main": [[{ "node": "MAJ score (LLM)", "type": "main", "index": 0 }]] },
+    "MAJ score (LLM)": { "main": [[{ "node": "Score suffisant ?", "type": "main", "index": 0 }]] },
     "Score suffisant ?": { "main": [[{ "node": "Discord jobs-alerts", "type": "main", "index": 0 }], []] },
     "Résumé log": { "main": [[{ "node": "Discord jobs-log", "type": "main", "index": 0 }]] }
   },
   "settings": { "executionOrder": "v1" },
   "active": false,
   "meta": {
-    "note": "BROUILLON à vérifier à l'import dans n8n (typeVersions des nœuds, mode du nœud Merge à 4 entrées, credential Postgres à associer). 4 sources : Adzuna, France Travail (OAuth2 token+search), JobSpy (micro-service), WTTJ (RSS). Dédup au niveau base (hash UNIQUE + skipOnConflict). Logique dédup/scoring/normalisation = workflows/lib/offer-utils.mjs + sources.mjs (testées). Discord: DISCORD_WEBHOOK_ALERTS et DISCORD_WEBHOOK_LOG."
+    "note": "BROUILLON à vérifier à l'import dans n8n (typeVersions des nœuds, mode du nœud Merge à 4 entrées, credential Postgres à associer). 4 sources : Adzuna, France Travail (OAuth2 token+search), JobSpy (micro-service), WTTJ (RSS). Dédup au niveau base (hash UNIQUE + skipOnConflict). SCORING HYBRIDE : score déterministe (toutes les offres) puis affinage DeepSeek du top-N (score + score_reason) avant l'alerte. Logique = workflows/lib/offer-utils.mjs + sources.mjs + llm-scoring.mjs (testées). Discord: DISCORD_WEBHOOK_ALERTS et DISCORD_WEBHOOK_LOG."
   }
 }

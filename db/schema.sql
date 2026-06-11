@@ -26,10 +26,14 @@ CREATE TABLE IF NOT EXISTS offers (
     description   TEXT,
     url           TEXT,
     score         INTEGER CHECK (score BETWEEN 0 AND 100),
+    score_reason  TEXT,                          -- justification du score (scoring LLM)
     status        TEXT NOT NULL DEFAULT 'new'
                   CHECK (status IN ('new', 'reviewed', 'selected', 'ignored', 'applied')),
     created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- Pour les bases déjà créées avant l'ajout de score_reason (idempotent).
+ALTER TABLE offers ADD COLUMN IF NOT EXISTS score_reason TEXT;
 
 CREATE INDEX IF NOT EXISTS idx_offers_status ON offers (status);
 CREATE INDEX IF NOT EXISTS idx_offers_created_at ON offers (created_at DESC);

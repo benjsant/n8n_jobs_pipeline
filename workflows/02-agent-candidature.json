@@ -99,15 +99,55 @@
     },
     {
       "parameters": {
+        "jsCode": "// Enrichissement GROUNDED (cf. lib/company-enrichment.mjs) : résumé entreprise\n// UNIQUEMENT à partir du texte réel de l'offre. N'invente rien.\nconst company = $('Normaliser entrée').first().json.company || '';\nconst src = (($('Normaliser entrée').first().json.company_info || '') + '\\n' + ($('Normaliser entrée').first().json.description || '')).slice(0, 2000);\nconst system = \"Tu produis une fiche entreprise SYNTHÉTIQUE à partir UNIQUEMENT du texte fourni. Tu n'inventes RIEN : si une information n'est pas présente, tu laisses \\\"\\\". Tu réponds UNIQUEMENT en JSON {\\\"sector\\\":\\\"\\\",\\\"ai_summary\\\":\\\"\\\"}. ai_summary : 1-2 phrases neutres.\";\nconst user = `ENTREPRISE: ${company || '(inconnue)'}\\n\\nTEXTE SOURCE (ne te sers QUE de ça):\\n${src}`;\nreturn [{ json: { messages: [{role:'system',content:system},{role:'user',content:user}] } }];"
+      },
+      "id": "prep-enrich",
+      "name": "Préparer enrichissement",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1300, 120]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.DEEPSEEK_BASE_URL }}/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [
+          { "name": "Authorization", "value": "=Bearer {{ $env.DEEPSEEK_API_KEY }}" },
+          { "name": "Content-Type", "value": "application/json" }
+        ] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"{{ $env.DEEPSEEK_MODEL }}\",\n  \"messages\": {{ JSON.stringify($json.messages) }},\n  \"response_format\": { \"type\": \"json_object\" },\n  \"temperature\": 0.2\n}",
+        "options": {}
+      },
+      "id": "call-enrich",
+      "name": "DeepSeek entreprise",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1480, 120]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse la fiche entreprise (cf. parseEnrichmentResponse). Champs vides si KO.\nconst raw = $input.first().json.choices?.[0]?.message?.content ?? '';\nlet d; try { d = JSON.parse(raw); } catch { d = null; }\nreturn [{ json: { sector: String(d?.sector ?? '').trim(), ai_summary: String(d?.ai_summary ?? '').trim() } }];"
+      },
+      "id": "parse-enrich",
+      "name": "Parser entreprise",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1660, 120]
+    },
+    {
+      "parameters": {
         "operation": "executeQuery",
-        "query": "INSERT INTO companies (name, last_updated) VALUES ($1, now()) ON CONFLICT (name) DO UPDATE SET last_updated = now() RETURNING id;",
-        "options": { "queryReplacement": "={{ $('Normaliser entrée').first().json.company }}" }
+        "query": "INSERT INTO companies (name, sector, ai_summary, last_updated) VALUES ($1, NULLIF($2,''), NULLIF($3,''), now()) ON CONFLICT (name) DO UPDATE SET sector = COALESCE(NULLIF(EXCLUDED.sector,''), companies.sector), ai_summary = COALESCE(NULLIF(EXCLUDED.ai_summary,''), companies.ai_summary), last_updated = now() RETURNING id;",
+        "options": { "queryReplacement": "={{ [$('Normaliser entrée').first().json.company, $json.sector, $json.ai_summary] }}" }
       },
       "id": "upsert-company",
       "name": "Upsert entreprise",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
-      "position": [1340, 200],
+      "position": [1840, 120],
       "credentials": { "postgres": { "id": "REMPLACER", "name": "Postgres job-hunter" } }
     },
     {
@@ -152,13 +192,16 @@
     "Extraire texte prompt": { "main": [[{ "node": "Appel DeepSeek", "type": "main", "index": 0 }]] },
     "Appel DeepSeek": { "main": [[{ "node": "Parser sortie agent", "type": "main", "index": 0 }]] },
     "Parser sortie agent": { "main": [[{ "node": "Offre liée ?", "type": "main", "index": 0 }]] },
-    "Offre liée ?": { "main": [[{ "node": "Upsert entreprise", "type": "main", "index": 0 }], []] },
+    "Offre liée ?": { "main": [[{ "node": "Préparer enrichissement", "type": "main", "index": 0 }], []] },
+    "Préparer enrichissement": { "main": [[{ "node": "DeepSeek entreprise", "type": "main", "index": 0 }]] },
+    "DeepSeek entreprise": { "main": [[{ "node": "Parser entreprise", "type": "main", "index": 0 }]] },
+    "Parser entreprise": { "main": [[{ "node": "Upsert entreprise", "type": "main", "index": 0 }]] },
     "Upsert entreprise": { "main": [[{ "node": "Créer candidature (draft)", "type": "main", "index": 0 }]] },
     "Créer candidature (draft)": { "main": [[{ "node": "Offre -> applied", "type": "main", "index": 0 }]] }
   },
   "settings": { "executionOrder": "v1" },
   "active": false,
   "meta": {
-    "note": "BROUILLON à vérifier à l'import. Deux entrées : Formulaire (test manuel, offer_id absent -> pas d'écriture DB) et Appel orchestration (offer_id présent -> upsert entreprise + candidature draft + offre->applied). credential Postgres à associer. La sortie de l'agent (lettre_motivation, adaptation_cv, objet_email) alimente ensuite la génération de documents et le workflow 04. Note: la personnalisation structurée du CV (highlight_*) n'est pas encore produite par le system prompt §6 — voir docs/reste-a-faire."
+    "note": "BROUILLON à vérifier à l'import. Deux entrées : Formulaire (test manuel, offer_id absent -> pas d'écriture DB) et Appel orchestration (offer_id présent -> enrichissement entreprise + upsert + candidature draft + offre->applied). ENRICHISSEMENT GROUNDED : DeepSeek résume l'entreprise UNIQUEMENT à partir du texte de l'offre (lib/company-enrichment.mjs) -> companies.sector/ai_summary. credential Postgres à associer. La sortie de l'agent (lettre_motivation, adaptation_cv, objet_email) alimente ensuite la génération de documents et le workflow 04. Gap connu : la personnalisation structurée du CV (highlight_*) n'est pas encore produite par le system prompt §6 — voir docs/reste-a-faire."
   }
 }
