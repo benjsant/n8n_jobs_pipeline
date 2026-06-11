@@ -4,82 +4,161 @@
     {
       "parameters": {
         "formTitle": "Générer une candidature",
-        "formFields": {
-          "values": [
-            { "fieldLabel": "Titre du poste", "requiredField": true },
-            { "fieldLabel": "Entreprise", "requiredField": true },
-            { "fieldLabel": "Description de l'offre", "fieldType": "textarea", "requiredField": true },
-            { "fieldLabel": "Infos entreprise (site, valeurs, stack)", "fieldType": "textarea" }
-          ]
-        }
+        "formFields": { "values": [
+          { "fieldLabel": "Titre du poste", "requiredField": true },
+          { "fieldLabel": "Entreprise", "requiredField": true },
+          { "fieldLabel": "Description de l'offre", "fieldType": "textarea", "requiredField": true },
+          { "fieldLabel": "Infos entreprise (site, valeurs, stack)", "fieldType": "textarea" }
+        ] }
       },
       "id": "trigger-form",
       "name": "Formulaire offre",
       "type": "n8n-nodes-base.formTrigger",
       "typeVersion": 2,
-      "position": [240, 300]
+      "position": [-200, 200]
+    },
+    {
+      "parameters": {},
+      "id": "trigger-exec",
+      "name": "Appel orchestration",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [-200, 400]
     },
     {
       "parameters": {
-        "fileSelector": "/prompts/agent-system-prompt.md",
-        "options": {}
+        "jsCode": "// Normalise l'entrée, qu'elle vienne du formulaire (test manuel) ou d'un\n// appel programmatique (orchestration). offer_id présent => écriture en base.\nconst j = $input.first().json;\nconst fromForm = j['Titre du poste'] !== undefined;\nconst out = fromForm ? {\n  offer_id: null,\n  title: j['Titre du poste'] || '',\n  company: j['Entreprise'] || '',\n  location: '',\n  description: j[\"Description de l'offre\"] || '',\n  company_info: j['Infos entreprise (site, valeurs, stack)'] || '',\n} : {\n  offer_id: j.offer_id ?? null,\n  title: j.title || '',\n  company: j.company || '',\n  location: j.location || '',\n  description: j.description || '',\n  company_info: j.company_info || '',\n};\nreturn [{ json: out }];"
       },
+      "id": "normalize-input",
+      "name": "Normaliser entrée",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [20, 300]
+    },
+    {
+      "parameters": { "fileSelector": "/prompts/agent-system-prompt.md", "options": {} },
       "id": "read-prompt",
       "name": "Lire system prompt",
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1,
-      "position": [460, 300]
+      "position": [240, 300]
     },
     {
-      "parameters": {
-        "operation": "text",
-        "sourceProperty": "data",
-        "options": {}
-      },
+      "parameters": { "operation": "text", "sourceProperty": "data", "options": {} },
       "id": "extract-prompt",
       "name": "Extraire texte prompt",
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1,
-      "position": [660, 300]
+      "position": [460, 300]
     },
     {
       "parameters": {
         "method": "POST",
         "url": "={{ $env.DEEPSEEK_BASE_URL }}/chat/completions",
         "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            { "name": "Authorization", "value": "=Bearer {{ $env.DEEPSEEK_API_KEY }}" },
-            { "name": "Content-Type", "value": "application/json" }
-          ]
-        },
+        "headerParameters": { "parameters": [
+          { "name": "Authorization", "value": "=Bearer {{ $env.DEEPSEEK_API_KEY }}" },
+          { "name": "Content-Type", "value": "application/json" }
+        ] },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"model\": \"{{ $env.DEEPSEEK_MODEL }}\",\n  \"messages\": [\n    { \"role\": \"system\", \"content\": {{ JSON.stringify($node['Extraire texte prompt'].json.data) }} },\n    { \"role\": \"user\", \"content\": {{ JSON.stringify('Offre: ' + $node['Formulaire offre'].json['Titre du poste'] + ' chez ' + $node['Formulaire offre'].json['Entreprise'] + '\\n\\nDescription:\\n' + $node['Formulaire offre'].json[\"Description de l'offre\"] + '\\n\\nInfos entreprise:\\n' + ($node['Formulaire offre'].json['Infos entreprise (site, valeurs, stack)'] || 'Non fournies')) }} }\n  ],\n  \"response_format\": { \"type\": \"json_object\" },\n  \"temperature\": 0.7\n}",
+        "jsonBody": "={\n  \"model\": \"{{ $env.DEEPSEEK_MODEL }}\",\n  \"messages\": [\n    { \"role\": \"system\", \"content\": {{ JSON.stringify($json.data) }} },\n    { \"role\": \"user\", \"content\": {{ JSON.stringify('Offre: ' + $('Normaliser entrée').first().json.title + ' chez ' + $('Normaliser entrée').first().json.company + '\\n\\nDescription:\\n' + $('Normaliser entrée').first().json.description + '\\n\\nInfos entreprise:\\n' + ($('Normaliser entrée').first().json.company_info || 'Non fournies')) }} }\n  ],\n  \"response_format\": { \"type\": \"json_object\" },\n  \"temperature\": 0.7\n}",
         "options": {}
       },
       "id": "call-deepseek",
       "name": "Appel DeepSeek",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [880, 300]
+      "position": [680, 300]
     },
     {
       "parameters": {
-        "jsCode": "const raw = $input.first().json.choices[0].message.content;\nlet parsed;\ntry { parsed = JSON.parse(raw); } catch (e) { parsed = { erreur: 'JSON invalide', brut: raw }; }\nreturn [{ json: parsed }];"
+        "jsCode": "// Parse la sortie de l'agent et la valide a minima (cf. system prompt §6).\nconst raw = $input.first().json.choices?.[0]?.message?.content ?? '';\nlet p;\ntry { p = JSON.parse(raw); } catch (e) { p = { erreur: 'JSON invalide', brut: raw }; }\nif (typeof p.score !== 'number') p.score = 0;\nif (!p.lettre_motivation) p.lettre_motivation = '';\nreturn [{ json: p }];"
       },
       "id": "parse-output",
       "name": "Parser sortie agent",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1100, 300]
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "conditions": { "options": { "caseSensitive": true, "version": 2 }, "combinator": "and",
+          "conditions": [ {
+            "leftValue": "={{ $('Normaliser entrée').first().json.offer_id }}",
+            "rightValue": "",
+            "operator": { "type": "string", "operation": "exists", "singleValue": true }
+          } ] },
+        "options": {}
+      },
+      "id": "if-offer",
+      "name": "Offre liée ?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [1120, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO companies (name, last_updated) VALUES ($1, now()) ON CONFLICT (name) DO UPDATE SET last_updated = now() RETURNING id;",
+        "options": { "queryReplacement": "={{ $('Normaliser entrée').first().json.company }}" }
+      },
+      "id": "upsert-company",
+      "name": "Upsert entreprise",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [1340, 200],
+      "credentials": { "postgres": { "id": "REMPLACER", "name": "Postgres job-hunter" } }
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "schema": { "__rl": true, "mode": "list", "value": "public" },
+        "table": { "__rl": true, "mode": "list", "value": "applications" },
+        "columns": { "mappingMode": "defineBelow", "value": {
+          "offer_id": "={{ $('Normaliser entrée').first().json.offer_id }}",
+          "company_id": "={{ $('Upsert entreprise').first().json.id }}",
+          "status": "draft",
+          "notes": "={{ 'score ' + $('Parser sortie agent').first().json.score + ' — ' + ($('Parser sortie agent').first().json.justification_score || '') }}"
+        } },
+        "options": {}
+      },
+      "id": "insert-application",
+      "name": "Créer candidature (draft)",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [1560, 200],
+      "credentials": { "postgres": { "id": "REMPLACER", "name": "Postgres job-hunter" } }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE offers SET status = 'applied' WHERE id = $1 RETURNING id, status;",
+        "options": { "queryReplacement": "={{ $('Normaliser entrée').first().json.offer_id }}" }
+      },
+      "id": "offer-applied",
+      "name": "Offre -> applied",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [1780, 200],
+      "credentials": { "postgres": { "id": "REMPLACER", "name": "Postgres job-hunter" } }
     }
   ],
   "connections": {
-    "Formulaire offre": { "main": [[{ "node": "Lire system prompt", "type": "main", "index": 0 }]] },
+    "Formulaire offre": { "main": [[{ "node": "Normaliser entrée", "type": "main", "index": 0 }]] },
+    "Appel orchestration": { "main": [[{ "node": "Normaliser entrée", "type": "main", "index": 0 }]] },
+    "Normaliser entrée": { "main": [[{ "node": "Lire system prompt", "type": "main", "index": 0 }]] },
     "Lire system prompt": { "main": [[{ "node": "Extraire texte prompt", "type": "main", "index": 0 }]] },
     "Extraire texte prompt": { "main": [[{ "node": "Appel DeepSeek", "type": "main", "index": 0 }]] },
-    "Appel DeepSeek": { "main": [[{ "node": "Parser sortie agent", "type": "main", "index": 0 }]] }
+    "Appel DeepSeek": { "main": [[{ "node": "Parser sortie agent", "type": "main", "index": 0 }]] },
+    "Parser sortie agent": { "main": [[{ "node": "Offre liée ?", "type": "main", "index": 0 }]] },
+    "Offre liée ?": { "main": [[{ "node": "Upsert entreprise", "type": "main", "index": 0 }], []] },
+    "Upsert entreprise": { "main": [[{ "node": "Créer candidature (draft)", "type": "main", "index": 0 }]] },
+    "Créer candidature (draft)": { "main": [[{ "node": "Offre -> applied", "type": "main", "index": 0 }]] }
   },
-  "settings": { "executionOrder": "v1" }
+  "settings": { "executionOrder": "v1" },
+  "active": false,
+  "meta": {
+    "note": "BROUILLON à vérifier à l'import. Deux entrées : Formulaire (test manuel, offer_id absent -> pas d'écriture DB) et Appel orchestration (offer_id présent -> upsert entreprise + candidature draft + offre->applied). credential Postgres à associer. La sortie de l'agent (lettre_motivation, adaptation_cv, objet_email) alimente ensuite la génération de documents et le workflow 04. Note: la personnalisation structurée du CV (highlight_*) n'est pas encore produite par le system prompt §6 — voir docs/reste-a-faire."
+  }
 }

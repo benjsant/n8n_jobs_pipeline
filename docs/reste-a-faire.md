@@ -46,6 +46,13 @@
 - **Statuts depuis Discord** : workflow `03-statut-offre` (webhook
   `offer-status?hash=&action=selected|ignored` → UPDATE `offers.status`) + liens
   d'action ajoutés dans l'alerte du workflow `01`.
+- **Couche candidature SQL** (`db/queries.sql`) + **test d'intégration**
+  (`db/queries.test.sh`) : parcours `new→selected→applied` validé contre le
+  schéma réel (upsert entreprise, candidature draft, documents, jointures).
+- **Workflow `02` refondu** : double déclencheur (formulaire + orchestration),
+  écrit `companies`/`applications` (draft) puis passe l'offre en `applied`.
+- **Orchestration** : `03` (action `selected`) → charge l'offre → lance `02`
+  (Execute Workflow) ; chaîne complète documentée dans `workflows/README.md`.
 
 ## 🔑 À me fournir (toi)
 
@@ -80,10 +87,10 @@ cloud, avec niveau) · expérience · projets · formation · secteurs visés / 
 | 4 | Tester l'agent DeepSeek seul (script/curl) | clé DeepSeek | 🟡 script prêt (`--mock` OK), appel réel en attente de la clé |
 | 5 | Workflow `01-recherche-offres` (sources + dédup + scoring + Postgres + jobs-log) + micro-service JobSpy | clés FT/Adzuna/Discord | 🟡 4 sources + merge + jobs-log câblés (normaliseurs testés) ; à vérifier à l'import n8n |
 | 6 | Notif offres pertinentes (Discord jobs-alerts + statuts) | Tâche 5 | 🟡 alerts + log + workflow `03` (statuts `selected/ignored` via liens) ; à vérifier à l'import |
-| 7 | Importer + fiabiliser `02-agent-candidature` (→ `applications`) | Tâches 4, 6 | ⬜ |
+| 7 | Importer + fiabiliser `02-agent-candidature` (→ `applications`) | Tâches 4, 6 | 🟡 refondu (écrit `applications`/`companies`, SQL testée) ; à vérifier à l'import |
 | 8 | Génération CV Astro→PDF + lettre (templates) | Tâche 7 | 🟡 CV (HTML vérifié, PDF conteneurisé) + lettre (5 tests, PDF conteneurisé) ; orchestration à brancher |
 | 9 | Brouillon Gmail + archivage Drive (**garde-fou humain**) | Tâche 8 + OAuth Google | 🟡 squelette `04` + doc OAuth ; à vérifier à l'import |
-| 10 | Orchestration de bout en bout + statuts Postgres | Tâches 5-9 | ⬜ |
+| 10 | Orchestration de bout en bout + statuts Postgres | Tâches 5-9 | 🟡 `03→02` câblé + chaîne documentée ; reste `02→rendu→04` |
 | 11 | Documentation finale + vérif aucun secret commité | tout | ⬜ |
 
 > 🟡 = avancé avec données/artefacts vérifiables hors stack ; reste la

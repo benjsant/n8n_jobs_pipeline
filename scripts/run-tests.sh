@@ -19,6 +19,14 @@ run "Normaliseurs de sources" node workflows/lib/sources.test.mjs
 run "Rendu lettre (HTML)" node cv/letter.test.mjs
 run "Agent DeepSeek — schéma (mock)" python3 scripts/test_deepseek.py --mock
 
+echo "── Couche candidature (intégration DB, conteneur jetable)"
+if command -v docker >/dev/null 2>&1; then
+  if bash db/queries.test.sh >/dev/null 2>&1; then echo "  ✓ OK"; else echo "  ✗ ÉCHEC"; fail=1; fi
+else
+  echo "  ⊘ ignoré (docker absent)"
+fi
+echo
+
 echo "── Micro-service JobSpy"
 if python3 -c "import fastapi, httpx" 2>/dev/null; then
   if (cd services/jobspy && python3 test_app.py); then echo "  ✓ OK"; else echo "  ✗ ÉCHEC"; fail=1; fi
