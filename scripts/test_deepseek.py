@@ -23,6 +23,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 SYSTEM_PROMPT_PATH = ROOT / "prompts" / "agent-system-prompt.md"
+CV_DIR = ROOT / "cv"
 
 # Champs attendus dans la sortie (cf. section 6 du system prompt).
 REQUIRED_KEYS = {
@@ -33,10 +34,61 @@ REQUIRED_KEYS = {
     "gaps": list,
     "lettre_motivation": str,
     "adaptation_cv": str,
+    "personnalisation_cv": dict,
     "objet_email": str,
     "langue": str,
 }
 ALLOWED_RECO = {"postuler", "postuler_si_peu_options", "ne_pas_postuler"}
+ALLOWED_HIDDEN = {"summary", "skills", "experiences", "projects", "education"}
+
+
+def _load_json(name: str) -> dict:
+    path = CV_DIR / name
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
+
+
+def cv_valid_values() -> tuple[set, set, set]:
+    """Noms de compétences + ids de projets/expériences réellement présents."""
+    skills = _load_json("skills.json")
+    skill_names = {
+        i.get("name", "")
+        for cat in skills.get("categories", [])
+        for i in cat.get("items", [])
+        if i.get("name")
+    }
+    project_ids = {p.get("id", "") for p in _load_json("projects.json").get("projects", []) if p.get("id")}
+    exp_ids = {e.get("id", "") for e in _load_json("experiences.json").get("experiences", []) if e.get("id")}
+    return skill_names, project_ids, exp_ids
+
+
+def validate_personalization(p: dict) -> list[str]:
+    """Vérifie la structure ET que les highlights référencent du réel (anti-invention)."""
+    errors: list[str] = []
+    for key in ("highlight_skills", "highlight_projects", "highlight_experiences", "hidden_sections"):
+        if key in p and not isinstance(p[key], list):
+            errors.append(f"personnalisation_cv.{key} doit être une liste")
+    bad_hidden = set(p.get("hidden_sections", [])) - ALLOWED_HIDDEN
+    if bad_hidden:
+        errors.append(f"hidden_sections invalides : {sorted(bad_hidden)}")
+
+    skill_names, project_ids, exp_ids = cv_valid_values()
+    # On ne contrôle l'appartenance que si le profil est connu (fichiers présents).
+    if skill_names:
+        unknown = set(p.get("highlight_skills", [])) - skill_names
+        if unknown:
+            errors.append(f"highlight_skills inventées (absentes du profil) : {sorted(unknown)}")
+    if project_ids:
+        unknown = set(p.get("highlight_projects", [])) - project_ids
+        if unknown:
+            errors.append(f"highlight_projects inconnus : {sorted(unknown)}")
+    if exp_ids:
+        unknown = set(p.get("highlight_experiences", [])) - exp_ids
+        if unknown:
+            errors.append(f"highlight_experiences inconnues : {sorted(unknown)}")
+    return errors
 
 DUMMY_OFFER = """\
 Intitulé : Développeur IA Junior (H/F)
@@ -58,6 +110,13 @@ MOCK_RESPONSE = {
     "lettre_motivation": "Madame, Monsieur,\n\n[lettre mock]\n\nAlex Martin",
     "adaptation_cv": "Mettre en avant le projet rag-assistant et FastAPI ; "
     "ajouter les mots-clés LLM, RAG, pgvector.",
+    "personnalisation_cv": {
+        "summary": "Développeur IA junior orienté RAG et mise en production de modèles.",
+        "highlight_skills": ["PyTorch", "Python", "RAG / LLM"],
+        "highlight_projects": ["rag-assistant", "image-classifier"],
+        "highlight_experiences": ["stage-data"],
+        "hidden_sections": [],
+    },
     "objet_email": "Candidature — Développeur IA Junior",
     "langue": "fr",
 }
@@ -130,6 +189,8 @@ def validate(out: dict) -> list[str]:
         )
     if out.get("langue") not in {"fr", "en"}:
         errors.append(f"langue invalide : {out.get('langue')}")
+    if isinstance(out.get("personnalisation_cv"), dict):
+        errors.extend(validate_personalization(out["personnalisation_cv"]))
     return errors
 
 

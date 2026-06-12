@@ -36,12 +36,28 @@
       "position": [20, 300]
     },
     {
+      "parameters": { "fileSelector": "/cv/cv-index.json", "options": {} },
+      "id": "read-cvindex",
+      "name": "Lire index CV",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [180, 460]
+    },
+    {
+      "parameters": { "operation": "text", "sourceProperty": "data", "options": {} },
+      "id": "extract-cvindex",
+      "name": "Extraire index CV",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [360, 460]
+    },
+    {
       "parameters": { "fileSelector": "/prompts/agent-system-prompt.md", "options": {} },
       "id": "read-prompt",
       "name": "Lire system prompt",
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1,
-      "position": [240, 300]
+      "position": [540, 300]
     },
     {
       "parameters": { "operation": "text", "sourceProperty": "data", "options": {} },
@@ -62,7 +78,7 @@
         ] },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"model\": \"{{ $env.DEEPSEEK_MODEL }}\",\n  \"messages\": [\n    { \"role\": \"system\", \"content\": {{ JSON.stringify($json.data) }} },\n    { \"role\": \"user\", \"content\": {{ JSON.stringify('Offre: ' + $('Normaliser entrée').first().json.title + ' chez ' + $('Normaliser entrée').first().json.company + '\\n\\nDescription:\\n' + $('Normaliser entrée').first().json.description + '\\n\\nInfos entreprise:\\n' + ($('Normaliser entrée').first().json.company_info || 'Non fournies')) }} }\n  ],\n  \"response_format\": { \"type\": \"json_object\" },\n  \"temperature\": 0.7\n}",
+        "jsonBody": "={\n  \"model\": \"{{ $env.DEEPSEEK_MODEL }}\",\n  \"messages\": [\n    { \"role\": \"system\", \"content\": {{ JSON.stringify($json.data) }} },\n    { \"role\": \"user\", \"content\": {{ JSON.stringify('Offre: ' + $('Normaliser entrée').first().json.title + ' chez ' + $('Normaliser entrée').first().json.company + '\\n\\nDescription:\\n' + $('Normaliser entrée').first().json.description + '\\n\\nInfos entreprise:\\n' + ($('Normaliser entrée').first().json.company_info || 'Non fournies') + '\\n\\nVALEURS DISPONIBLES POUR personnalisation_cv (choisis EXCLUSIVEMENT parmi elles, ids/noms exacts):\\n' + $('Extraire index CV').first().json.data) }} }\n  ],\n  \"response_format\": { \"type\": \"json_object\" },\n  \"temperature\": 0.7\n}",
         "options": {}
       },
       "id": "call-deepseek",
@@ -73,7 +89,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Parse la sortie de l'agent et la valide a minima (cf. system prompt §6).\nconst raw = $input.first().json.choices?.[0]?.message?.content ?? '';\nlet p;\ntry { p = JSON.parse(raw); } catch (e) { p = { erreur: 'JSON invalide', brut: raw }; }\nif (typeof p.score !== 'number') p.score = 0;\nif (!p.lettre_motivation) p.lettre_motivation = '';\nreturn [{ json: p }];"
+        "jsCode": "// Parse la sortie de l'agent et la valide a minima (cf. system prompt §6).\nconst raw = $input.first().json.choices?.[0]?.message?.content ?? '';\nlet p;\ntry { p = JSON.parse(raw); } catch (e) { p = { erreur: 'JSON invalide', brut: raw }; }\nif (typeof p.score !== 'number') p.score = 0;\nif (!p.lettre_motivation) p.lettre_motivation = '';\nif (!p.personnalisation_cv || typeof p.personnalisation_cv !== 'object') {\n  p.personnalisation_cv = { summary: '', highlight_skills: [], highlight_projects: [], highlight_experiences: [], hidden_sections: [] };\n}\nreturn [{ json: p }];"
       },
       "id": "parse-output",
       "name": "Parser sortie agent",
@@ -187,7 +203,9 @@
   "connections": {
     "Formulaire offre": { "main": [[{ "node": "Normaliser entrée", "type": "main", "index": 0 }]] },
     "Appel orchestration": { "main": [[{ "node": "Normaliser entrée", "type": "main", "index": 0 }]] },
-    "Normaliser entrée": { "main": [[{ "node": "Lire system prompt", "type": "main", "index": 0 }]] },
+    "Normaliser entrée": { "main": [[{ "node": "Lire index CV", "type": "main", "index": 0 }]] },
+    "Lire index CV": { "main": [[{ "node": "Extraire index CV", "type": "main", "index": 0 }]] },
+    "Extraire index CV": { "main": [[{ "node": "Lire system prompt", "type": "main", "index": 0 }]] },
     "Lire system prompt": { "main": [[{ "node": "Extraire texte prompt", "type": "main", "index": 0 }]] },
     "Extraire texte prompt": { "main": [[{ "node": "Appel DeepSeek", "type": "main", "index": 0 }]] },
     "Appel DeepSeek": { "main": [[{ "node": "Parser sortie agent", "type": "main", "index": 0 }]] },

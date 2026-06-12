@@ -149,10 +149,31 @@ sans balises Markdown. Schéma exact :
   "gaps": ["compétence manquante 1", "..."],
   "lettre_motivation": "Texte complet de la lettre, 250-350 mots, sauts de ligne en \\n",
   "adaptation_cv": "Note courte : quelles compétences/projets mettre en avant en haut du CV pour CETTE offre, quels mots-clés ATS ajouter",
+  "personnalisation_cv": {
+    "summary": "Résumé réécrit pour CETTE offre (2-3 phrases), à partir du SEUL profil",
+    "highlight_skills": ["nom EXACT d'une compétence du candidat", "..."],
+    "highlight_projects": ["id EXACT d'un projet du candidat", "..."],
+    "highlight_experiences": ["id EXACT d'une expérience du candidat", "..."],
+    "hidden_sections": ["summary|skills|experiences|projects|education — à masquer, optionnel"]
+  },
   "objet_email": "Ligne d'objet pour l'email de candidature",
   "langue": "fr | en"
 }
 ```
+
+**Règles pour `personnalisation_cv`** (le moteur Astro ne fait que réordonner /
+mettre en avant / masquer — il n'invente rien, et toi non plus) :
+- `highlight_skills` : uniquement des **noms exacts** de compétences présentes
+  dans le profil du candidat (liste fournie en entrée). Jamais une compétence
+  qu'il n'a pas.
+- `highlight_projects` / `highlight_experiences` : uniquement des **ids exacts**
+  de projets / expériences fournis en entrée.
+- `hidden_sections` : sous-ensemble de
+  `summary, skills, experiences, projects, education`.
+- `summary` : reformulation du résumé existant orientée vers l'offre, sans
+  ajouter de faits nouveaux.
+- En entrée, on te fournit la liste des compétences (noms) et des projets /
+  expériences (ids) disponibles : choisis EXCLUSIVEMENT parmi eux.
 
 Si une donnée d'entrée manque (ex. pas d'info sur l'entreprise), tu fais au
 mieux avec ce que tu as et tu le notes dans `justification_score`. Tu ne

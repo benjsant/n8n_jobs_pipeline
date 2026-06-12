@@ -65,6 +65,7 @@ services:
       - n8n_data:/home/node/.n8n
       - ./workflows:/workflows
       - ./prompts:/prompts
+      - ./cv:/cv:ro
     depends_on:
       postgres:
         condition: service_healthy

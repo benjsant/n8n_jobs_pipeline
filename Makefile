@@ -40,6 +40,9 @@ install-hooks: ## Active le hook pre-commit versionné (.githooks)
 cv-install: ## Installe les deps Astro du CV
 	cd cv && npm install --no-audit --no-fund
 
+cv-index: ## Régénère cv/cv-index.json (valeurs sélectionnables par l'agent) depuis cv/*.json
+	node cv/scripts/build-index.mjs
+
 cv-build: ## Construit le HTML du CV (CV_PERSONALIZATION=chemin.json optionnel)
 	cd cv && CV_PERSONALIZATION="$(CV_PERSONALIZATION)" npm run build
 

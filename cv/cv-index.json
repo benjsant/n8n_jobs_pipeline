@@ -1,0 +1,42 @@
+{
+  "skills": [
+    "Python",
+    "SQL",
+    "JavaScript",
+    "PyTorch",
+    "scikit-learn",
+    "Hugging Face",
+    "RAG / LLM",
+    "Git",
+    "Docker",
+    "FastAPI",
+    "GCP",
+    "PostgreSQL"
+  ],
+  "projects": [
+    {
+      "id": "rag-assistant",
+      "name": "Assistant documentaire RAG"
+    },
+    {
+      "id": "image-classifier",
+      "name": "Classifieur d'images de défauts"
+    },
+    {
+      "id": "jobs-pipeline",
+      "name": "Pipeline d'agrégation d'offres"
+    }
+  ],
+  "experiences": [
+    {
+      "id": "stage-data",
+      "role": "Stagiaire Data / IA",
+      "company": "Acme Analytics (fictif)"
+    },
+    {
+      "id": "projet-asso",
+      "role": "Développeur bénévole",
+      "company": "Association Open Data (fictif)"
+    }
+  ]
+}
