@@ -12,6 +12,25 @@ Le même conteneur Postgres sert la persistance interne de n8n ET les tables
 métier ci-dessous (à créer dans `db/schema.sql`, Tâche 2). C'est la **seule**
 source de vérité du projet.
 
+### Table `search_profiles` (multi-profils)
+Configs de recherche : chaque profil pilote une collecte et le scoring.
+| Colonne | Type | Notes |
+|---|---|---|
+| id | serial PK | |
+| name | text UNIQUE | nom du profil |
+| keywords | text | mots-clés de recherche |
+| location_insee | text | code INSEE commune |
+| radius_km | int | rayon |
+| contract_types | text | ex. `CDI,CDD,Alternance` |
+| seniority | text | ex. `Junior` |
+| must_have | text | critères indispensables (scoring) |
+| exclusions | text | critères d'exclusion (scoring) |
+| score_threshold | int | seuil (défaut 60) |
+| active | bool | profil actif (le workflow 01 boucle sur les actifs) |
+
+Le workflow `01` lit les profils actifs et collecte pour chacun ; chaque offre
+est liée au profil via `offers.profile_id`. Seed d'exemple : `db/seed-profiles.sql`.
+
 ### Table `offers`
 | Colonne | Type | Notes |
 |---|---|---|
@@ -27,6 +46,7 @@ source de vérité du projet.
 | description | text | |
 | url | text | |
 | score | int | 0-100 |
+| profile_id | int FK → search_profiles.id | profil ayant trouvé l'offre |
 | status | text | `new` / `reviewed` / `selected` / `ignored` / `applied` |
 | created_at | timestamptz | défaut `now()` |
 

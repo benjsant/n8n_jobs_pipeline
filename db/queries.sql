@@ -5,6 +5,12 @@
 --  Testées par db/queries.test.sh contre db/schema.sql.
 -- =====================================================================
 
+-- 0) Profils de recherche actifs (workflow 01 : boucle multi-profils).
+-- name: get_active_profiles
+SELECT id, name, keywords, location_insee, radius_km, contract_types,
+       seniority, must_have, exclusions, score_threshold
+FROM search_profiles WHERE active = true ORDER BY id;
+
 -- 1) Passage de statut d'une offre (workflow 03 : actions Discord).
 --    $1 = statut cible (selected | ignored | applied), $2 = hash.
 -- name: set_offer_status

@@ -21,9 +21,14 @@ docker exec -i "$CT" psql -q -U postgres -d testdb -v ON_ERROR_STOP=1 < db/schem
 
 echo "── parcours candidature + assertions"
 docker exec -i "$CT" psql -q -U postgres -d testdb -v ON_ERROR_STOP=1 <<'SQL'
--- 1) une offre arrive (status new)
-INSERT INTO offers (source, hash, title, company, location, score)
-VALUES ('adzuna', 'hash-abc', 'Dev IA Junior', 'NovaTech', 'Lyon', 82);
+-- 0) un profil de recherche actif
+INSERT INTO search_profiles (name, keywords, location_insee, seniority, must_have, exclusions, score_threshold, active)
+VALUES ('Dev IA - junior', 'développeur IA', '69123', 'Junior', 'Python, ML', 'senior 5 ans+', 60, true);
+
+-- 1) une offre arrive (status new), liée au profil
+INSERT INTO offers (source, hash, title, company, location, score, profile_id)
+SELECT 'adzuna', 'hash-abc', 'Dev IA Junior', 'NovaTech', 'Lyon', 82, id
+FROM search_profiles WHERE name = 'Dev IA - junior';
 
 -- 2) action Discord "selected" (set_offer_status)
 UPDATE offers SET status = 'selected' WHERE hash = 'hash-abc';
@@ -77,7 +82,15 @@ BEGIN
     WHERE o.hash = 'hash-abc' AND c.name = 'NovaTech';
   IF NOT FOUND THEN RAISE EXCEPTION 'jointures application/offre/entreprise KO'; END IF;
 
-  RAISE NOTICE 'OK: parcours new->selected->applied conforme';
+  -- multi-profils : l'offre est bien rattachée à un profil actif
+  PERFORM 1 FROM offers o JOIN search_profiles p ON p.id = o.profile_id
+    WHERE o.hash = 'hash-abc' AND p.name = 'Dev IA - junior' AND p.active;
+  IF NOT FOUND THEN RAISE EXCEPTION 'lien offre->profil KO'; END IF;
+
+  SELECT count(*) INTO n FROM search_profiles WHERE active;
+  IF n <> 1 THEN RAISE EXCEPTION 'profils actifs: % (attendu 1)', n; END IF;
+
+  RAISE NOTICE 'OK: parcours new->selected->applied + multi-profils conforme';
 END $$;
 SQL
 

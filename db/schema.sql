@@ -11,6 +11,28 @@
 -- =====================================================================
 
 -- ---------------------------------------------------------------------
+-- search_profiles : configs de recherche (multi-profils). Chaque profil pilote
+-- une collecte (mots-clés, zone, contrat) et le scoring (must_have/exclusions).
+-- Inspiré de la table Airtable « Profils » du pipeline Make.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS search_profiles (
+    id              SERIAL PRIMARY KEY,
+    name            TEXT NOT NULL UNIQUE,          -- nom_profil
+    keywords        TEXT NOT NULL,                 -- mots_cles
+    location_insee  TEXT,                          -- code INSEE de la commune
+    radius_km       INTEGER,                       -- rayon de recherche
+    contract_types  TEXT,                          -- ex. "CDI,CDD,Alternance"
+    seniority       TEXT,                          -- ex. "Junior"
+    must_have       TEXT,                          -- critères indispensables (scoring)
+    exclusions      TEXT,                          -- critères d'exclusion (scoring)
+    score_threshold INTEGER NOT NULL DEFAULT 60 CHECK (score_threshold BETWEEN 0 AND 100),
+    active          BOOLEAN NOT NULL DEFAULT true, -- actif
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_profiles_active ON search_profiles (active);
+
+-- ---------------------------------------------------------------------
 -- offers : toutes les offres collectées (dédupliquées par hash)
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS offers (
@@ -27,13 +49,15 @@ CREATE TABLE IF NOT EXISTS offers (
     url           TEXT,
     score         INTEGER CHECK (score BETWEEN 0 AND 100),
     score_reason  TEXT,                          -- justification du score (scoring LLM)
+    profile_id    INTEGER REFERENCES search_profiles (id) ON DELETE SET NULL,
     status        TEXT NOT NULL DEFAULT 'new'
                   CHECK (status IN ('new', 'reviewed', 'selected', 'ignored', 'applied')),
     created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- Pour les bases déjà créées avant l'ajout de score_reason (idempotent).
+-- Pour les bases déjà créées avant ces colonnes (idempotent).
 ALTER TABLE offers ADD COLUMN IF NOT EXISTS score_reason TEXT;
+ALTER TABLE offers ADD COLUMN IF NOT EXISTS profile_id INTEGER REFERENCES search_profiles (id) ON DELETE SET NULL;
 
 CREATE INDEX IF NOT EXISTS idx_offers_status ON offers (status);
 CREATE INDEX IF NOT EXISTS idx_offers_created_at ON offers (created_at DESC);
