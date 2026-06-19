@@ -1,34 +1,33 @@
 {
-  "name": "01 - Recherche d'offres",
+  "name": "01 - Recherche d'offres (multi-profils)",
   "nodes": [
     {
-      "parameters": {
-        "rule": { "interval": [ { "field": "cronExpression", "expression": "0 8 * * *" } ] }
-      },
+      "parameters": { "rule": { "interval": [ { "field": "cronExpression", "expression": "0 8 * * *" } ] } },
       "id": "a1000000-0000-4000-8000-000000000001",
       "name": "Tous les jours 8h",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
-      "position": [-200, 400]
+      "position": [-400, 400]
     },
     {
       "parameters": {
-        "assignments": {
-          "assignments": [
-            { "id": "k1", "name": "keywords", "value": "développeur intelligence artificielle", "type": "string" },
-            { "id": "k2", "name": "location", "value": "France", "type": "string" },
-            { "id": "k3", "name": "ftCommune", "value": "", "type": "string" },
-            { "id": "k4", "name": "scoreThreshold", "value": 70, "type": "number" },
-            { "id": "k5", "name": "topN", "value": 20, "type": "number" },
-            { "id": "k6", "name": "profileText", "value": "Développeur IA junior. Stack: Python (solide), FastAPI, PyTorch, scikit-learn, RAG/LLM, Docker, PostgreSQL. Cherche CDI/alternance/CDD, junior, télétravail/hybride accepté, Lyon ou remote.", "type": "string" }
-          ]
-        },
+        "operation": "executeQuery",
+        "query": "SELECT id, name, keywords, location_insee, radius_km, contract_types, seniority, must_have, exclusions, score_threshold FROM search_profiles WHERE active = true ORDER BY id;",
         "options": {}
       },
       "id": "a1000000-0000-4000-8000-000000000002",
-      "name": "Paramètres recherche",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
+      "name": "Profils actifs",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [-200, 400],
+      "credentials": { "postgres": { "id": "REMPLACER", "name": "Postgres job-hunter" } }
+    },
+    {
+      "parameters": { "options": {} },
+      "id": "a1000000-0000-4000-8000-000000000003",
+      "name": "Boucle profils",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
       "position": [0, 400]
     },
 
@@ -39,10 +38,9 @@
         "queryParameters": { "parameters": [
           { "name": "app_id", "value": "={{ $env.ADZUNA_APP_ID }}" },
           { "name": "app_key", "value": "={{ $env.ADZUNA_APP_KEY }}" },
-          { "name": "what", "value": "={{ $('Paramètres recherche').first().json.keywords }}" },
-          { "name": "where", "value": "={{ $('Paramètres recherche').first().json.location }}" },
-          { "name": "results_per_page", "value": "50" },
-          { "name": "content-type", "value": "application/json" }
+          { "name": "what", "value": "={{ $('Boucle profils').item.json.keywords }}" },
+          { "name": "where", "value": "France" },
+          { "name": "results_per_page", "value": "50" }
         ] },
         "options": {}
       },
@@ -50,25 +48,22 @@
       "name": "Adzuna - search",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [260, 100]
+      "position": [240, 80]
     },
     {
-      "parameters": {
-        "jsCode": "// Normalise Adzuna -> schéma commun (cf. workflows/lib/sources.mjs).\nconst s = (v) => String(v ?? '').trim();\nconst results = $input.first().json.results || [];\nreturn results.map((r) => ({ json: {\n  source: 'adzuna', source_id: s(r.id), title: s(r.title),\n  company: s(r.company?.display_name), location: s(r.location?.display_name),\n  contract_type: s(r.contract_time || r.contract_type),\n  salary: r.salary_min ? s(r.salary_min) : '', description: s(r.description),\n  url: s(r.redirect_url),\n} }));"
-      },
+      "parameters": { "jsCode": "const s=(v)=>String(v??'').trim();\nconst results=$input.first().json.results||[];\nreturn results.map((r)=>({json:{source:'adzuna',source_id:s(r.id),title:s(r.title),company:s(r.company?.display_name),location:s(r.location?.display_name),contract_type:s(r.contract_time||r.contract_type),salary:r.salary_min?s(r.salary_min):'',description:s(r.description),url:s(r.redirect_url)}}));" },
       "id": "a1000000-0000-4000-8000-000000000011",
       "name": "norm Adzuna",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [520, 100]
+      "position": [460, 80]
     },
 
     {
       "parameters": {
         "method": "POST",
         "url": "https://entreprise.francetravail.fr/connexion/oauth2/access_token?realm=/partenaire",
-        "sendBody": true,
-        "contentType": "form-urlencoded",
+        "sendBody": true, "contentType": "form-urlencoded",
         "bodyParameters": { "parameters": [
           { "name": "grant_type", "value": "client_credentials" },
           { "name": "client_id", "value": "={{ $env.FRANCE_TRAVAIL_CLIENT_ID }}" },
@@ -81,19 +76,18 @@
       "name": "FT - token",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [260, 300]
+      "position": [240, 240]
     },
     {
       "parameters": {
         "url": "https://api.francetravail.io/partenaire/offresdemploi/v2/offres/search",
         "sendHeaders": true,
-        "headerParameters": { "parameters": [
-          { "name": "Authorization", "value": "=Bearer {{ $json.access_token }}" }
-        ] },
+        "headerParameters": { "parameters": [ { "name": "Authorization", "value": "=Bearer {{ $json.access_token }}" } ] },
         "sendQuery": true,
         "queryParameters": { "parameters": [
-          { "name": "motsCles", "value": "={{ $('Paramètres recherche').first().json.keywords }}" },
-          { "name": "commune", "value": "={{ $('Paramètres recherche').first().json.ftCommune }}" },
+          { "name": "motsCles", "value": "={{ $('Boucle profils').item.json.keywords }}" },
+          { "name": "commune", "value": "={{ $('Boucle profils').item.json.location_insee }}" },
+          { "name": "distance", "value": "={{ $('Boucle profils').item.json.radius_km }}" },
           { "name": "range", "value": "0-149" }
         ] },
         "options": {}
@@ -102,17 +96,15 @@
       "name": "FT - search",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [520, 300]
+      "position": [460, 240]
     },
     {
-      "parameters": {
-        "jsCode": "// Normalise France Travail -> schéma commun (cf. workflows/lib/sources.mjs).\nconst s = (v) => String(v ?? '').trim();\nconst results = $input.first().json.resultats || [];\nreturn results.map((r) => ({ json: {\n  source: 'france_travail', source_id: s(r.id), title: s(r.intitule),\n  company: s(r.entreprise?.nom), location: s(r.lieuTravail?.libelle),\n  contract_type: s(r.typeContrat || r.typeContratLibelle),\n  salary: s(r.salaire?.libelle), description: s(r.description),\n  url: s(r.origineOffre?.urlOrigine),\n} }));"
-      },
+      "parameters": { "jsCode": "const s=(v)=>String(v??'').trim();\nconst results=$input.first().json.resultats||[];\nreturn results.map((r)=>({json:{source:'france_travail',source_id:s(r.id),title:s(r.intitule),company:s(r.entreprise?.nom),location:s(r.lieuTravail?.libelle),contract_type:s(r.typeContrat||r.typeContratLibelle),salary:s(r.salaire?.libelle),description:s(r.description),url:s(r.origineOffre?.urlOrigine)}}));" },
       "id": "a1000000-0000-4000-8000-000000000022",
       "name": "norm FT",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [780, 300]
+      "position": [680, 240]
     },
 
     {
@@ -120,8 +112,8 @@
         "url": "={{ $env.JOBSPY_API_URL }}/search",
         "sendQuery": true,
         "queryParameters": { "parameters": [
-          { "name": "term", "value": "={{ $('Paramètres recherche').first().json.keywords }}" },
-          { "name": "location", "value": "={{ $('Paramètres recherche').first().json.location }}" },
+          { "name": "term", "value": "={{ $('Boucle profils').item.json.keywords }}" },
+          { "name": "location", "value": "France" },
           { "name": "results", "value": "50" }
         ] },
         "options": {}
@@ -130,72 +122,85 @@
       "name": "JobSpy - search",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [260, 500]
+      "position": [240, 400]
     },
     {
-      "parameters": {
-        "jsCode": "// JobSpy est déjà normalisé par le micro-service (cf. sources.mjs).\nconst s = (v) => String(v ?? '').trim();\nconst offers = $input.first().json.offers || [];\nreturn offers.map((o) => ({ json: {\n  source: s(o.source) || 'jobspy', source_id: s(o.source_id || o.url),\n  title: s(o.title), company: s(o.company), location: s(o.location),\n  contract_type: s(o.contract_type), salary: s(o.salary),\n  description: s(o.description), url: s(o.url),\n} }));"
-      },
+      "parameters": { "jsCode": "const s=(v)=>String(v??'').trim();\nconst offers=$input.first().json.offers||[];\nreturn offers.map((o)=>({json:{source:s(o.source)||'jobspy',source_id:s(o.source_id||o.url),title:s(o.title),company:s(o.company),location:s(o.location),contract_type:s(o.contract_type),salary:s(o.salary),description:s(o.description),url:s(o.url)}}));" },
       "id": "a1000000-0000-4000-8000-000000000031",
       "name": "norm JobSpy",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [520, 500]
+      "position": [460, 400]
     },
 
     {
       "parameters": {
-        "url": "={{ $env.WTTJ_RSS_URL }}",
+        "url": "https://serpapi.com/search",
+        "sendQuery": true,
+        "queryParameters": { "parameters": [
+          { "name": "engine", "value": "google_jobs" },
+          { "name": "q", "value": "={{ $('Boucle profils').item.json.keywords }}" },
+          { "name": "location", "value": "France" },
+          { "name": "gl", "value": "fr" },
+          { "name": "hl", "value": "fr" },
+          { "name": "api_key", "value": "={{ $env.SERPAPI_KEY }}" }
+        ] },
         "options": {}
       },
+      "id": "a1000000-0000-4000-8000-000000000035",
+      "name": "Google Jobs - SerpApi",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [240, 560]
+    },
+    {
+      "parameters": { "jsCode": "const s=(v)=>String(v??'').trim();\nconst results=$input.first().json.jobs_results||[];\nreturn results.map((r)=>{const ext=r.detected_extensions||{};const url=r.share_link||(r.apply_options&&r.apply_options[0]&&r.apply_options[0].link)||'';return{json:{source:'google_jobs',source_id:s(r.job_id),title:s(r.title),company:s(r.company_name),location:s(r.location),contract_type:s(ext.schedule_type),salary:s(ext.salary),description:s(r.description),url:s(url)}};});" },
+      "id": "a1000000-0000-4000-8000-000000000036",
+      "name": "norm Google Jobs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 560]
+    },
+
+    {
+      "parameters": { "url": "={{ $env.WTTJ_RSS_URL }}", "options": {} },
       "id": "a1000000-0000-4000-8000-000000000040",
       "name": "WTTJ - RSS",
       "type": "n8n-nodes-base.rssFeedRead",
       "typeVersion": 1.1,
-      "position": [260, 700]
+      "position": [240, 720]
     },
     {
-      "parameters": {
-        "jsCode": "// Normalise WTTJ RSS -> schéma commun (cf. workflows/lib/sources.mjs).\nconst s = (v) => String(v ?? '').trim();\nreturn $input.all().map(({ json: it }) => {\n  const rawTitle = s(it.title); let title = rawTitle, company = '';\n  const dash = rawTitle.split(/\\s[-–|]\\s/);\n  if (dash.length >= 2) { title = s(dash[0]); company = s(dash[dash.length - 1]); }\n  return { json: {\n    source: 'wttj', source_id: s(it.guid || it.id || it.link), title, company,\n    location: s(it.location), contract_type: '', salary: '',\n    description: s(it.contentSnippet || it.content || it.description), url: s(it.link),\n  } };\n});"
-      },
+      "parameters": { "jsCode": "const s=(v)=>String(v??'').trim();\nreturn $input.all().map(({json:it})=>{const rt=s(it.title);let title=rt,company='';const d=rt.split(/\\s[-–|]\\s/);if(d.length>=2){title=s(d[0]);company=s(d[d.length-1]);}return{json:{source:'wttj',source_id:s(it.guid||it.id||it.link),title,company,location:s(it.location),contract_type:'',salary:'',description:s(it.contentSnippet||it.content||it.description),url:s(it.link)}};});" },
       "id": "a1000000-0000-4000-8000-000000000041",
       "name": "norm WTTJ",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [520, 700]
+      "position": [460, 720]
     },
-
     {
-      "parameters": { "numberInputs": 4 },
+      "parameters": { "numberInputs": 5 },
       "id": "a1000000-0000-4000-8000-000000000050",
       "name": "Fusionner sources",
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3,
-      "position": [1040, 400]
+      "position": [900, 360]
     },
     {
-      "parameters": {
-        "jsCode": "// Score 0-100 + hashSource (cf. workflows/lib/offer-utils.mjs). Le hash SHA256\n// est calculé par le nœud Crypto suivant. Garder en parité avec le module.\nconst PREFS = {\n  keywords: ['ia','intelligence artificielle','ml','machine learning','data','llm','python','développeur','developpeur'],\n  juniorTerms: ['junior','débutant','debutant','alternance','apprenti','stage','stagiaire','entry level'],\n  seniorTerms: ['senior','confirmé','confirme','lead','principal','5 ans','expérimenté','experimente'],\n  remoteTerms: ['télétravail','teletravail','remote','hybride','distanciel'],\n  goodContracts: ['cdi','alternance','cdd','apprentissage'],\n  preferredLocations: ['lyon','remote','télétravail','teletravail','france'],\n};\nconst norm = (s) => String(s ?? '').toLowerCase().normalize('NFKD').replace(/\\s+/g,' ').trim();\nfunction scoreOffer(o) {\n  const hay = norm(`${o.title} ${o.description} ${o.contract_type}`);\n  const loc = norm(o.location); let score = 0;\n  score += Math.min(35, PREFS.keywords.filter(k => hay.includes(norm(k))).length * 9);\n  const isJ = PREFS.juniorTerms.some(t => hay.includes(norm(t)));\n  const isS = PREFS.seniorTerms.some(t => hay.includes(norm(t)));\n  if (isJ && !isS) score += 25; else if (!isS) score += 12;\n  if (PREFS.remoteTerms.some(t => hay.includes(norm(t)) || loc.includes(norm(t)))) score += 15;\n  if (PREFS.preferredLocations.some(l => loc.includes(norm(l)))) score += 10;\n  if (PREFS.goodContracts.some(c => hay.includes(norm(c)))) score += 10;\n  if (norm(o.salary)) score += 5;\n  return Math.max(0, Math.min(100, Math.round(score)));\n}\nreturn $input.all().map(({ json: o }) => ({ json: {\n  ...o, score: scoreOffer(o), hashSource: [o.title, o.company, o.location].map(norm).join('|'),\n} }));"
-      },
+      "parameters": { "jsCode": "// Score déterministe + hashSource + rattachement au profil courant.\nconst prof=$('Boucle profils').item.json;\nconst PREFS={keywords:['ia','intelligence artificielle','ml','machine learning','data','llm','python','développeur','developpeur'],juniorTerms:['junior','débutant','debutant','alternance','apprenti','stage','stagiaire'],seniorTerms:['senior','confirmé','confirme','lead','principal','5 ans'],remoteTerms:['télétravail','teletravail','remote','hybride','distanciel'],goodContracts:['cdi','alternance','cdd','apprentissage'],preferredLocations:['lyon','remote','télétravail','teletravail','france']};\nconst norm=(s)=>String(s??'').toLowerCase().normalize('NFKD').replace(/\\s+/g,' ').trim();\nfunction score(o){const hay=norm(`${o.title} ${o.description} ${o.contract_type}`);const loc=norm(o.location);let sc=0;sc+=Math.min(35,PREFS.keywords.filter(k=>hay.includes(norm(k))).length*9);const j=PREFS.juniorTerms.some(t=>hay.includes(norm(t)));const se=PREFS.seniorTerms.some(t=>hay.includes(norm(t)));if(j&&!se)sc+=25;else if(!se)sc+=12;if(PREFS.remoteTerms.some(t=>hay.includes(norm(t))||loc.includes(norm(t))))sc+=15;if(PREFS.preferredLocations.some(l=>loc.includes(norm(l))))sc+=10;if(PREFS.goodContracts.some(c=>hay.includes(norm(c))))sc+=10;if(norm(o.salary))sc+=5;return Math.max(0,Math.min(100,Math.round(sc)));}\nreturn $input.all().map(({json:o})=>({json:{...o,score:score(o),profile_id:prof.id,hashSource:[o.title,o.company,o.location].map(norm).join('|')}}));" },
       "id": "a1000000-0000-4000-8000-000000000051",
       "name": "Scorer + hashSource",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1280, 400]
+      "position": [1120, 360]
     },
     {
-      "parameters": {
-        "action": "hash",
-        "type": "SHA256",
-        "value": "={{ $json.hashSource }}",
-        "dataPropertyName": "hash",
-        "options": {}
-      },
+      "parameters": { "action": "hash", "type": "SHA256", "value": "={{ $json.hashSource }}", "dataPropertyName": "hash", "options": {} },
       "id": "a1000000-0000-4000-8000-000000000052",
       "name": "Hash dédup",
       "type": "n8n-nodes-base.crypto",
       "typeVersion": 1,
-      "position": [1500, 400]
+      "position": [1340, 360]
     },
     {
       "parameters": {
@@ -208,7 +213,7 @@
           "company": "={{ $json.company }}", "location": "={{ $json.location }}",
           "contract_type": "={{ $json.contract_type }}", "salary": "={{ $json.salary }}",
           "description": "={{ $json.description }}", "url": "={{ $json.url }}",
-          "score": "={{ $json.score }}"
+          "score": "={{ $json.score }}", "profile_id": "={{ $json.profile_id }}"
         } },
         "options": { "skipOnConflict": true }
       },
@@ -216,18 +221,16 @@
       "name": "Insert offers (dédup)",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
-      "position": [1720, 400],
+      "position": [1560, 360],
       "credentials": { "postgres": { "id": "REMPLACER", "name": "Postgres job-hunter" } }
     },
     {
-      "parameters": {
-        "jsCode": "// Scoring hybride (cf. workflows/lib/llm-scoring.mjs) : on ne fait affiner\n// par le LLM que le top-N par score déterministe. Construit le lot + les\n// messages DeepSeek. Sort UN item { messages, offers }.\nconst topN = $('Paramètres recherche').first().json.topN || 20;\nconst profileText = $('Paramètres recherche').first().json.profileText || '';\nconst all = $input.all().map(i => i.json);\nconst offers = [...all].sort((a,b)=>(b.score??0)-(a.score??0)).slice(0, topN);\nconst system = \"Tu es un assistant qui évalue la PERTINENCE d'offres d'emploi pour un candidat donné. Tu réponds UNIQUEMENT en JSON valide, sans texte autour, au format {\\\"scores\\\":[{\\\"i\\\":<index>,\\\"score\\\":<0-100>,\\\"reason\\\":\\\"<courte justification>\\\"}]}. N'invente rien.\";\nconst list = offers.map((o,i)=>`#${i} — ${o.title||'?'} @ ${o.company||'?'} (${o.location||'?'})\\n${String(o.description||'').slice(0,600)}`).join('\\n\\n');\nconst user = `PROFIL DU CANDIDAT:\\n${profileText}\\n\\nOFFRES À SCORER (un score par index):\\n${list}`;\nreturn [{ json: { messages: [{role:'system',content:system},{role:'user',content:user}], offers } }];"
-      },
+      "parameters": { "jsCode": "// Affinage LLM du top-N avec must_have/exclusions DU PROFIL (cf. llm-scoring.mjs).\nconst prof=$('Boucle profils').item.json;\nconst all=$input.all().map(i=>i.json);\nconst offers=[...all].sort((a,b)=>(b.score??0)-(a.score??0)).slice(0,20);\nconst system=\"Tu es un expert en recrutement. Barème: 90-100 = correspond très bien aux critères indispensables et aucune exclusion; 50-89 = partiel; <50 = hors sujet ou exclusion. Réponds UNIQUEMENT en JSON {\\\"scores\\\":[{\\\"i\\\":<index>,\\\"score\\\":<0-100>,\\\"reason\\\":\\\"<une phrase>\\\"}]}.\";\nconst list=offers.map((o,i)=>`#${i} — ${o.title||'?'} @ ${o.company||'?'} (${o.location||'?'})\\n${String(o.description||'').slice(0,600)}`).join('\\n\\n');\nconst user=`Critères indispensables : ${prof.must_have||'(non précisés)'}\\nCritères d'exclusion : ${prof.exclusions||'(aucun)'}\\n\\nOFFRES:\\n${list}`;\nreturn [{json:{messages:[{role:'system',content:system},{role:'user',content:user}],offers,threshold:prof.score_threshold||60}}];" },
       "id": "a1000000-0000-4000-8000-000000000056",
       "name": "Préparer scoring LLM",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1940, 540]
+      "position": [1780, 360]
     },
     {
       "parameters": {
@@ -238,8 +241,7 @@
           { "name": "Authorization", "value": "=Bearer {{ $env.DEEPSEEK_API_KEY }}" },
           { "name": "Content-Type", "value": "application/json" }
         ] },
-        "sendBody": true,
-        "specifyBody": "json",
+        "sendBody": true, "specifyBody": "json",
         "jsonBody": "={\n  \"model\": \"{{ $env.DEEPSEEK_MODEL }}\",\n  \"messages\": {{ JSON.stringify($json.messages) }},\n  \"response_format\": { \"type\": \"json_object\" },\n  \"temperature\": 0.2\n}",
         "options": {}
       },
@@ -247,17 +249,15 @@
       "name": "DeepSeek scoring",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [2160, 540]
+      "position": [2000, 360]
     },
     {
-      "parameters": {
-        "jsCode": "// Fusionne la réponse LLM dans les offres top-N (cf. llm-scoring.parseScoringResponse).\n// Emet un item par offre, avec score (LLM) + score_reason. Fallback déterministe.\nconst clamp = (n)=>Math.max(0,Math.min(100,Math.round(Number(n)||0)));\nconst raw = $input.first().json.choices?.[0]?.message?.content ?? '';\nconst offers = $('Préparer scoring LLM').first().json.offers || [];\nlet data; try { data = JSON.parse(raw); } catch { data = null; }\nconst byI = new Map();\nfor (const s of (data?.scores ?? [])) if (Number.isInteger(s.i)) byI.set(s.i, s);\nreturn offers.map((o,i)=>{ const s=byI.get(i); return { json: (!s||s.score==null) ? o : { ...o, score: clamp(s.score), score_reason: String(s.reason ?? '') } }; });"
-      },
+      "parameters": { "jsCode": "const clamp=(n)=>Math.max(0,Math.min(100,Math.round(Number(n)||0)));\nconst raw=$input.first().json.choices?.[0]?.message?.content??'';\nconst offers=$('Préparer scoring LLM').first().json.offers||[];\nlet data;try{data=JSON.parse(raw);}catch{data=null;}\nconst byI=new Map();for(const s of (data?.scores??[]))if(Number.isInteger(s.i))byI.set(s.i,s);\nreturn offers.map((o,i)=>{const s=byI.get(i);return{json:(!s||s.score==null)?o:{...o,score:clamp(s.score),score_reason:String(s.reason??'')}};});" },
       "id": "a1000000-0000-4000-8000-000000000058",
       "name": "Fusion scores",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [2380, 540]
+      "position": [2220, 360]
     },
     {
       "parameters": {
@@ -269,73 +269,49 @@
       "name": "MAJ score (LLM)",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
-      "position": [2600, 540],
+      "position": [2440, 360],
       "credentials": { "postgres": { "id": "REMPLACER", "name": "Postgres job-hunter" } }
     },
     {
       "parameters": {
         "conditions": { "options": { "caseSensitive": true, "version": 2 }, "combinator": "and",
-          "conditions": [ { "leftValue": "={{ $json.score }}",
-            "rightValue": "={{ $('Paramètres recherche').first().json.scoreThreshold }}",
-            "operator": { "type": "number", "operation": "gte" } } ] },
+          "conditions": [ { "leftValue": "={{ $json.score }}", "rightValue": "={{ $('Boucle profils').item.json.score_threshold }}", "operator": { "type": "number", "operation": "gte" } } ] },
         "options": {}
       },
       "id": "a1000000-0000-4000-8000-000000000054",
       "name": "Score suffisant ?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
-      "position": [1940, 400]
+      "position": [2660, 360]
     },
     {
       "parameters": {
         "method": "POST",
         "url": "={{ $env.DISCORD_WEBHOOK_ALERTS }}",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ { \"content\": `🆕 **${$json.title}** — ${$json.company || 'Entreprise inconnue'}\\nScore ${$json.score} · ${$json.location} · ${$json.source}${$json.score_reason ? '\\n💡 ' + $json.score_reason : ''}\\n${$json.url}\\n✅ Générer: ${$env.WEBHOOK_URL}webhook/offer-status?hash=${$json.hash}&action=selected\\n🚫 Ignorer: ${$env.WEBHOOK_URL}webhook/offer-status?hash=${$json.hash}&action=ignored` } }}",
+        "sendBody": true, "specifyBody": "json",
+        "jsonBody": "={{ { \"content\": `🆕 **${$json.title}** — ${$json.company || 'Entreprise inconnue'}\\n[${$('Boucle profils').item.json.name}] Score ${$json.score} · ${$json.location} · ${$json.source}${$json.score_reason ? '\\n💡 ' + $json.score_reason : ''}\\n${$json.url}\\n✅ Générer: ${$env.WEBHOOK_URL}webhook/offer-status?hash=${$json.hash}&action=selected\\n🚫 Ignorer: ${$env.WEBHOOK_URL}webhook/offer-status?hash=${$json.hash}&action=ignored` } }}",
         "options": {}
       },
       "id": "a1000000-0000-4000-8000-000000000055",
       "name": "Discord jobs-alerts",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [2180, 300]
-    },
-
-    {
-      "parameters": {
-        "jsCode": "// Résumé technique pour le canal jobs-log.\nconst items = $input.all().map(i => i.json);\nconst total = items.length;\nconst threshold = $('Paramètres recherche').first().json.scoreThreshold;\nconst retenues = items.filter(o => o.score >= threshold).length;\nconst parSource = {};\nfor (const o of items) parSource[o.source] = (parSource[o.source] || 0) + 1;\nconst detail = Object.entries(parSource).map(([k,v]) => `${k}: ${v}`).join(' · ');\nreturn [{ json: { total, retenues, threshold, detail } }];"
-      },
-      "id": "a1000000-0000-4000-8000-000000000060",
-      "name": "Résumé log",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [1500, 620]
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "={{ $env.DISCORD_WEBHOOK_LOG }}",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ { \"content\": `📊 Run recherche — ${$json.total} offres collectées (${$json.detail}) · ${$json.retenues} ≥ ${$json.threshold}` } }}",
-        "options": {}
-      },
-      "id": "a1000000-0000-4000-8000-000000000061",
-      "name": "Discord jobs-log",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [1720, 620]
+      "position": [2880, 260]
     }
   ],
   "connections": {
-    "Tous les jours 8h": { "main": [[{ "node": "Paramètres recherche", "type": "main", "index": 0 }]] },
-    "Paramètres recherche": { "main": [[
-      { "node": "Adzuna - search", "type": "main", "index": 0 },
-      { "node": "FT - token", "type": "main", "index": 0 },
-      { "node": "JobSpy - search", "type": "main", "index": 0 },
-      { "node": "WTTJ - RSS", "type": "main", "index": 0 }
-    ]] },
+    "Tous les jours 8h": { "main": [[{ "node": "Profils actifs", "type": "main", "index": 0 }]] },
+    "Profils actifs": { "main": [[{ "node": "Boucle profils", "type": "main", "index": 0 }]] },
+    "Boucle profils": { "main": [
+      [],
+      [
+        { "node": "Adzuna - search", "type": "main", "index": 0 },
+        { "node": "FT - token", "type": "main", "index": 0 },
+        { "node": "JobSpy - search", "type": "main", "index": 0 },
+        { "node": "Google Jobs - SerpApi", "type": "main", "index": 0 },
+        { "node": "WTTJ - RSS", "type": "main", "index": 0 }
+      ]
+    ] },
     "Adzuna - search": { "main": [[{ "node": "norm Adzuna", "type": "main", "index": 0 }]] },
     "norm Adzuna": { "main": [[{ "node": "Fusionner sources", "type": "main", "index": 0 }]] },
     "FT - token": { "main": [[{ "node": "FT - search", "type": "main", "index": 0 }]] },
@@ -343,12 +319,11 @@
     "norm FT": { "main": [[{ "node": "Fusionner sources", "type": "main", "index": 1 }]] },
     "JobSpy - search": { "main": [[{ "node": "norm JobSpy", "type": "main", "index": 0 }]] },
     "norm JobSpy": { "main": [[{ "node": "Fusionner sources", "type": "main", "index": 2 }]] },
+    "Google Jobs - SerpApi": { "main": [[{ "node": "norm Google Jobs", "type": "main", "index": 0 }]] },
+    "norm Google Jobs": { "main": [[{ "node": "Fusionner sources", "type": "main", "index": 3 }]] },
     "WTTJ - RSS": { "main": [[{ "node": "norm WTTJ", "type": "main", "index": 0 }]] },
-    "norm WTTJ": { "main": [[{ "node": "Fusionner sources", "type": "main", "index": 3 }]] },
-    "Fusionner sources": { "main": [[
-      { "node": "Scorer + hashSource", "type": "main", "index": 0 },
-      { "node": "Résumé log", "type": "main", "index": 0 }
-    ]] },
+    "norm WTTJ": { "main": [[{ "node": "Fusionner sources", "type": "main", "index": 4 }]] },
+    "Fusionner sources": { "main": [[{ "node": "Scorer + hashSource", "type": "main", "index": 0 }]] },
     "Scorer + hashSource": { "main": [[{ "node": "Hash dédup", "type": "main", "index": 0 }]] },
     "Hash dédup": { "main": [[{ "node": "Insert offers (dédup)", "type": "main", "index": 0 }]] },
     "Insert offers (dédup)": { "main": [[{ "node": "Préparer scoring LLM", "type": "main", "index": 0 }]] },
@@ -357,11 +332,11 @@
     "Fusion scores": { "main": [[{ "node": "MAJ score (LLM)", "type": "main", "index": 0 }]] },
     "MAJ score (LLM)": { "main": [[{ "node": "Score suffisant ?", "type": "main", "index": 0 }]] },
     "Score suffisant ?": { "main": [[{ "node": "Discord jobs-alerts", "type": "main", "index": 0 }], []] },
-    "Résumé log": { "main": [[{ "node": "Discord jobs-log", "type": "main", "index": 0 }]] }
+    "Discord jobs-alerts": { "main": [[{ "node": "Boucle profils", "type": "main", "index": 0 }]] }
   },
   "settings": { "executionOrder": "v1" },
   "active": false,
   "meta": {
-    "note": "BROUILLON à vérifier à l'import dans n8n (typeVersions des nœuds, mode du nœud Merge à 4 entrées, credential Postgres à associer). 4 sources : Adzuna, France Travail (OAuth2 token+search), JobSpy (micro-service), WTTJ (RSS). Dédup au niveau base (hash UNIQUE + skipOnConflict). SCORING HYBRIDE : score déterministe (toutes les offres) puis affinage DeepSeek du top-N (score + score_reason) avant l'alerte. Logique = workflows/lib/offer-utils.mjs + sources.mjs + llm-scoring.mjs (testées). Discord: DISCORD_WEBHOOK_ALERTS et DISCORD_WEBHOOK_LOG."
+    "note": "BROUILLON multi-profils à vérifier à l'import. Boucle: Profils actifs (Postgres) -> SplitInBatches 'Boucle profils' (sortie 1 = itération, sortie 0 = fin). Pour CHAQUE profil: 5 sources (Adzuna, France Travail, JobSpy, Google Jobs/SerpApi) -> Merge(5 entrées, indices 0-3 reliés + JobSpy/GJob) -> score déterministe + profile_id -> hash -> INSERT (skipOnConflict) -> affinage DeepSeek top-N avec must_have/exclusions DU PROFIL -> MAJ score -> seuil score_threshold du profil -> Discord alerts -> retour à 'Boucle profils'. 5 sources reliées au Merge (indices 0-4). À VÉRIFIER à l'import: comportement exact du loopback SplitInBatches (sortie 1 = boucle, 0 = fin), le passage de $('Boucle profils').item dans toute la boucle, le mode du Merge à 5 entrées, et les credentials Postgres. Logique = workflows/lib/*.mjs (testées). jobs-log à rebrancher dans la boucle si besoin."
   }
 }
