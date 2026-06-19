@@ -9,6 +9,11 @@
 data/
 exports/
 
+# Exports/blueprints bruts fournis (données perso, clés Make/Airtable) — local only
+private/
+*.csv
+!docs/**/*.csv
+
 # CV / lettres générées (données perso)
 output/
 candidatures/
