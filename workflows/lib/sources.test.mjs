@@ -5,6 +5,7 @@ import {
   normalizeFranceTravail,
   normalizeJobSpy,
   normalizeWTTJ,
+  normalizeGoogleJobs,
 } from "./sources.mjs";
 import { annotate } from "./offer-utils.mjs";
 
@@ -76,6 +77,22 @@ t("WTTJ RSS : extrait l'entreprise d'un titre 'Poste - Entreprise'", () => {
   assert.equal(out[1].company, ""); // pas de séparateur -> pas d'entreprise
 });
 
+t("Google Jobs (SerpApi) -> schéma commun", () => {
+  const out = normalizeGoogleJobs({
+    jobs_results: [{
+      job_id: "gj1", title: "Dev IA", company_name: "NovaTech",
+      location: "Lille, France", description: "python ml",
+      detected_extensions: { schedule_type: "Full-time", salary: "40k€" },
+      apply_options: [{ link: "https://g/apply" }],
+    }],
+  });
+  assert.ok(shapeOk(out[0]));
+  assert.equal(out[0].source, "google_jobs");
+  assert.equal(out[0].company, "NovaTech");
+  assert.equal(out[0].contract_type, "Full-time");
+  assert.equal(out[0].url, "https://g/apply");
+});
+
 t("sorties normalisées sont annotables (hash + score)", () => {
   const out = normalizeAdzuna({
     results: [{ id: "1", title: "Dev IA junior", description: "python remote",
@@ -91,6 +108,7 @@ t("payload vide -> tableau vide (robustesse)", () => {
   assert.deepEqual(normalizeFranceTravail(undefined), []);
   assert.deepEqual(normalizeJobSpy({}), []);
   assert.deepEqual(normalizeWTTJ(undefined), []);
+  assert.deepEqual(normalizeGoogleJobs({}), []);
 });
 
 console.log(`\n${passed} tests sources OK`);

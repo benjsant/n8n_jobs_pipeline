@@ -237,6 +237,18 @@ Source orientée tech / startups / IA, via flux RSS (pas d'API officielle publiq
 
 ---
 
+## 3c. Google Jobs via SerpApi (source principale du pipeline réel)
+
+- Inscription : https://serpapi.com → clé API (`SERPAPI_KEY`).
+- `GET https://serpapi.com/search` avec `engine=google_jobs`, `q=<mots_cles>`,
+  `location` (ex. `Lille, France`), `gl=fr`, `hl=fr`, `api_key=$SERPAPI_KEY`.
+- Réponse : `jobs_results[]` → champs `title`, `company_name`, `location`,
+  `description`, `job_id`, `detected_extensions.{schedule_type,salary}`,
+  `apply_options[].link`. Normaliseur : `normalizeGoogleJobs` dans
+  `workflows/lib/sources.mjs`.
+
+---
+
 ## 4. Notion (OPTIONNEL — consultation seule, hors V1)
 
 > ⚠️ Notion **n'est plus le stockage** : la source de vérité est PostgreSQL
@@ -325,7 +337,7 @@ Toutes lisibles via `{{ $env.NOM }}` dans les expressions (grâce à
 
 `DEEPSEEK_API_KEY`, `DEEPSEEK_BASE_URL`, `DEEPSEEK_MODEL`,
 `FRANCE_TRAVAIL_CLIENT_ID`, `FRANCE_TRAVAIL_CLIENT_SECRET`, `ADZUNA_APP_ID`,
-`ADZUNA_APP_KEY`, `JOBSPY_API_URL`, `WTTJ_RSS_URL`, `DISCORD_WEBHOOK_ALERTS`,
+`ADZUNA_APP_KEY`, `JOBSPY_API_URL`, `WTTJ_RSS_URL`, `SERPAPI_KEY`, `DISCORD_WEBHOOK_ALERTS`,
 `DISCORD_WEBHOOK_LOG`, `DISCORD_WEBHOOK_URL` (alias rétro-compat d'ALERTS),
 `GOOGLE_DRIVE_FOLDER`. Optionnels (hors V1) : `NOTION_API_KEY`,
 `NOTION_DB_OFFRES`, `NOTION_DB_ENTREPRISES`.

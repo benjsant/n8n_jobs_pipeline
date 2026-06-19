@@ -89,9 +89,37 @@ export function normalizeWTTJ(items) {
   });
 }
 
+/**
+ * Google Jobs via SerpApi : { jobs_results: [...] }. Source principale du
+ * pipeline Make réel. URL : on prend le 1er lien de candidature / partage dispo.
+ */
+export function normalizeGoogleJobs(payload) {
+  const results = payload?.jobs_results ?? [];
+  return results.map((r) => {
+    const ext = r.detected_extensions ?? {};
+    const url =
+      r.share_link ||
+      (Array.isArray(r.apply_options) && r.apply_options[0]?.link) ||
+      (Array.isArray(r.related_links) && r.related_links[0]?.link) ||
+      "";
+    return {
+      source: "google_jobs",
+      source_id: s(r.job_id),
+      title: s(r.title),
+      company: s(r.company_name),
+      location: s(r.location),
+      contract_type: s(ext.schedule_type),
+      salary: s(ext.salary),
+      description: s(r.description),
+      url: s(url),
+    };
+  });
+}
+
 export const NORMALIZERS = {
   adzuna: normalizeAdzuna,
   france_travail: normalizeFranceTravail,
   jobspy: normalizeJobSpy,
   wttj: normalizeWTTJ,
+  google_jobs: normalizeGoogleJobs,
 };
