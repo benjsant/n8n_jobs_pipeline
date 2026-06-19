@@ -28,16 +28,21 @@ CV_DIR = ROOT / "cv"
 # Champs attendus dans la sortie (cf. section 6 du system prompt).
 REQUIRED_KEYS = {
     "score": int,
+    "skills_score": int,
+    "experience_score": int,
+    "location_score": int,
+    "salary_score": int,
     "recommandation": str,
     "justification_score": str,
-    "points_forts": list,
-    "gaps": list,
+    "matching_skills": list,
+    "missing_skills": list,
     "lettre_motivation": str,
     "adaptation_cv": str,
     "personnalisation_cv": dict,
     "objet_email": str,
     "langue": str,
 }
+SUBSCORES = ("skills_score", "experience_score", "location_score", "salary_score")
 ALLOWED_RECO = {"postuler", "postuler_si_peu_options", "ne_pas_postuler"}
 ALLOWED_HIDDEN = {"summary", "skills", "experiences", "projects", "education"}
 
@@ -102,11 +107,15 @@ Docker. Profil junior accepté, curiosité et rigueur attendues.
 
 MOCK_RESPONSE = {
     "score": 82,
+    "skills_score": 85,
+    "experience_score": 70,
+    "location_score": 90,
+    "salary_score": 60,
     "recommandation": "postuler",
     "justification_score": "Bonne adéquation : stack Python/FastAPI/pgvector et "
     "expérience RAG du candidat collent au poste. Junior accepté.",
-    "points_forts": ["Projet RAG avec pgvector", "FastAPI", "Python solide"],
-    "gaps": ["Pas d'expérience LLM agents en production"],
+    "matching_skills": ["Python", "FastAPI", "RAG / LLM"],
+    "missing_skills": ["Kubernetes"],
     "lettre_motivation": "Madame, Monsieur,\n\n[lettre mock]\n\nAlex Martin",
     "adaptation_cv": "Mettre en avant le projet rag-assistant et FastAPI ; "
     "ajouter les mots-clés LLM, RAG, pgvector.",
@@ -180,8 +189,10 @@ def validate(out: dict) -> list[str]:
                 f"type invalide pour {key} : attendu {typ.__name__}, "
                 f"reçu {type(out[key]).__name__}"
             )
-    if isinstance(out.get("score"), int) and not (0 <= out["score"] <= 100):
-        errors.append(f"score hors bornes 0-100 : {out['score']}")
+    for key in ("score", *SUBSCORES):
+        v = out.get(key)
+        if isinstance(v, int) and not (0 <= v <= 100):
+            errors.append(f"{key} hors bornes 0-100 : {v}")
     if out.get("recommandation") not in ALLOWED_RECO:
         errors.append(
             f"recommandation invalide : {out.get('recommandation')} "

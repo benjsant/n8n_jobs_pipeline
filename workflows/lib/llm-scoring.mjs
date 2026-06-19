@@ -19,17 +19,21 @@ export function selectTopN(offers, n = 20) {
 
 /**
  * Construit les messages DeepSeek pour scorer un lot d'offres vis-à-vis d'un
- * profil. Retour : { messages, response_format } prêt pour /chat/completions.
- * @param {string} profileText  résumé du profil candidat (préférences, stack…)
- * @param {object[]} offers     offres à scorer (title, company, location, description)
+ * profil de recherche, avec ses critères `must_have` / `exclusions` (barème
+ * inspiré du pipeline Make réel). Retour prêt pour /chat/completions.
+ * @param {object|string} profile  { must_have, exclusions } (ou un texte libre)
+ * @param {object[]} offers        offres (title, company, location, description)
  */
-export function buildScoringMessages(profileText, offers) {
+export function buildScoringMessages(profile, offers) {
+  const p = typeof profile === "string" ? { must_have: profile, exclusions: "" } : (profile || {});
   const system =
-    "Tu es un assistant qui évalue la PERTINENCE d'offres d'emploi pour un " +
-    "candidat donné. Tu réponds UNIQUEMENT en JSON valide, sans texte autour, " +
-    "au format {\"scores\":[{\"i\":<index de l'offre>,\"score\":<0-100>," +
-    "\"reason\":\"<courte justification>\"}]}. Le score reflète l'adéquation " +
-    "au profil (technos, niveau, localisation, contrat). N'invente rien.";
+    "Tu es un expert en recrutement qui évalue la PERTINENCE d'offres d'emploi " +
+    "pour un profil donné. Barème : 90-100 = correspond très bien aux critères " +
+    "indispensables et aucune exclusion ; 50-89 = correspond partiellement ; " +
+    "moins de 50 = hors sujet ou contient un critère d'exclusion. Tu réponds " +
+    "UNIQUEMENT en JSON valide, sans texte autour, au format " +
+    "{\"scores\":[{\"i\":<index>,\"score\":<0-100>,\"reason\":\"<une phrase>\"}]}. " +
+    "N'invente rien.";
   const list = offers
     .map((o, i) =>
       `#${i} — ${o.title || "?"} @ ${o.company || "?"} (${o.location || "?"})\n` +
@@ -37,7 +41,8 @@ export function buildScoringMessages(profileText, offers) {
     )
     .join("\n\n");
   const user =
-    `PROFIL DU CANDIDAT:\n${profileText}\n\n` +
+    `Critères indispensables recherchés : ${p.must_have || "(non précisés)"}\n` +
+    `Critères d'exclusion (à pénaliser fortement) : ${p.exclusions || "(aucun)"}\n\n` +
     `OFFRES À SCORER (renvoie un score par index):\n${list}`;
   return {
     messages: [

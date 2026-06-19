@@ -143,10 +143,14 @@ sans balises Markdown. Schéma exact :
 ```json
 {
   "score": 0,
+  "skills_score": 0,
+  "experience_score": 0,
+  "location_score": 0,
+  "salary_score": 0,
   "recommandation": "postuler | postuler_si_peu_options | ne_pas_postuler",
   "justification_score": "2-3 phrases expliquant le score",
-  "points_forts": ["correspondance 1", "correspondance 2"],
-  "gaps": ["compétence manquante 1", "..."],
+  "matching_skills": ["compétence du candidat qui matche l'offre", "..."],
+  "missing_skills": ["compétence demandée que le candidat n'a pas", "..."],
   "lettre_motivation": "Texte complet de la lettre, 250-350 mots, sauts de ligne en \\n",
   "adaptation_cv": "Note courte : quelles compétences/projets mettre en avant en haut du CV pour CETTE offre, quels mots-clés ATS ajouter",
   "personnalisation_cv": {
@@ -160,6 +164,14 @@ sans balises Markdown. Schéma exact :
   "langue": "fr | en"
 }
 ```
+
+**Sous-scores** (`skills_score`, `experience_score`, `location_score`,
+`salary_score`) : chacun de 0 à 100, détaillant le `score` global selon la grille
+de la section 4 (compétences, séniorité, localisation/contrat, salaire). Le
+`score` global reste la note de synthèse 0-100 et suit l'échelle :
+0-59 = non pertinent · 60-79 = potentiellement intéressant (laisser décider) ·
+80-100 = fortement recommandé (mis en avant ; la génération reste déclenchée par
+une action humaine).
 
 **Règles pour `personnalisation_cv`** (le moteur Astro ne fait que réordonner /
 mettre en avant / masquer — il n'invente rien, et toi non plus) :

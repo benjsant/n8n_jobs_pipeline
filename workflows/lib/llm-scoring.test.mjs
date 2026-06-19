@@ -22,12 +22,20 @@ t("selectTopN borne à la taille dispo", () => {
   assert.equal(selectTopN(offers, 99).length, 3);
 });
 
-t("buildScoringMessages : JSON forcé + profil + index", () => {
+t("buildScoringMessages : JSON forcé + barème + index (forme texte)", () => {
   const req = buildScoringMessages("Junior IA, Python, Lyon", offers);
   assert.equal(req.response_format.type, "json_object");
   assert.match(req.messages[0].content, /JSON/);          // requis pour le mode JSON
-  assert.match(req.messages[1].content, /Junior IA, Python/);
+  assert.match(req.messages[0].content, /90-100|moins de 50/); // barème présent
+  assert.match(req.messages[1].content, /Junior IA, Python/); // must_have injecté
   assert.match(req.messages[1].content, /#0 —/);          // offres indexées
+});
+
+t("buildScoringMessages : must_have + exclusions du profil (forme objet)", () => {
+  const req = buildScoringMessages(
+    { must_have: "Python, ML", exclusions: "helpdesk, senior 5 ans+" }, offers);
+  assert.match(req.messages[1].content, /Critères indispensables recherchés : Python, ML/);
+  assert.match(req.messages[1].content, /Critères d'exclusion.*helpdesk/);
 });
 
 t("parseScoringResponse : applique score LLM + reason", () => {
