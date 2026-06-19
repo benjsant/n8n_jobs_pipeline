@@ -9,9 +9,12 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      # Schéma métier appliqué au premier init (base vide uniquement).
-      # Si la base existe déjà, appliquer db/schema.sql à la main (voir db/schema.sql).
-      - ./db:/docker-entrypoint-initdb.d:ro
+      # Init appliqué au PREMIER démarrage (base vide uniquement), par ordre
+      # alphabétique. On monte UNIQUEMENT les fichiers d'init (pas queries.sql,
+      # qui est une référence, ni queries.test.sh). Si la base existe déjà,
+      # appliquer db/schema.sql à la main.
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./db/seed-profiles.sql:/docker-entrypoint-initdb.d/02-seed-profiles.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
@@ -54,6 +57,7 @@ services:
       ADZUNA_APP_ID: ${ADZUNA_APP_ID}
       ADZUNA_APP_KEY: ${ADZUNA_APP_KEY}
       JOBSPY_API_URL: ${JOBSPY_API_URL:-http://jobspy:8000}
+      RENDER_API_URL: ${RENDER_API_URL:-http://render:8000}
       WTTJ_RSS_URL: ${WTTJ_RSS_URL:-}
       SERPAPI_KEY: ${SERPAPI_KEY:-}
       DISCORD_WEBHOOK_ALERTS: ${DISCORD_WEBHOOK_ALERTS:-${DISCORD_WEBHOOK_URL:-}}
@@ -67,6 +71,8 @@ services:
       - ./workflows:/workflows
       - ./prompts:/prompts
       - ./cv:/cv:ro
+      # Documents générés par le service de rendu, lus par le workflow 04.
+      - ./output:/output
     depends_on:
       postgres:
         condition: service_healthy
@@ -80,6 +86,24 @@ services:
       - "8000"
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import urllib.request;urllib.request.urlopen('http://localhost:8000/health')\""]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  render:
+    build: ./cv
+    container_name: job-hunter-render
+    restart: unless-stopped
+    # Rendu CV (Astro) + lettre en PDF. Lancé en serveur HTTP, pas en one-shot.
+    command: ["node", "server.mjs"]
+    # Pas de port exposé vers l'hôte : seul n8n l'appelle, via http://render:8000
+    expose:
+      - "8000"
+    volumes:
+      # PDF écrits ici, partagés avec n8n (lecture par le workflow 04).
+      - ./output:/output
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"require('http').get('http://localhost:8000/health',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))\""]
       interval: 30s
       timeout: 5s
       retries: 3

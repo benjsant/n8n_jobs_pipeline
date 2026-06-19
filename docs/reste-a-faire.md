@@ -66,6 +66,10 @@
   cv-index`) liste les valeurs sélectionnables, injectées au prompt par le `02`
   (`cv/` monté en lecture seule dans n8n).
 - **Idées du deck** capitalisées dans `docs/idees-inspiration.md`.
+- **Maillon rendu → 04 branché** : micro-service de rendu HTTP (`cv/server.mjs`,
+  conteneur `render`, `RENDER_API_URL`) ; le `02` appelle `/cv` + `/letter`
+  (payloads `lib/render-payloads.mjs`, 6 tests), enregistre `generated_documents`
+  et lance le `04` ; PDF dans `./output` (volume partagé n8n ↔ render).
 - **Multi-profils** (d'après l'export Airtable/Make réel) : table
   `search_profiles` + `offers.profile_id` (test d'intégration vert) ; workflow
   `01` piloté par les profils actifs (boucle) ; scoring par `must_have`/
@@ -107,9 +111,9 @@ cloud, avec niveau) · expérience · projets · formation · secteurs visés / 
 | 5 | Workflow `01-recherche-offres` (sources + dédup + scoring + Postgres + jobs-log) + micro-service JobSpy | clés FT/Adzuna/Discord | 🟡 4 sources + merge + jobs-log câblés (normaliseurs testés) ; à vérifier à l'import n8n |
 | 6 | Notif offres pertinentes (Discord jobs-alerts + statuts) | Tâche 5 | 🟡 alerts + log + workflow `03` (statuts `selected/ignored` via liens) ; à vérifier à l'import |
 | 7 | Importer + fiabiliser `02-agent-candidature` (→ `applications`) | Tâches 4, 6 | 🟡 refondu (écrit `applications`/`companies`, SQL testée) ; à vérifier à l'import |
-| 8 | Génération CV Astro→PDF + lettre (templates) | Tâche 7 | 🟡 CV (HTML vérifié, PDF conteneurisé) + lettre (5 tests) + perso CV structurée (§6, vérifiée vs cv/*.json) ; écriture du fichier perso → renderer à brancher |
-| 9 | Brouillon Gmail + archivage Drive (**garde-fou humain**) | Tâche 8 + OAuth Google | 🟡 squelette `04` + doc OAuth ; à vérifier à l'import |
-| 10 | Orchestration de bout en bout + statuts Postgres | Tâches 5-9 | 🟡 `03→02` câblé + chaîne documentée ; reste `02→rendu→04` |
+| 8 | Génération CV Astro→PDF + lettre (templates) | Tâche 7 | 🟡 CV (HTML vérifié, PDF conteneurisé) + lettre (5 tests) + perso CV structurée (§6) + **service de rendu HTTP** (`cv/server.mjs`, conteneur `render`) appelé par le `02` ; à vérifier à l'import |
+| 9 | Brouillon Gmail + archivage Drive (**garde-fou humain**) | Tâche 8 + OAuth Google | 🟡 squelette `04` (lit les PDF depuis `./output`) + doc OAuth ; à vérifier à l'import |
+| 10 | Orchestration de bout en bout + statuts Postgres | Tâches 5-9 | 🟡 chaîne complète câblée `03→02→(rendu)→04` ; reste la vérif dans n8n lancé |
 | 11 | Documentation finale + vérif aucun secret commité | tout | ⬜ |
 
 > 🟡 = avancé avec données/artefacts vérifiables hors stack ; reste la

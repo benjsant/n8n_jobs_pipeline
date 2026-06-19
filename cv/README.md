@@ -95,3 +95,24 @@ Le chemin est enregistré dans `generated_documents.letter_path` et alimente le
 > nancement / surlignage issus de `personalization.sample.json`). L'**export
 > PDF** est conteneurisé mais l'image Playwright (~1,5 Go) n'a pas été buildée
 > ici — à lancer dans ton environnement.
+
+## Service de rendu HTTP (appelé par n8n)
+
+`server.mjs` expose le rendu en HTTP pour le workflow `02` (même rôle que
+`services/jobspy` côté offres). Conteneur `render` du `docker-compose.yml`
+(`RENDER_API_URL`, par défaut `http://render:8000`) :
+
+| Route | Corps | Renvoie |
+|---|---|---|
+| `GET /health` | — | `{ "status": "ok" }` |
+| `POST /cv` | `{ application_id, personalization }` | `{ cv_path }` |
+| `POST /letter` | `{ application_id, company, subject, body, date?, candidate? }` | `{ letter_path }` |
+
+- `personalization` = bloc `personnalisation_cv` de l'agent (§6), recopié tel
+  quel (le service ne fait qu'appliquer ; il n'invente rien).
+- L'**expéditeur** de la lettre est complété depuis `profile.json` (profil réel).
+- Les PDF sont écrits dans `OUTPUT_DIR` (`/output`, volume partagé `./output`),
+  sous `app-<application_id>/cv.pdf` et `lettre.pdf`. Le `02` enregistre ces
+  chemins dans `generated_documents` puis les passe au `04` (lit `./output`).
+- Les corps de requête sont construits côté n8n par `workflows/lib/render-payloads.mjs`
+  (testé) ; le nœud Code « Préparer rendu » du `02` en est la copie.

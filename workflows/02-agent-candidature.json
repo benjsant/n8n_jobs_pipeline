@@ -196,8 +196,86 @@
       "name": "Offre -> applied",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
-      "position": [1780, 200],
+      "position": [2480, 200],
       "credentials": { "postgres": { "id": "REMPLACER", "name": "Postgres job-hunter" } }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Construit les corps de requête du service de rendu (cf. lib/render-payloads.mjs).\n// On NE FAIT QUE recopier ce que l'agent a produit : aucune invention, aucune\n// reformulation. L'expéditeur de la lettre est complété côté service depuis\n// cv/profile.json (profil réel).\nconst agent = $('Parser sortie agent').first().json;\nconst norm = $('Normaliser entrée').first().json;\nconst application_id = String($('Créer candidature (draft)').first().json.id);\nconst arr = (v) => (Array.isArray(v) ? v : []);\nconst p = (agent.personnalisation_cv && typeof agent.personnalisation_cv === 'object') ? agent.personnalisation_cv : {};\nconst company = String(norm.company ?? '');\nconst subject = String(agent.objet_email ?? '');\nconst body = String(agent.lettre_motivation ?? '');\nconst cv_payload = { application_id, personalization: {\n  summary: String(p.summary ?? ''),\n  highlight_skills: arr(p.highlight_skills),\n  highlight_projects: arr(p.highlight_projects),\n  highlight_experiences: arr(p.highlight_experiences),\n  hidden_sections: arr(p.hidden_sections),\n} };\nconst letter_payload = { application_id, company, subject, body };\nreturn [{ json: { application_id, company, subject, body, cv_payload, letter_payload } }];"
+      },
+      "id": "prep-render",
+      "name": "Préparer rendu",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1780, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.RENDER_API_URL }}/cv",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [ { "name": "Content-Type", "value": "application/json" } ] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.cv_payload) }}",
+        "options": { "timeout": 120000 }
+      },
+      "id": "render-cv",
+      "name": "Rendu CV (PDF)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1960, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.RENDER_API_URL }}/letter",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [ { "name": "Content-Type", "value": "application/json" } ] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($('Préparer rendu').first().json.letter_payload) }}",
+        "options": { "timeout": 60000 }
+      },
+      "id": "render-letter",
+      "name": "Rendu lettre (PDF)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2140, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO generated_documents (application_id, cv_path, letter_path) VALUES ($1, NULLIF($2,''), NULLIF($3,'')) RETURNING id;",
+        "options": { "queryReplacement": "={{ [ $('Préparer rendu').first().json.application_id, $('Rendu CV (PDF)').first().json.cv_path, $('Rendu lettre (PDF)').first().json.letter_path ] }}" }
+      },
+      "id": "insert-documents",
+      "name": "Enregistrer documents",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [2320, 300],
+      "credentials": { "postgres": { "id": "REMPLACER", "name": "Postgres job-hunter" } }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Entrée du workflow 04 (Drive + brouillon Gmail). Reprend les chemins PDF.\n// to_email laissé vide : le destinataire est renseigné à la main avant envoi\n// (GARDE-FOU : 04 crée un BROUILLON, jamais d'envoi automatique).\nconst prep = $('Préparer rendu').first().json;\nreturn [{ json: {\n  company: prep.company,\n  cv_path: $('Rendu CV (PDF)').first().json.cv_path,\n  letter_path: $('Rendu lettre (PDF)').first().json.letter_path,\n  to_email: '',\n  subject: prep.subject,\n  body: prep.body,\n} }];"
+      },
+      "id": "prep-final",
+      "name": "Préparer finalisation",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2660, 200]
+    },
+    {
+      "parameters": {
+        "workflowId": { "__rl": true, "mode": "list", "value": "REMPLACER", "cachedResultName": "04 - Finalisation candidature (Drive + brouillon Gmail)" },
+        "options": { "waitForSubWorkflow": false }
+      },
+      "id": "launch-04",
+      "name": "Lancer finalisation (04)",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [2840, 200]
     }
   ],
   "connections": {
@@ -215,11 +293,17 @@
     "DeepSeek entreprise": { "main": [[{ "node": "Parser entreprise", "type": "main", "index": 0 }]] },
     "Parser entreprise": { "main": [[{ "node": "Upsert entreprise", "type": "main", "index": 0 }]] },
     "Upsert entreprise": { "main": [[{ "node": "Créer candidature (draft)", "type": "main", "index": 0 }]] },
-    "Créer candidature (draft)": { "main": [[{ "node": "Offre -> applied", "type": "main", "index": 0 }]] }
+    "Créer candidature (draft)": { "main": [[{ "node": "Préparer rendu", "type": "main", "index": 0 }]] },
+    "Préparer rendu": { "main": [[{ "node": "Rendu CV (PDF)", "type": "main", "index": 0 }]] },
+    "Rendu CV (PDF)": { "main": [[{ "node": "Rendu lettre (PDF)", "type": "main", "index": 0 }]] },
+    "Rendu lettre (PDF)": { "main": [[{ "node": "Enregistrer documents", "type": "main", "index": 0 }]] },
+    "Enregistrer documents": { "main": [[{ "node": "Offre -> applied", "type": "main", "index": 0 }]] },
+    "Offre -> applied": { "main": [[{ "node": "Préparer finalisation", "type": "main", "index": 0 }]] },
+    "Préparer finalisation": { "main": [[{ "node": "Lancer finalisation (04)", "type": "main", "index": 0 }]] }
   },
   "settings": { "executionOrder": "v1" },
   "active": false,
   "meta": {
-    "note": "BROUILLON à vérifier à l'import. Deux entrées : Formulaire (test manuel, offer_id absent -> pas d'écriture DB) et Appel orchestration (offer_id présent -> enrichissement entreprise + upsert + candidature draft + offre->applied). ENRICHISSEMENT GROUNDED : DeepSeek résume l'entreprise UNIQUEMENT à partir du texte de l'offre (lib/company-enrichment.mjs) -> companies.sector/ai_summary. credential Postgres à associer. La sortie de l'agent (lettre_motivation, adaptation_cv, objet_email) alimente ensuite la génération de documents et le workflow 04. Gap connu : la personnalisation structurée du CV (highlight_*) n'est pas encore produite par le system prompt §6 — voir docs/reste-a-faire."
+    "note": "BROUILLON à vérifier à l'import. Deux entrées : Formulaire (test manuel, offer_id absent -> pas d'écriture DB ni rendu) et Appel orchestration (offer_id présent -> enrichissement entreprise + upsert + candidature draft + RENDU CV/lettre + generated_documents + offre->applied + lancement 04). ENRICHISSEMENT GROUNDED : DeepSeek résume l'entreprise UNIQUEMENT à partir du texte de l'offre (lib/company-enrichment.mjs) -> companies.sector/ai_summary. RENDU : Préparer rendu (cf. lib/render-payloads.mjs) -> POST {{RENDER_API_URL}}/cv et /letter (service render, PDF écrits dans ./output, volume partagé) -> chemins enregistrés dans generated_documents -> passés au 04. credentials Postgres + workflowId du 04 à associer à l'import. La personnalisation structurée du CV (personnalisation_cv §6) est produite par l'agent et recopiée telle quelle (aucune invention)."
   }
 }
