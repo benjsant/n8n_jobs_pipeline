@@ -10,5 +10,9 @@
     "linkedin": "https://www.linkedin.com/in/example-alex",
     "portfolio": "https://example-alex.dev"
   },
-  "summary": "Développeur junior orienté IA, à l'aise en Python et sur les pipelines de données. J'aime transformer un modèle en service utile et fiable. Je cherche un poste où apprendre vite au contact d'une équipe technique exigeante."
+  "summary": "Développeur junior orienté IA, à l'aise en Python et sur les pipelines de données. J'aime transformer un modèle en service utile et fiable. Je cherche un poste où apprendre vite au contact d'une équipe technique exigeante.",
+  "salary": { "min": 32000, "ideal": 38000 },
+  "soft_skills": ["Communication", "Autonomie", "Travail en équipe"],
+  "strengths": ["Rigueur sur la qualité et les tests", "Apprentissage rapide"],
+  "achievements": ["Pipeline de données -40% de temps de traitement (stage)"]
 }

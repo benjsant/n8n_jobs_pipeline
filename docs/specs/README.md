@@ -40,8 +40,17 @@ projets, préférences.
 - Écart de format : la spec dit « Markdown puis PDF » ; on fait **Astro HTML →
   PDF** (rendu fixe, plus robuste). À garder sauf objection.
 
-## Reste à implémenter (après validation)
-1. Étendre le schéma §6 (sous-scores + matching/missing_skills) + le validateur
-   `test_deepseek.py` + le scoring déterministe (`offer-utils.mjs`).
-2. Étendre `cv/*.json` (soft skills, certifications, langues, salaire, points forts).
-3. Ajouter sections Certifications + Langues au template Astro + `cv-index`.
+## Implémenté ✅
+1. Schéma §6 étendu (sous-scores + matching/missing_skills) + validateur
+   `test_deepseek.py`. Scoring par profil (must_have/exclusions) dans
+   `llm-scoring.mjs`.
+2. `cv/*.json` étendu : `soft_skills`, `salary`, `strengths`, `achievements`
+   (profile.json) + `certifications.json` + `languages.json`.
+3. Sections Certifications + Langues + Savoir-être ajoutées au template Astro.
+4. **Multi-profils** : table `search_profiles` + `offers.profile_id` + workflow
+   `01` piloté par les profils actifs (cf. `modele-cible-multiprofils`).
+5. Source **Google Jobs (SerpApi)** ajoutée.
+
+## Reste (optionnel)
+- ATS : `adaptation_cv` pourrait devenir un champ structuré (mots-clés).
+- Format CV : on garde Astro HTML→PDF (vs « Markdown→PDF » de la spec).

@@ -7,6 +7,8 @@ import skillsData from "./skills.json";
 import projectsData from "./projects.json";
 import experiencesData from "./experiences.json";
 import educationData from "./education.json";
+import certificationsData from "./certifications.json";
+import languagesData from "./languages.json";
 
 // Sortie de l'agent (injectée par le pipeline n8n en Tâche 8).
 // Par défaut : aucune personnalisation → CV maître brut.
@@ -41,6 +43,9 @@ const experiences = reorder(
   (e) => e.id,
 );
 const education = educationData.education.filter((e) => e.degree || e.school);
+const certifications = (certificationsData.certifications || []).filter((c) => c.name);
+const languages = (languagesData.languages || []).filter((l) => l.name);
+const softSkills = (profile.soft_skills || []).filter(Boolean);
 const skillCategories = skillsData.categories
   .map((cat) => ({
     name: cat.name,
@@ -145,6 +150,12 @@ const skillCategories = skillsData.categories
               ))}
             </div>
           ))}
+          {softSkills.length > 0 && (
+            <div class="skill-cat">
+              <span class="cat-name">Savoir-être : </span>
+              <span class="skill">{softSkills.join(", ")}</span>
+            </div>
+          )}
         </section>
       )}
 
@@ -195,6 +206,29 @@ const skillCategories = skillsData.categories
               {e.details && <div>{e.details}</div>}
             </div>
           ))}
+        </section>
+      )}
+
+      {!isHidden("certifications") && certifications.length > 0 && (
+        <section>
+          <h2>Certifications</h2>
+          {certifications.map((c) => (
+            <div class="item-head">
+              <span>{c.name}{c.issuer ? ` — ${c.issuer}` : ""}</span>
+              {c.year && <span class="item-dates">{c.year}</span>}
+            </div>
+          ))}
+        </section>
+      )}
+
+      {!isHidden("languages") && languages.length > 0 && (
+        <section>
+          <h2>Langues</h2>
+          <div class="skill-cat">
+            {languages.map((l, i) => (
+              <span class="skill">{l.name}{l.level ? ` (${l.level})` : ""}{i < languages.length - 1 ? ", " : ""}</span>
+            ))}
+          </div>
         </section>
       )}
     </main>

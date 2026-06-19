@@ -66,6 +66,12 @@
   cv-index`) liste les valeurs sélectionnables, injectées au prompt par le `02`
   (`cv/` monté en lecture seule dans n8n).
 - **Idées du deck** capitalisées dans `docs/idees-inspiration.md`.
+- **Multi-profils** (d'après l'export Airtable/Make réel) : table
+  `search_profiles` + `offers.profile_id` (test d'intégration vert) ; workflow
+  `01` piloté par les profils actifs (boucle) ; scoring par `must_have`/
+  `exclusions` du profil ; sous-scores fusionnés dans §6 ; source **Google Jobs
+  (SerpApi)** ajoutée ; profil étendu (soft skills, certifs, langues, salaire).
+  Specs d'origine archivées dans `docs/specs/`.
 
 ## 🔑 À me fournir (toi)
 

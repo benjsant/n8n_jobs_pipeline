@@ -44,7 +44,8 @@ REQUIRED_KEYS = {
 }
 SUBSCORES = ("skills_score", "experience_score", "location_score", "salary_score")
 ALLOWED_RECO = {"postuler", "postuler_si_peu_options", "ne_pas_postuler"}
-ALLOWED_HIDDEN = {"summary", "skills", "experiences", "projects", "education"}
+ALLOWED_HIDDEN = {"summary", "skills", "experiences", "projects", "education",
+                  "certifications", "languages"}
 
 
 def _load_json(name: str) -> dict:

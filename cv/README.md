@@ -14,6 +14,11 @@ avant ou masquer ce qui existe déjà dans les fichiers ci-dessous.
 | `projects.json` | projets | `{ "id", "name", "description", "tech": [], "url" }` |
 | `experiences.json` | expériences | `{ "id", "role", "company", "location", "start", "end", "bullets": [] }` |
 | `education.json` | formations | `{ "id", "degree", "school", "location", "start", "end", "details" }` |
+| `certifications.json` | certifications | `{ "name", "issuer", "year" }` |
+| `languages.json` | langues | `{ "name", "level" }` |
+
+`profile.json` porte aussi : `salary {min, ideal}`, `soft_skills[]`,
+`strengths[]`, `achievements[]`.
 
 > Les `id` de `projects.json` / `experiences.json` servent de clés de référence
 > pour la mise en avant (voir ci-dessous). Garde-les stables et uniques.

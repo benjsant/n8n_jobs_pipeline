@@ -74,9 +74,12 @@ Sources d'offres → Collecte → Déduplication → Scoring → PostgreSQL → 
 PostgreSQL est la **seule** source de vérité. Tables principales (schéma complet
 dans `docs/reference.md`) :
 
+- **search_profiles** (multi-profils) : configs de recherche `name, keywords,
+  location_insee, radius_km, contract_types, seniority, must_have, exclusions,
+  score_threshold, active`. Le workflow `01` boucle sur les profils actifs.
 - **offers** : `id, source, source_id, hash, title, company, location,
-  contract_type, salary, description, url, score, status, created_at`.
-  Statuts : `new, reviewed, selected, ignored, applied`.
+  contract_type, salary, description, url, score, score_reason, profile_id,
+  status, created_at`. Statuts : `new, reviewed, selected, ignored, applied`.
 - **companies** : `id, name, website, sector, description, ai_summary,
   last_updated`.
 - **applications** : `id, offer_id, company_id, status, applied_at,

@@ -158,7 +158,7 @@ sans balises Markdown. Schéma exact :
     "highlight_skills": ["nom EXACT d'une compétence du candidat", "..."],
     "highlight_projects": ["id EXACT d'un projet du candidat", "..."],
     "highlight_experiences": ["id EXACT d'une expérience du candidat", "..."],
-    "hidden_sections": ["summary|skills|experiences|projects|education — à masquer, optionnel"]
+    "hidden_sections": ["summary|skills|experiences|projects|education|certifications|languages — à masquer, optionnel"]
   },
   "objet_email": "Ligne d'objet pour l'email de candidature",
   "langue": "fr | en"
@@ -181,7 +181,7 @@ mettre en avant / masquer — il n'invente rien, et toi non plus) :
 - `highlight_projects` / `highlight_experiences` : uniquement des **ids exacts**
   de projets / expériences fournis en entrée.
 - `hidden_sections` : sous-ensemble de
-  `summary, skills, experiences, projects, education`.
+  `summary, skills, experiences, projects, education, certifications, languages`.
 - `summary` : reformulation du résumé existant orientée vers l'offre, sans
   ajouter de faits nouveaux.
 - En entrée, on te fournit la liste des compétences (noms) et des projets /
