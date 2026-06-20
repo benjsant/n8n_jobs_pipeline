@@ -19,8 +19,10 @@
   rendu), lettres typées, scoring 0-100, dédup SHA256, Gmail brouillon, Drive.
 - **Schéma PostgreSQL** (`db/schema.sql`, 5 tables) écrit, validé (idempotent +
   dédup), et monté en init dans `docker-compose.yml` (Tâche 2).
-- **Profil DUMMY** en place (`cv/*.json` + section 3 du system prompt), clairement
-  marqué `_dummy` / *(fictif)* — **à remplacer** par les vraies infos (Tâche 3).
+- **Profil candidat réel** importé du portfolio (`github.com/benjsant/astro-portfolio`,
+  `src/data/cv.ts`) dans `cv/*.json` + section 3 du system prompt (Benjamin
+  Santrisse). Aucune invention : ni téléphone, ni salaire, ni niveau de
+  compétence non fourni. `cv-index.json` régénéré.
 - **Script de test DeepSeek** (`scripts/test_deepseek.py`) : valide le schéma de
   sortie ; mode `--mock` vérifié sans clé (appel réel dès `DEEPSEEK_API_KEY`).
 - **Micro-service JobSpy** (`services/jobspy/`, FastAPI + Dockerfile + tests OK)
@@ -94,11 +96,12 @@
 > Notion n'est plus requis pour V1 : ne le configurer que si tu veux une vue
 > de consultation par-dessus Postgres.
 
-### Infos profil (Tâche 3) — bloc à me renvoyer
-Nom · intitulé visé · localisation · compétences (langages / IA-ML / outils /
-cloud, avec niveau) · expérience · projets · formation · secteurs visés / à
-éviter · valeurs · fourchette de salaire (optionnel).
-→ servira à la fois au system prompt (section 3) et aux fichiers `cv/*.json`.
+### Infos profil (Tâche 3) — ✅ reçues (portfolio)
+Profil importé depuis `github.com/benjsant/astro-portfolio` (`src/data/cv.ts`).
+**Optionnel / non fourni par le portfolio** (à me donner si tu veux les ajouter,
+sinon laissés vides — pas d'invention) : *soft skills / savoir-être*, *points
+forts*, *réalisations notables* (champ profil), *fourchette de salaire*,
+*secteurs visés / à éviter*, *niveaux de compétence* (notions→expert).
 
 ## ⬜ Tâches restantes (par moi, dans l'ordre)
 
@@ -106,7 +109,7 @@ cloud, avec niveau) · expérience · projets · formation · secteurs visés / 
 |---|---|---|---|
 | 1 | Démarrer la stack n8n + valider l'UI | `DEEPSEEK_API_KEY` dans `.env` | ⬜ |
 | 2 | Schéma PostgreSQL (`db/schema.sql`, 5 tables + dédup) | — | ✅ fait |
-| 3 | Finaliser profil candidat (system prompt + `cv/*.json`) | tes infos profil | 🟡 DUMMY en place, à remplacer |
+| 3 | Finaliser profil candidat (system prompt + `cv/*.json`) | tes infos profil | ✅ profil réel importé du portfolio (reste optionnel : soft skills, salaire) |
 | 4 | Tester l'agent DeepSeek seul (script/curl) | clé DeepSeek | 🟡 script prêt (`--mock` OK), appel réel en attente de la clé |
 | 5 | Workflow `01-recherche-offres` (sources + dédup + scoring + Postgres + jobs-log) + micro-service JobSpy | clés FT/Adzuna/Discord | 🟡 4 sources + merge + jobs-log câblés (normaliseurs testés) ; à vérifier à l'import n8n |
 | 6 | Notif offres pertinentes (Discord jobs-alerts + statuts) | Tâche 5 | 🟡 alerts + log + workflow `03` (statuts `selected/ignored` via liens) ; à vérifier à l'import |

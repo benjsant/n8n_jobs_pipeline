@@ -1,42 +1,55 @@
 {
   "skills": [
+    "Machine Learning",
+    "MLOps",
+    "Pandas",
+    "NumPy",
+    "Scikit-learn",
+    "MLflow",
+    "XGBoost",
+    "LLMs",
+    "RAG",
+    "Agents IA (ReAct, tool-calling)",
+    "DeepSeek",
+    "Prompt engineering",
     "Python",
-    "SQL",
     "JavaScript",
-    "PyTorch",
-    "scikit-learn",
-    "Hugging Face",
-    "RAG / LLM",
-    "Git",
-    "Docker",
+    "PHP",
+    "HTML/CSS",
     "FastAPI",
-    "GCP",
-    "PostgreSQL"
+    "Django",
+    "Symfony",
+    "React",
+    "Next.js",
+    "MySQL",
+    "PostgreSQL",
+    "MongoDB",
+    "pgvector",
+    "Docker",
+    "Git",
+    "Linux",
+    "Node.js",
+    "CI/CD GitHub Actions"
   ],
   "projects": [
     {
-      "id": "rag-assistant",
-      "name": "Assistant documentaire RAG"
+      "id": "infinidex",
+      "name": "InfiniDex – Pokédex augmenté par IA"
     },
     {
-      "id": "image-classifier",
-      "name": "Classifieur d'images de défauts"
+      "id": "predictiondex",
+      "name": "PredictionDex – prédiction de combats Pokémon"
     },
     {
-      "id": "jobs-pipeline",
-      "name": "Pipeline d'agrégation d'offres"
+      "id": "audiomancy",
+      "name": "Audiomancy – génération de playlists assistée par IA"
     }
   ],
   "experiences": [
     {
-      "id": "stage-data",
-      "role": "Stagiaire Data / IA",
-      "company": "Acme Analytics (fictif)"
-    },
-    {
-      "id": "projet-asso",
-      "role": "Développeur bénévole",
-      "company": "Association Open Data (fictif)"
+      "id": "caf-symfony",
+      "role": "Développeur Web Symfony – Stages successifs",
+      "company": "CAF du Nord – Agence de Valenciennes"
     }
   ]
 }

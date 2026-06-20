@@ -115,19 +115,19 @@ MOCK_RESPONSE = {
     "recommandation": "postuler",
     "justification_score": "Bonne adéquation : stack Python/FastAPI/pgvector et "
     "expérience RAG du candidat collent au poste. Junior accepté.",
-    "matching_skills": ["Python", "FastAPI", "RAG / LLM"],
+    "matching_skills": ["Python", "FastAPI", "RAG"],
     "missing_skills": ["Kubernetes"],
-    "lettre_motivation": "Madame, Monsieur,\n\n[lettre mock]\n\nAlex Martin",
-    "adaptation_cv": "Mettre en avant le projet rag-assistant et FastAPI ; "
+    "lettre_motivation": "Madame, Monsieur,\n\n[lettre mock]\n\nBenjamin Santrisse",
+    "adaptation_cv": "Mettre en avant InfiniDex (agent LLM) et FastAPI ; "
     "ajouter les mots-clés LLM, RAG, pgvector.",
     "personnalisation_cv": {
-        "summary": "Développeur IA junior orienté RAG et mise en production de modèles.",
-        "highlight_skills": ["PyTorch", "Python", "RAG / LLM"],
-        "highlight_projects": ["rag-assistant", "image-classifier"],
-        "highlight_experiences": ["stage-data"],
+        "summary": "Développeur Python backend orienté IA appliquée (agents LLM, MLOps).",
+        "highlight_skills": ["Python", "FastAPI", "RAG"],
+        "highlight_projects": ["infinidex", "predictiondex"],
+        "highlight_experiences": ["caf-symfony"],
         "hidden_sections": [],
     },
-    "objet_email": "Candidature — Développeur IA Junior",
+    "objet_email": "Candidature — Développeur Python / IA",
     "langue": "fr",
 }
 

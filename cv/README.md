@@ -23,9 +23,10 @@ avant ou masquer ce qui existe déjà dans les fichiers ci-dessous.
 > Les `id` de `projects.json` / `experiences.json` servent de clés de référence
 > pour la mise en avant (voir ci-dessous). Garde-les stables et uniques.
 
-Ces fichiers sont actuellement des **squelettes vides** : à remplir en Tâche 3
-(avec les vraies infos de l'utilisateur — ne rien inventer). Ils sont aussi la
-source du profil candidat côté system prompt.
+Ces fichiers contiennent le **profil réel** (importé du portfolio
+`benjsant/astro-portfolio`, `src/data/cv.ts`). Ils sont aussi la source du
+profil candidat côté system prompt (§3). Règle : **ne rien inventer** — un champ
+absent du portfolio (téléphone, salaire, niveau de compétence) reste vide.
 
 ## Contrat de sortie de l'agent
 

@@ -1,13 +1,13 @@
 {
-  "_dummy": "Exemple de données de lettre (produit en prod par l'agent + le profil). Sert à tester le rendu.",
+  "_sample": "Exemple de données de lettre (produit en prod par l'agent + le profil). Sert à tester le rendu.",
   "candidate": {
-    "name": "Alex Martin",
-    "email": "alex.martin@example.com",
-    "phone": "+33 6 00 00 00 00",
-    "location": "Lyon, France"
+    "name": "Benjamin Santrisse",
+    "email": "santrissebenjamin@gmail.com",
+    "phone": "",
+    "location": "Métropole de Valenciennes / Lille"
   },
-  "company": "NovaTech (fictif)",
-  "date": "Lyon, le 11 juin 2026",
-  "subject": "Candidature au poste de Développeur IA Junior",
-  "body": "Madame, Monsieur,\n\nVotre travail sur des assistants documentaires fondés sur le RAG résonne directement avec ce que je construis depuis un an : un assistant de recherche interne mêlant retrieval et LLM, avec citation des sources.\n\nChez Acme Analytics, j'ai bâti un pipeline de préparation de données qui a réduit de 40 % le temps de traitement, puis exposé un modèle de prédiction via une API FastAPI. Ce sont exactement les briques — Python, FastAPI, pgvector — que vous citez dans votre offre.\n\nRejoindre votre équipe me permettrait d'apprendre vite au contact de profils plus expérimentés tout en apportant dès le départ ma rigueur sur la qualité et les tests.\n\nJe serais ravi d'en échanger et reste à votre disposition.\n\nAlex Martin"
+  "company": "NovaTech (exemple)",
+  "date": "Valenciennes, le 20 juin 2026",
+  "subject": "Candidature au poste de Développeur Python / IA",
+  "body": "Madame, Monsieur,\n\nVotre travail sur des assistants documentaires fondés sur le RAG résonne directement avec mes projets : InfiniDex, un agent LLM multi-outils à streaming temps réel, et un assistant de recherche mêlant retrieval et LLM.\n\nSur PredictionDex, j'ai construit un pipeline MLOps end-to-end (XGBoost, tracking MLflow, promotion automatique en production) exposé via une API FastAPI. Ce sont exactement les briques — Python, FastAPI, PostgreSQL/pgvector — que vous citez dans votre offre.\n\nRejoindre votre équipe me permettrait de monter en compétence au contact de profils plus expérimentés tout en apportant dès le départ ma rigueur sur la qualité et les tests.\n\nJe serais ravi d'en échanger et reste à votre disposition.\n\nBenjamin Santrisse"
 }

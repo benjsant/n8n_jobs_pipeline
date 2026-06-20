@@ -1,26 +1,31 @@
 #!/usr/bin/env bash
-# Garde-fou anti-fuite de données personnelles (dépôt public).
+# Garde-fou anti-fuite (dépôt public).
 #
 # Refuse un commit qui :
-#   1. inclut .env (secrets) ;
-#   2. inclut un fichier de profil (cv/*.json hors *.example/*.sample, ou la
-#      section profil du system prompt) qui ne porte PLUS le marqueur DUMMY
-#      — signe probable de vraies données personnelles.
+#   1. inclut un .env (secrets) ;
+#   2. inclut, dans un fichier de profil candidat (cv/*.json ou la section profil
+#      du system prompt), un motif RÉELLEMENT sensible : téléphone, IBAN, numéro
+#      de sécurité sociale (NIR), adresse postale.
 #
-# Idée : tes vraies infos ne doivent jamais partir sur le dépôt public. Tant que
-# les fichiers contiennent le marqueur DUMMY, c'est qu'ils sont fictifs : OK.
-# Une fois remplis pour de vrai, garde-les hors-git (ou commit conscient avec
-# `git commit --no-verify`).
+# Choix assumé : le profil candidat réel (nom, email recruteur, liens publics,
+# projets) EST committé volontairement — ces infos sont déjà publiques via le
+# portfolio. Le garde-fou ne bloque donc plus sur « données réelles », mais sur
+# les données qu'on ne veut jamais voir partir : coordonnées privées & secrets.
 #
 # Utilisable seul (vérifie l'index) ou comme hook pre-commit.
 set -euo pipefail
 
-DUMMY_RE='(_dummy|DONNÉES FICTIVES|\(dummy\)|\(fictif\))'
+# Fichiers de profil surveillés pour les motifs sensibles.
+PROFILE_RE='^(cv/(profile|skills|projects|experiences|education|certifications|languages)\.json|prompts/agent-system-prompt\.md)$'
+
+# Motifs dangereux (téléphone FR/intl, IBAN FR, NIR, adresse postale).
+TEL_RE='(\+33|0[1-9])([ .-]?[0-9]){8,9}'
+IBAN_RE='FR[0-9]{2}[0-9A-Z ]{20,}'
+NIR_RE='\b[12][0-9]{2}(0[1-9]|1[0-2])[0-9]{6,}\b'
+ADDR_RE='[0-9]{1,3}( bis| ter)?,? (rue|avenue|av\.|bd|boulevard|impasse|allée|chemin|place) '
+
 errors=0
-
 staged() { git diff --cached --name-only --diff-filter=ACM; }
-
-# Contenu mis en cache (ce qui sera réellement committé), pas le fichier disque.
 staged_blob() { git show ":$1" 2>/dev/null || true; }
 
 while IFS= read -r f; do
@@ -29,29 +34,26 @@ while IFS= read -r f; do
     .env|*/.env)
       echo "✗ $f : un .env ne doit jamais être committé."
       errors=$((errors + 1))
-      ;;
-    cv/profile.json|cv/skills.json|cv/projects.json|cv/experiences.json|cv/education.json)
-      # Fichiers de profil candidat uniquement (pas package.json, configs, samples).
-      if ! staged_blob "$f" | grep -qE "$DUMMY_RE"; then
-        echo "✗ $f : plus de marqueur DUMMY → données personnelles probables."
-        errors=$((errors + 1))
-      fi
-      ;;
-    prompts/agent-system-prompt.md)
-      if ! staged_blob "$f" | grep -qE "$DUMMY_RE"; then
-        echo "✗ $f : la section profil ne porte plus de marqueur DUMMY."
-        errors=$((errors + 1))
-      fi
+      continue
       ;;
   esac
+  if [[ "$f" =~ $PROFILE_RE ]]; then
+    blob="$(staged_blob "$f")"
+    # Le faux numéro de démonstration (que des 0) ne compte pas.
+    hit="$(printf '%s' "$blob" | grep -hoE "$TEL_RE" | grep -vE '^\+?[0 .+-]+$' || true)"
+    [ -n "$hit" ] && { echo "✗ $f : téléphone détecté → $hit"; errors=$((errors + 1)); }
+    printf '%s' "$blob" | grep -qE "$IBAN_RE" && { echo "✗ $f : IBAN détecté."; errors=$((errors + 1)); }
+    printf '%s' "$blob" | grep -qE "$NIR_RE" && { echo "✗ $f : numéro type NIR détecté."; errors=$((errors + 1)); }
+    printf '%s' "$blob" | grep -qiE "$ADDR_RE" && { echo "✗ $f : adresse postale détectée."; errors=$((errors + 1)); }
+  fi
 done < <(staged)
 
 if [ "$errors" -gt 0 ]; then
   echo
   echo "⛔ Commit bloqué ($errors problème(s))."
-  echo "   Dépôt public : garde tes vraies infos hors-git, ou si c'est"
+  echo "   Dépôt public : retire ces coordonnées privées, ou si c'est"
   echo "   volontaire, contourne avec : git commit --no-verify"
   exit 1
 fi
 
-echo "✓ Aucune donnée personnelle/secret détecté dans l'index."
+echo "✓ Aucune coordonnée privée / secret détecté dans l'index."

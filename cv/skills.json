@@ -1,25 +1,46 @@
 {
-  "_dummy": "DONNÉES FICTIVES — à remplacer (Tâche 3).",
   "categories": [
+    { "name": "IA & Données", "items": [
+      { "name": "Machine Learning", "level": "" },
+      { "name": "MLOps", "level": "" },
+      { "name": "Pandas", "level": "" },
+      { "name": "NumPy", "level": "" },
+      { "name": "Scikit-learn", "level": "" },
+      { "name": "MLflow", "level": "" },
+      { "name": "XGBoost", "level": "" }
+    ] },
+    { "name": "IA générative", "items": [
+      { "name": "LLMs", "level": "" },
+      { "name": "RAG", "level": "" },
+      { "name": "Agents IA (ReAct, tool-calling)", "level": "" },
+      { "name": "DeepSeek", "level": "" },
+      { "name": "Prompt engineering", "level": "" }
+    ] },
     { "name": "Langages", "items": [
-      { "name": "Python", "level": "avancé" },
-      { "name": "SQL", "level": "intermédiaire" },
-      { "name": "JavaScript", "level": "intermédiaire" }
+      { "name": "Python", "level": "" },
+      { "name": "JavaScript", "level": "" },
+      { "name": "PHP", "level": "" },
+      { "name": "HTML/CSS", "level": "" }
     ] },
-    { "name": "IA / ML", "items": [
-      { "name": "PyTorch", "level": "intermédiaire" },
-      { "name": "scikit-learn", "level": "avancé" },
-      { "name": "Hugging Face", "level": "intermédiaire" },
-      { "name": "RAG / LLM", "level": "intermédiaire" }
+    { "name": "Frameworks", "items": [
+      { "name": "FastAPI", "level": "" },
+      { "name": "Django", "level": "" },
+      { "name": "Symfony", "level": "" },
+      { "name": "React", "level": "" },
+      { "name": "Next.js", "level": "" }
     ] },
-    { "name": "Outils", "items": [
-      { "name": "Git", "level": "avancé" },
-      { "name": "Docker", "level": "intermédiaire" },
-      { "name": "FastAPI", "level": "intermédiaire" }
+    { "name": "Bases de données", "items": [
+      { "name": "MySQL", "level": "" },
+      { "name": "PostgreSQL", "level": "" },
+      { "name": "MongoDB", "level": "" },
+      { "name": "pgvector", "level": "" }
     ] },
-    { "name": "Cloud", "items": [
-      { "name": "GCP", "level": "débutant" },
-      { "name": "PostgreSQL", "level": "intermédiaire" }
+    { "name": "Dev & DevOps", "items": [
+      { "name": "Docker", "level": "" },
+      { "name": "Git", "level": "" },
+      { "name": "Linux", "level": "" },
+      { "name": "Node.js", "level": "" },
+      { "name": "CI/CD GitHub Actions", "level": "" }
     ] }
   ]
 }

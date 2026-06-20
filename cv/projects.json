@@ -1,26 +1,28 @@
 {
-  "_dummy": "DONNÉES FICTIVES — à remplacer (Tâche 3).",
   "projects": [
     {
-      "id": "rag-assistant",
-      "name": "Assistant documentaire RAG",
-      "description": "Chatbot de recherche sur une base documentaire interne (retrieval + LLM), avec citations des sources.",
-      "tech": ["Python", "FastAPI", "Hugging Face", "PostgreSQL", "pgvector"],
-      "url": "https://github.com/example-alex/rag-assistant"
+      "id": "infinidex",
+      "name": "InfiniDex – Pokédex augmenté par IA",
+      "period": "Avril 2026 – en cours",
+      "description": "Agent LLM multi-provider à 9 outils (DeepSeek/OpenRouter/Ollama, sans LangChain) avec streaming SSE temps réel. Pipeline ETL Prefect automatisé (orchestration, détection de changements par SHA, alertes Discord) sur 572 Pokémon et 168 000+ fusions.",
+      "tech": ["Python", "FastAPI", "Next.js", "PostgreSQL", "Prefect", "Docker"],
+      "url": "https://github.com/benjsant/InfiniDex"
     },
     {
-      "id": "image-classifier",
-      "name": "Classifieur d'images de défauts",
-      "description": "Modèle de vision entraîné pour détecter des défauts sur pièces industrielles, exposé via une API.",
-      "tech": ["PyTorch", "scikit-learn", "Docker"],
-      "url": "https://github.com/example-alex/defect-classifier"
+      "id": "predictiondex",
+      "name": "PredictionDex – prédiction de combats Pokémon",
+      "period": "Janvier – Mars 2026",
+      "description": "Modèle XGBoost entraîné sur un dataset de combats simulés. Pipeline MLOps end-to-end : tracking MLflow, promotion auto en production, API FastAPI + interface Streamlit.",
+      "tech": ["Python", "XGBoost", "FastAPI", "PostgreSQL", "Docker"],
+      "url": "https://github.com/benjsant/lets-go-predictiondex"
     },
     {
-      "id": "jobs-pipeline",
-      "name": "Pipeline d'agrégation d'offres",
-      "description": "Collecte multi-sources d'offres d'emploi avec déduplication et scoring.",
-      "tech": ["Python", "PostgreSQL", "n8n"],
-      "url": "https://github.com/example-alex/jobs-pipeline"
+      "id": "audiomancy",
+      "name": "Audiomancy – génération de playlists assistée par IA",
+      "period": "Juillet 2025 – Mars 2026",
+      "description": "Projet en équipe. Agent ReAct DeepSeek (boucle Thought/Action/Observation) + API Jamendo pour générer des playlists musicales. Stack monitoring Prometheus/Grafana, déploiement Azure (anciennement).",
+      "tech": ["Python", "FastAPI", "Next.js", "MongoDB", "Docker"],
+      "url": "https://github.com/ABA-DEV-IA/Audiomancy"
     }
   ]
 }

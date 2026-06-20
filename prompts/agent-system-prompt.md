@@ -48,45 +48,54 @@ qui est demandé.
 
 ## 3. Profil du candidat
 
-> ⚠️ **DONNÉES FICTIVES (DUMMY)** — placées temporairement pour pouvoir tester
-> le pipeline de bout en bout. **À REMPLACER par les vraies infos avant tout
-> usage réel** (cf. Tâche 3). Source unique : `cv/*.json`, à garder cohérent.
+> Source unique et autorisée : `cv/*.json` (importés du portfolio réel du
+> candidat). Garder ce résumé cohérent avec ces fichiers. **N'invente jamais**
+> une info absente (ex. téléphone, salaire, niveau de compétence non indiqué).
 
 **Identité**
-- Nom : Alex Martin *(dummy)*
-- Intitulé visé : Développeur IA junior
-- Localisation : Lyon, France
-- Mobilité : flexible — ouvert au remote, à l'hybride et au présentiel selon
-  l'opportunité.
+- Nom : Benjamin Santrisse
+- Intitulé visé : Développeur Backend Python (API, IA appliquée)
+- Localisation : Métropole de Valenciennes / Lille (Hauts-de-France)
+- Mobilité : Métropole Valenciennoise + Lilloise · permis B + véhicule.
 
-**Compétences techniques** (niveau : notions / intermédiaire / solide / expert)
-- Langages : Python (solide), SQL (intermédiaire), JavaScript (intermédiaire)
-- IA / ML : scikit-learn (solide), PyTorch (intermédiaire), Hugging Face
-  (intermédiaire), RAG / LLM (intermédiaire)
-- Outils / infra : Git (solide), Docker (intermédiaire), FastAPI (intermédiaire)
-- Cloud : GCP (notions), PostgreSQL (intermédiaire)
+**Compétences techniques** (telles que listées dans le portfolio — aucun niveau
+chiffré n'est fourni, ne pas en inventer)
+- IA & Données : Machine Learning, MLOps, Pandas, NumPy, Scikit-learn, MLflow, XGBoost
+- IA générative : LLMs, RAG, Agents IA (ReAct, tool-calling), DeepSeek, Prompt engineering
+- Langages : Python, JavaScript, PHP, HTML/CSS
+- Frameworks : FastAPI, Django, Symfony, React, Next.js
+- Bases de données : MySQL, PostgreSQL, MongoDB, pgvector
+- Dev & DevOps : Docker, Git, Linux, Node.js, CI/CD GitHub Actions
 
 **Expérience**
-- Stagiaire Data / IA — Acme Analytics *(fictif)*, 6 mois : pipeline de données
-  (-40 % de temps de traitement), modèle de churn exposé via API FastAPI, CI.
-- Développeur bénévole — Association Open Data *(fictif)*, 6 mois : automatisation
-  de collecte et de publication de données publiques.
-- Projets perso : assistant documentaire RAG (FastAPI + LLM + pgvector),
-  classifieur d'images de défauts (PyTorch), ce pipeline job-hunter (n8n + agent).
+- Développeur Web Symfony — CAF du Nord, Agence de Valenciennes (stages
+  successifs, mai 2016 – mai 2019, 6 mois cumulés) : interfaces web Symfony /
+  Bootstrap, plateforme de gestion des espaces de travail, maintenance. Stack
+  PHP · Symfony · Bootstrap · Git · PostgreSQL.
+
+**Projets**
+- InfiniDex (2026, en cours) : agent LLM multi-provider à 9 outils sans
+  LangChain, streaming SSE, ETL Prefect (572 Pokémon, 168 000+ fusions). Python ·
+  FastAPI · Next.js · PostgreSQL · Prefect · Docker.
+- PredictionDex (2026) : modèle XGBoost + pipeline MLOps (MLflow, promotion auto),
+  API FastAPI + Streamlit.
+- Audiomancy (2025-26, en équipe) : agent ReAct DeepSeek + API Jamendo,
+  monitoring Prometheus/Grafana.
 
 **Formation**
-- Master Informatique — parcours IA, Université Exemple *(fictif)*, 2024.
-- Licence Informatique, Université Exemple *(fictif)*, 2022.
+- Formation Développeur IA — RNCP niveau 6 (bac+3/4), Simplon, Lille (2025-26).
+- Licence Pro SIO, option Développement, ISTV de Valenciennes (UVHC) (2018-19).
+- BTS SIO, option SLAM, Lycée Henri Wallon, Valenciennes (2015-17).
+
+**Certifications**
+- Gérer un projet en mobilisant les méthodes agiles (2025).
+
+**Langues** : Français courant · Anglais technique.
 
 **Préférences et contraintes**
-- Niveau visé : junior / débutant.
-- Type de contrat : CDI, alternance ou CDD (les trois conviennent).
-- Mode de travail : flexible (remote / hybride / sur site).
-- Secteurs qui m'intéressent : startups IA, éditeurs logiciels *(dummy)*.
-- Secteurs à éviter : aucun en particulier *(dummy)*.
-- Fourchette de salaire : non précisée.
-- Valeurs importantes : apprentissage, qualité du code, équipe technique
-  bienveillante *(dummy)*.
+- Recherche : CDI ou alternance · disponible immédiatement.
+- Mode de travail : présentiel/hybride sur la métropole Valenciennes / Lille.
+- Fourchette de salaire : non précisée (ne pas inventer).
 
 ---
 

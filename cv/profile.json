@@ -1,18 +1,17 @@
 {
-  "_dummy": "DONNÉES FICTIVES — à remplacer par les vraies infos (Tâche 3). Ne pas utiliser en production.",
-  "name": "Alex Martin",
-  "title": "Développeur IA junior",
-  "email": "alex.martin@example.com",
-  "phone": "+33 6 00 00 00 00",
-  "location": "Lyon, France",
+  "name": "Benjamin Santrisse",
+  "title": "Développeur Backend Python (API, IA appliquée)",
+  "email": "santrissebenjamin@gmail.com",
+  "phone": "",
+  "location": "Métropole de Valenciennes / Lille (Hauts-de-France)",
   "links": {
-    "github": "https://github.com/example-alex",
-    "linkedin": "https://www.linkedin.com/in/example-alex",
-    "portfolio": "https://example-alex.dev"
+    "github": "https://github.com/benjsant",
+    "linkedin": "https://www.linkedin.com/in/benjamin-santrisse/",
+    "portfolio": "https://benjamin-santrisse.vercel.app"
   },
-  "summary": "Développeur junior orienté IA, à l'aise en Python et sur les pipelines de données. J'aime transformer un modèle en service utile et fiable. Je cherche un poste où apprendre vite au contact d'une équipe technique exigeante.",
-  "salary": { "min": 32000, "ideal": 38000 },
-  "soft_skills": ["Communication", "Autonomie", "Travail en équipe"],
-  "strengths": ["Rigueur sur la qualité et les tests", "Apprentissage rapide"],
-  "achievements": ["Pipeline de données -40% de temps de traitement (stage)"]
+  "summary": "Développeur Python spécialisé en IA et backend, reconverti vers l'IA via une formation certifiante (RNCP 6). Conçoit des projets concrets et déployés : agents LLM, pipelines MLOps, ETL et APIs FastAPI.",
+  "salary": { "min": null, "ideal": null },
+  "soft_skills": [],
+  "strengths": [],
+  "achievements": []
 }
