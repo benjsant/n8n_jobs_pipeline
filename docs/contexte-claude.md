@@ -12,8 +12,8 @@
 
 ## 👤 Profil utilisateur
 
-- Développeur en recherche d'emploi dans l'**IA / le développement**, niveau
-  **junior / débutant**.
+- **Benjamin Santrisse** — Développeur Backend Python (API, IA appliquée),
+  reconverti vers l'IA (formation Développeur IA RNCP 6, Simplon Lille 2025-26).
 - Prose et échanges **en français** ; identifiants techniques en anglais.
 - Travaille seul sur le projet, directement sur la branche `main`.
 - Tient à la **sécurité des secrets** : demande systématiquement de vérifier
@@ -21,10 +21,10 @@
 
 ## 🎯 Préférences candidat (déjà fixées)
 
-- Niveau visé : **junior / débutant**.
-- Types de contrat acceptés : **CDI, alternance, CDD**.
-- Mode de travail : **flexible** (remote / hybride / sur site).
-- → déjà reportées dans la section 3 de `prompts/agent-system-prompt.md`.
+- Recherche : **CDI ou alternance**, disponible immédiatement.
+- Mode de travail : présentiel/hybride sur la **métropole Valenciennes / Lille**.
+- → reportées en section 3 de `prompts/agent-system-prompt.md`, et le profil
+  structuré vit dans `cv/*.json` (voir décision 13).
 
 ## 🧱 Décisions structurantes (et pourquoi)
 
@@ -60,23 +60,41 @@
    jobs-log technique), **Gmail brouillon uniquement** (jamais d'envoi auto),
    archivage Google Drive sous `Candidatures/<Entreprise>/`.
 10. **Dédup** = `SHA256(title + company + location)` ; **scoring** = 0-100.
+11. **Multi-profils** (d'après l'export Airtable/Make réel) : table
+    `search_profiles` (configs `must_have`/`exclusions`/seuil) ; le `01` boucle
+    sur les profils actifs. Source **Google Jobs (SerpApi)** ajoutée aux sources.
+12. **Rendu en micro-service** (`cv/server.mjs`, conteneur `render`,
+    `RENDER_API_URL`) : le `02` POST `/cv` + `/letter` → PDF dans `./output`
+    (volume partagé n8n ↔ render) → `generated_documents` → `04`. Raison : un
+    `docker run` one-shot n'est pas appelable depuis n8n en marche.
+13. **Profil réel synchronisé depuis le portfolio** (`benjsant/astro-portfolio`,
+    `src/data/cv.ts` = source de vérité) via `make cv-sync`
+    (`cv/scripts/sync-from-portfolio.mjs`, fonctions pures testées). Anti-invention :
+    champ absent du portfolio = vide ; champs optionnels manuels préservés.
+14. **Garde-fou anti-fuite modernisé** : le profil réel est committé volontairement
+    (déjà public via le portfolio) ; `scripts/check-no-personal-data.sh` ne bloque
+    plus sur « données réelles » mais sur motifs sensibles (tél/IBAN/NIR/adresse) + `.env`.
+15. **Workflows avec `id` racine stable** (`wf01rechercheoff`…) : requis pour
+    l'import sur n8n 2.x ; appels croisés `03→02`/`02→04` câblés sur ces ids.
 
 ## ⏳ En attente de l'utilisateur
 
-- **Infos profil (Tâche 3)** : section 3 du system prompt contient encore des
-  champs `[À COMPLÉTER]` (identité, compétences+niveaux, expérience, projets,
-  formation, secteurs, valeurs). Ne **rien inventer** — attendre l'utilisateur.
-  Ces infos alimentent aussi les fichiers `cv/*.json`.
-- **Clés externes** (DeepSeek, Adzuna, France Travail, Discord, Google
-  Gmail/Drive) à coller dans `.env` — voir le tableau dans `reste-a-faire.md`.
-  Notion n'est plus requis pour V1.
+- **Clés externes** uniquement — c'est le **seul vrai blocage** restant pour un
+  bout-en-bout réel : `DEEPSEEK_API_KEY` (le plus utile), une source (Adzuna
+  gratuit ou `SERPAPI_KEY`), un webhook Discord. Plus, pour `04`, l'OAuth Google
+  (Gmail+Drive) dans l'UI n8n. Tableau dans `reste-a-faire.md`.
+- Optionnel : compléter les champs profil absents du portfolio (soft skills,
+  salaire visé, secteurs à éviter, niveaux de compétence) — sinon laissés vides.
 
 ## 🚧 État d'avancement
 
-Synthèse vivante dans **`reste-a-faire.md`**. En résumé : squelette + config
-faits ; Tâches 1→11 du `TASKS.md` (replan V2) restent à dérouler (la plupart
-bloquées par une clé manquante ou par le signal de l'utilisateur). Le seul
-workflow présent, `02-agent-candidature.json`, reste à fiabiliser (Tâche 7).
+Synthèse vivante dans **`reste-a-faire.md`**. Au **2026-06-20** : stack lancée
+(postgres + n8n + jobspy + render, healthy), schéma DB initialisé, profil réel
+en place et synchronisable, maillon `02→rendu→04` câblé **et rendu PDF vérifié**,
+**4 workflows importés sans erreur sur n8n 2.26.7**. Logique métier testée hors
+stack (8 suites + intégration DB). Reste : associer les credentials en UI,
+fournir les clés, puis lancer un vrai bout-en-bout. Le `04` a un point connu à
+fiabiliser (fusionner les binaires CV+lettre avant le nœud Gmail).
 
 ## 🧭 Règles de travail avec cet utilisateur
 
