@@ -1,4 +1,5 @@
 {
+  "id": "wf03statutoffre0",
   "name": "03 - Statut offre (depuis Discord)",
   "nodes": [
     {
@@ -82,7 +83,7 @@
     },
     {
       "parameters": {
-        "workflowId": { "__rl": true, "mode": "list", "value": "REMPLACER", "cachedResultName": "02 - Agent candidature DeepSeek" },
+        "workflowId": { "__rl": true, "mode": "list", "value": "wf02agentcandid", "cachedResultName": "02 - Agent candidature DeepSeek" },
         "options": { "waitForSubWorkflow": false }
       },
       "id": "c3000000-0000-4000-8000-000000000007",

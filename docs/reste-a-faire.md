@@ -111,7 +111,7 @@ forts*, *réalisations notables* (champ profil), *fourchette de salaire*,
 
 | # | Tâche | Bloqué par | État |
 |---|---|---|---|
-| 1 | Démarrer la stack n8n + valider l'UI | `DEEPSEEK_API_KEY` dans `.env` | ⬜ |
+| 1 | Démarrer la stack n8n + valider l'UI | — | ✅ stack lancée (postgres+n8n+jobspy+render healthy), UI sur :5678, schéma DB initialisé |
 | 2 | Schéma PostgreSQL (`db/schema.sql`, 5 tables + dédup) | — | ✅ fait |
 | 3 | Finaliser profil candidat (system prompt + `cv/*.json`) | tes infos profil | ✅ profil réel importé du portfolio (reste optionnel : soft skills, salaire) |
 | 4 | Tester l'agent DeepSeek seul (script/curl) | clé DeepSeek | 🟡 script prêt (`--mock` OK), appel réel en attente de la clé |
@@ -125,6 +125,12 @@ forts*, *réalisations notables* (champ profil), *fourchette de salaire*,
 
 > 🟡 = avancé avec données/artefacts vérifiables hors stack ; reste la
 > vérification dans n8n lancé et/ou le remplacement des données DUMMY.
+
+**Import n8n vérifié** ✅ : les 4 workflows s'importent et chargent sans erreur sur
+**n8n 2.26.7** (ids racine stables + liens croisés `03→02`/`02→04` câblés). Restent
+côté UI : associer les credentials Postgres/Google, renseigner les clés API, activer.
+Le **vrai bout-en-bout** est bloqué uniquement par les clés (DeepSeek + ≥1 source +
+webhook Discord), à créer (voir tableau des clés ci-dessus).
 
 ## 🆕 Idées / évolutions notées (hors V1)
 

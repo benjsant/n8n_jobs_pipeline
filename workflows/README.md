@@ -47,17 +47,27 @@ elle, testée hors stack — voir `lib/` et `scripts/run-tests.sh`.
 > conteneur `render`, `RENDER_API_URL`). Le `02` l'appelle ; les PDF sortent dans
 > `./output` (volume partagé), lus par le `04`.
 
-## Ordre d'import conseillé
+## Import
 
-1. Créer la **credential Postgres** (« Postgres job-hunter ») et les
-   **credentials Google** (Drive + Gmail OAuth2) dans n8n.
-2. Importer `04`, puis `02` (relier son nœud « Lancer finalisation (04) » à l'id réel de `04`).
-3. Importer `03`, et relier le nœud « Lancer agent (02) » à l'id réel de `02`.
-4. Importer `01`.
-5. Dans chaque nœud Postgres, remplacer la credential `REMPLACER` par la vraie.
-6. Renseigner `.env` (clés sources + `DISCORD_WEBHOOK_ALERTS/LOG` + `RENDER_API_URL`)
-   puis tester `01` en exécution manuelle. Le service `render` doit tourner
-   (`docker compose up -d render`) pour que le `02` génère les PDF.
+Chaque workflow porte un **`id` racine stable** (`wf01rechercheoff`, …) et les
+appels croisés (`03 → 02`, `02 → 04`) pointent déjà sur ces ids — **aucun
+rebranchement manuel** des `executeWorkflow`. Import vérifié sur **n8n 2.26.7** :
+
+```bash
+# les 4 sont montés dans le conteneur sous /workflows
+for f in 01-recherche-offres 02-agent-candidature 03-statut-offre 04-candidature-finalisation; do
+  docker exec job-hunter-n8n n8n import:workflow --input=/workflows/$f.json
+done
+```
+
+Restent à faire **dans l'UI n8n** après import :
+1. Associer la **credential Postgres** (« Postgres job-hunter ») à chaque nœud
+   Postgres (ils portent `id: REMPLACER`).
+2. Associer les **credentials Google** (Drive + Gmail OAuth2) dans le `04`.
+3. Renseigner `.env` (clés sources + `DISCORD_WEBHOOK_ALERTS/LOG`, `RENDER_API_URL`,
+   `DEEPSEEK_API_KEY`) puis tester `01` en exécution manuelle. Le service `render`
+   doit tourner (`docker compose up -d render`) pour que le `02` génère les PDF.
+4. Activer les workflows voulus (ils sont importés **inactifs**).
 
 ## lib/ (logique testée, source des nœuds Code)
 

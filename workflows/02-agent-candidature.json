@@ -1,4 +1,5 @@
 {
+  "id": "wf02agentcandid",
   "name": "02 - Agent candidature DeepSeek",
   "nodes": [
     {
@@ -268,7 +269,7 @@
     },
     {
       "parameters": {
-        "workflowId": { "__rl": true, "mode": "list", "value": "REMPLACER", "cachedResultName": "04 - Finalisation candidature (Drive + brouillon Gmail)" },
+        "workflowId": { "__rl": true, "mode": "list", "value": "wf04finalisatio", "cachedResultName": "04 - Finalisation candidature (Drive + brouillon Gmail)" },
         "options": { "waitForSubWorkflow": false }
       },
       "id": "launch-04",
