@@ -119,7 +119,7 @@ forts*, *réalisations notables* (champ profil), *fourchette de salaire*,
 | 6 | Notif offres pertinentes (Discord jobs-alerts + statuts) | Tâche 5 | 🟡 alerts + log + workflow `03` (statuts `selected/ignored` via liens) ; à vérifier à l'import |
 | 7 | Importer + fiabiliser `02-agent-candidature` (→ `applications`) | Tâches 4, 6 | 🟡 refondu (écrit `applications`/`companies`, SQL testée) ; à vérifier à l'import |
 | 8 | Génération CV Astro→PDF + lettre (templates) | Tâche 7 | 🟡 CV (HTML vérifié, PDF conteneurisé) + lettre (5 tests) + perso CV structurée (§6) + **service de rendu HTTP** (`cv/server.mjs`, conteneur `render`) appelé par le `02` ; à vérifier à l'import |
-| 9 | Brouillon Gmail + archivage Drive (**garde-fou humain**) | Tâche 8 + OAuth Google | 🟡 squelette `04` (lit les PDF depuis `./output`) + doc OAuth ; à vérifier à l'import |
+| 9 | Brouillon Gmail + archivage Drive (**garde-fou humain**) | Tâche 8 + OAuth Google | 🟡 `04` complet (fusion des 2 binaires sur 1 item → 2 uploads Drive cv+lettre + brouillon Gmail à 2 pièces jointes), importé sur n8n 2.26.7 ; reste l'OAuth Google en UI |
 | 10 | Orchestration de bout en bout + statuts Postgres | Tâches 5-9 | 🟡 chaîne complète câblée `03→02→(rendu)→04` ; reste la vérif dans n8n lancé |
 | 11 | Documentation finale + vérif aucun secret commité | tout | ⬜ |
 

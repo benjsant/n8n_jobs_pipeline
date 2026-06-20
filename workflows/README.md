@@ -30,8 +30,9 @@ elle, testée hors stack — voir `lib/` et `scripts/run-tests.sh`.
 
         ▼
 04 Finalisation (Execute Workflow)
-   lit CV+lettre depuis ./output → Google Drive (Candidatures/<entreprise>/)
-   → Gmail BROUILLON (jamais d'envoi auto) → relecture humaine
+   lit CV+lettre depuis ./output → fusionne les 2 binaires sur 1 item
+   → Google Drive (dossier <entreprise> : cv.pdf + lettre.pdf)
+   → Gmail BROUILLON (2 pièces jointes, jamais d'envoi auto) → relecture humaine
 ```
 
 ## Workflows
