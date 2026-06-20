@@ -3,7 +3,7 @@
 .DEFAULT_GOAL := help
 SHELL := /usr/bin/env bash
 
-.PHONY: help up down logs ps schema test check install-hooks cv-install cv-build cv-pdf jobspy-build
+.PHONY: help up down logs ps schema test check install-hooks cv-install cv-index cv-sync cv-build cv-pdf jobspy-build
 
 help: ## Affiche cette aide
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -42,6 +42,9 @@ cv-install: ## Installe les deps Astro du CV
 
 cv-index: ## Régénère cv/cv-index.json (valeurs sélectionnables par l'agent) depuis cv/*.json
 	node cv/scripts/build-index.mjs
+
+cv-sync: ## Synchronise cv/*.json depuis le portfolio GitHub (src/data/cv.ts) puis régénère l'index
+	node cv/scripts/sync-from-portfolio.mjs
 
 cv-build: ## Construit le HTML du CV (CV_PERSONALIZATION=chemin.json optionnel)
 	cd cv && CV_PERSONALIZATION="$(CV_PERSONALIZATION)" npm run build

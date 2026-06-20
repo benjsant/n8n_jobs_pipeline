@@ -124,7 +124,7 @@ MOCK_RESPONSE = {
         "summary": "Développeur Python backend orienté IA appliquée (agents LLM, MLOps).",
         "highlight_skills": ["Python", "FastAPI", "RAG"],
         "highlight_projects": ["infinidex", "predictiondex"],
-        "highlight_experiences": ["caf-symfony"],
+        "highlight_experiences": ["caf-du-nord"],
         "hidden_sections": [],
     },
     "objet_email": "Candidature — Développeur Python / IA",

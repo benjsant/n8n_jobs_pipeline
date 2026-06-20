@@ -1,6 +1,12 @@
 {
   "languages": [
-    { "name": "Français", "level": "Courant" },
-    { "name": "Anglais", "level": "Technique" }
+    {
+      "name": "Français",
+      "level": "Courant"
+    },
+    {
+      "name": "Anglais",
+      "level": "Technique"
+    }
   ]
 }

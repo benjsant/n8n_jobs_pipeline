@@ -23,10 +23,19 @@ avant ou masquer ce qui existe déjà dans les fichiers ci-dessous.
 > Les `id` de `projects.json` / `experiences.json` servent de clés de référence
 > pour la mise en avant (voir ci-dessous). Garde-les stables et uniques.
 
-Ces fichiers contiennent le **profil réel** (importé du portfolio
-`benjsant/astro-portfolio`, `src/data/cv.ts`). Ils sont aussi la source du
-profil candidat côté system prompt (§3). Règle : **ne rien inventer** — un champ
-absent du portfolio (téléphone, salaire, niveau de compétence) reste vide.
+Ces fichiers contiennent le **profil réel**, **synchronisé depuis le portfolio**
+(`benjsant/astro-portfolio`, `src/data/cv.ts` = source de vérité) :
+
+```bash
+make cv-sync   # récupère cv.ts sur GitHub -> régénère cv/*.json + cv-index.json
+```
+
+Le mapping (portfolio → schéma du projet) vit dans
+`cv/scripts/sync-from-portfolio.mjs` (fonctions pures testées). Règles :
+**ne rien inventer** — un champ absent du portfolio (téléphone, salaire, niveau
+de compétence) reste vide ; les champs optionnels saisis à la main
+(`soft_skills`, `strengths`, `achievements`, `salary`) sont **préservés** au
+re-sync. Ces fichiers sont aussi la source du profil côté system prompt (§3).
 
 ## Contrat de sortie de l'agent
 

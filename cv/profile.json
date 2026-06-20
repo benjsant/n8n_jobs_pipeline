@@ -3,14 +3,17 @@
   "title": "Développeur Backend Python (API, IA appliquée)",
   "email": "santrissebenjamin@gmail.com",
   "phone": "",
-  "location": "Métropole de Valenciennes / Lille (Hauts-de-France)",
+  "location": "Métropole Valenciennoise + Lilloise",
   "links": {
     "github": "https://github.com/benjsant",
     "linkedin": "https://www.linkedin.com/in/benjamin-santrisse/",
     "portfolio": "https://benjamin-santrisse.vercel.app"
   },
   "summary": "Développeur Python spécialisé en IA et backend, reconverti vers l'IA via une formation certifiante (RNCP 6). Conçoit des projets concrets et déployés : agents LLM, pipelines MLOps, ETL et APIs FastAPI.",
-  "salary": { "min": null, "ideal": null },
+  "salary": {
+    "min": null,
+    "ideal": null
+  },
   "soft_skills": [],
   "strengths": [],
   "achievements": []

@@ -23,6 +23,10 @@
   `src/data/cv.ts`) dans `cv/*.json` + section 3 du system prompt (Benjamin
   Santrisse). Aucune invention : ni téléphone, ni salaire, ni niveau de
   compétence non fourni. `cv-index.json` régénéré.
+- **Sync profil ↔ portfolio** (`make cv-sync`, `cv/scripts/sync-from-portfolio.mjs`,
+  7 tests) : le portfolio reste la **seule source** du CV ; le script régénère
+  `cv/*.json` + l'index, préserve les champs optionnels manuels, et n'invente
+  rien. Câblable en cron n8n pour un resync périodique.
 - **Script de test DeepSeek** (`scripts/test_deepseek.py`) : valide le schéma de
   sortie ; mode `--mock` vérifié sans clé (appel réel dès `DEEPSEEK_API_KEY`).
 - **Micro-service JobSpy** (`services/jobspy/`, FastAPI + Dockerfile + tests OK)

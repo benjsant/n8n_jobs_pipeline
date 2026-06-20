@@ -1,12 +1,12 @@
 {
   "experiences": [
     {
-      "id": "caf-symfony",
+      "id": "caf-du-nord",
       "role": "Développeur Web Symfony – Stages successifs",
       "company": "CAF du Nord – Agence de Valenciennes",
-      "location": "Valenciennes, France",
-      "start": "2016-05",
-      "end": "2019-05",
+      "location": "",
+      "start": "2016",
+      "end": "2019",
       "date": "Mai 2016 – Mai 2019 · 6 mois cumulés (24 sem.)",
       "bullets": [
         "Développement et intégration d'interfaces web avec Symfony et Bootstrap dans des applications internes",
