@@ -119,4 +119,7 @@ fiabiliser (fusionner les binaires CV+lettre avant le nœud Gmail).
 - `docs/reference.md` — infos API exactes (DeepSeek, France Travail, Adzuna, Notion, Discord, JobSpy, WTTJ).
 - `docs/reste-a-faire.md` — état d'avancement + clés à fournir.
 - `docs/installation.md` — installation sur une nouvelle machine.
+- `docs/deploiement-vps.md` — déploiement VPS privé (WireGuard + SSH durci).
+- `docs/donnees-et-deepseek.md` — quelles données fournir, modèle DeepSeek,
+  génération CV/lettre (PDF en sortie, pas en entrée) ; ce qui est attendu de l'utilisateur.
 - `TASKS.md` — plan de build ordonné.
