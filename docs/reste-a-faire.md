@@ -23,7 +23,7 @@
   `src/data/cv.ts`) dans `cv/*.json` + section 3 du system prompt (Benjamin
   Santrisse). Aucune invention : ni téléphone, ni salaire, ni niveau de
   compétence non fourni. `cv-index.json` régénéré.
-- **Sync profil ↔ portfolio** (`make cv-sync`, `cv/scripts/sync-from-portfolio.mjs`,
+- **Sync profil ↔ portfolio** (`just cv-sync`, `cv/scripts/sync-from-portfolio.mjs`,
   7 tests) : le portfolio reste la **seule source** du CV ; le script régénère
   `cv/*.json` + l'index, préserve les champs optionnels manuels, et n'invente
   rien. Câblable en cron n8n pour un resync périodique.
@@ -36,9 +36,9 @@
 - **Logique dédup+scoring** (`workflows/lib/offer-utils.mjs`, 7 tests OK) et
   **workflow `01-recherche-offres.json`** (brouillon Adzuna, scoring inline en
   parité avec le module) — à vérifier à l'import n8n.
-- **Outillage** : `Makefile` (points d'entrée), `scripts/run-tests.sh` (suites
+- **Outillage** : `Justfile` (points d'entrée, `just --list`), `scripts/run-tests.sh` (suites
   hors stack), et **garde-fou anti-fuite** (`scripts/check-no-personal-data.sh`
-  + hook `.githooks/pre-commit`, à activer via `make install-hooks`) qui bloque
+  + hook `.githooks/pre-commit`, à activer via `just install-hooks`) qui bloque
   un commit de `.env` ou d'un profil ayant perdu son marqueur DUMMY.
 - **Normaliseurs par source** (`workflows/lib/sources.mjs`, 7 tests OK) : FT,
   Adzuna, JobSpy, WTTJ → schéma commun.
@@ -48,7 +48,7 @@
 - **Deux canaux Discord** : `DISCORD_WEBHOOK_ALERTS` / `DISCORD_WEBHOOK_LOG`
   (+ alias rétro-compat `DISCORD_WEBHOOK_URL`) câblés dans `.env*` et compose.
 - **Rendu lettre** (`cv/letter.mjs`, 5 tests OK) : met en page le texte de
-  l'agent → PDF conteneurisé (`make letter-pdf`), alimente `letter_path`.
+  l'agent → PDF conteneurisé (`just letter-pdf`), alimente `letter_path`.
 - **Statuts depuis Discord** : workflow `03-statut-offre` (webhook
   `offer-status?hash=&action=selected|ignored` → UPDATE `offers.status`) + liens
   d'action ajoutés dans l'alerte du workflow `01`.

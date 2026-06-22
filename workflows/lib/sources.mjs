@@ -139,6 +139,62 @@ export function normalizeJSearch(payload) {
   });
 }
 
+/**
+ * La Bonne Alternance (service public apprentissage / beta.gouv) — API emploi
+ * unifiée v3 : GET https://api.apprentissage.beta.gouv.fr/api/job/v1/search
+ * (params romes + latitude/longitude + radius ; clé API en Bearer).
+ *
+ * La réponse contient DEUX listes au schéma "offre" normalisé :
+ *  - `jobs`       : offres d'alternance publiées -> pipeline offres classique ;
+ *  - `recruiters` : entreprises à fort potentiel d'embauche, SANS offre publiée,
+ *                   à contacter en CANDIDATURE SPONTANÉE (cf. normalizeLBARecruiters).
+ *
+ * ⚠️ Forme à confirmer sur la doc officielle (api.apprentissage.beta.gouv.fr) :
+ * les normaliseurs sont défensifs (optional chaining + fallbacks) mais NON
+ * vérifiés sur un workflow réel, contrairement à FT/JSearch.
+ */
+export function normalizeLaBonneAlternanceJobs(payload) {
+  const jobs = payload?.jobs ?? [];
+  return jobs.map((j) => {
+    const wp = j.workplace ?? {};
+    const types = j.contract?.type;
+    return {
+      source: "la_bonne_alternance",
+      source_id: s(j.identifier?.id || j.identifier?.partner_job_id),
+      title: s(j.offer?.title),
+      company: s(wp.brand || wp.name || wp.legal_name),
+      location: s(wp.location?.address),
+      contract_type: s(Array.isArray(types) ? types.join(", ") : types) || "Alternance",
+      salary: "",
+      description: s(j.offer?.description),
+      url: s(j.apply?.url),
+    };
+  });
+}
+
+/**
+ * La Bonne Alternance — volet "entreprises à contacter" (candidature spontanée).
+ * Renvoie des fiches ENTREPRISE (schéma proche de la table `companies`), pas des
+ * offres : pas de description de poste, mais un lien/contact de candidature.
+ */
+export function normalizeLBARecruiters(payload) {
+  const recruiters = payload?.recruiters ?? [];
+  return recruiters.map((r) => {
+    const wp = r.workplace ?? {};
+    return {
+      source: "la_bonne_alternance",
+      source_id: s(r.identifier?.id || wp.siret),
+      name: s(wp.brand || wp.name || wp.legal_name),
+      siret: s(wp.siret),
+      sector: s(wp.domain?.naf?.label || wp.naf?.label),
+      website: s(wp.website),
+      location: s(wp.location?.address),
+      apply_url: s(r.apply?.url),
+      phone: s(r.apply?.phone),
+    };
+  });
+}
+
 export const NORMALIZERS = {
   adzuna: normalizeAdzuna,
   france_travail: normalizeFranceTravail,
@@ -146,4 +202,5 @@ export const NORMALIZERS = {
   wttj: normalizeWTTJ,
   google_jobs: normalizeGoogleJobs,
   jsearch: normalizeJSearch,
+  la_bonne_alternance: normalizeLaBonneAlternanceJobs,
 };

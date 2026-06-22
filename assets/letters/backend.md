@@ -29,3 +29,14 @@ disposition pour en échanger.
 
 {{candidat.nom}}
 {{candidat.email}} · {{candidat.telephone}}
+
+<!--
+Ton de référence (vraies lettres du candidat — guide le ton, jamais les faits ;
+voir §5 du system prompt) :
+- Projets en avant : InfiniDex (FastAPI, PostgreSQL, ETL Prefect) et PredictionDex
+  (pipeline MLOps, API FastAPI). Insister : APIs robustes, modélisation de
+  données, automatisation de pipelines, mise en production.
+- Formule « du code jusqu'au déploiement » ; montrer l'impact mesurable.
+- « Produits réellement déployés, pas des démos. » Reconversion RNCP 6 = socle.
+-->
+

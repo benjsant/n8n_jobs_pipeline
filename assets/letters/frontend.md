@@ -30,3 +30,14 @@ disposition pour en échanger.
 
 {{candidat.nom}}
 {{candidat.email}} · {{candidat.telephone}}
+
+<!--
+Ton de référence (vraies lettres du candidat — guide le ton, jamais les faits ;
+voir §5 du system prompt) :
+- Le front n'est pas le cœur du profil : rester honnête. S'appuyer sur du React /
+  Next.js réel (InfiniDex et Audiomancy ont un front Next.js) sans surjouer.
+- Jouer la polyvalence (PHP/Symfony, JavaScript/React) comme atout d'adaptation
+  rapide à une stack ; calibrer le vocabulaire sur le niveau réel.
+- « Produits réellement déployés, pas des démos. »
+-->
+

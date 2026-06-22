@@ -9,7 +9,10 @@ elle, testée hors stack — voir `lib/` et `scripts/run-tests.sh`.
 
 ```
 01 Recherche d'offres (cron 8h)
-   6 sources (FT, Adzuna, JobSpy, Google Jobs/SerpApi, WTTJ, JSearch/RapidAPI) → merge → score déterministe → hash
+   7 sources (FT, Adzuna, JobSpy, Google Jobs/SerpApi, WTTJ, JSearch/RapidAPI,
+   La Bonne Alternance) → merge → score déterministe → hash
+   La Bonne Alternance fan-out : offres → merge ; entreprises sans offre →
+   upsert companies → Discord « candidature spontanée » (branche terminale)
    → INSERT offers (status new, dédup) → scoring hybride : DeepSeek affine le
      top-N (score + score_reason) → Discord jobs-alerts (+ liens) + jobs-log
 
@@ -78,7 +81,7 @@ Restent à faire **dans l'UI n8n** après import :
   DeepSeek du top-N (`selectTopN`, `buildScoringMessages`, `parseScoringResponse`).
 - `company-enrichment.mjs` : fiche entreprise **grounded** (résumé à partir du
   seul texte de l'offre, sans invention) → `companies.sector` / `ai_summary`.
-- Tests : `node workflows/lib/*.test.mjs` (ou `make test`).
+- Tests : `node workflows/lib/*.test.mjs` (ou `just test`).
 
 > Les nœuds Code des workflows recopient cette logique (n8n n'importe pas de
 > fichier externe). Garder en parité — un test vérifie l'équivalence du scoring.

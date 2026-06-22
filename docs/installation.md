@@ -19,7 +19,7 @@ Guide pour cloner et relancer **n8n_jobs_pipeline** from scratch sur un nouveau 
 
 - **Git**, **Docker** + **Docker Compose v2** (`docker compose version` répond).
 - **OpenSSL** (génération de secrets ; présent sur Linux/macOS, via Git Bash sous Windows).
-- **Node ≥ 18** (optionnel, seulement pour lancer les tests / `make cv-sync` sur l'hôte ;
+- **Node ≥ 18** (optionnel, seulement pour lancer les tests / `just cv-sync` sur l'hôte ;
   pas requis pour faire tourner la stack, tout est conteneurisé).
 - ~2 Go de libre : l'image de rendu est basée sur Playwright (Chromium inclus).
 
@@ -100,13 +100,13 @@ Le profil réel est **déjà dans le dépôt** (`cv/*.json`, synchronisé depuis
 portfolio `benjsant/astro-portfolio`). Pour le resynchroniser après une mise à
 jour du portfolio :
 ```bash
-make cv-sync     # récupère src/data/cv.ts → régénère cv/*.json + cv-index.json
+just cv-sync     # récupère src/data/cv.ts → régénère cv/*.json + cv-index.json
 ```
 
 ## 7. Vérifier
 
 ```bash
-make test                    # suites hors stack (libs, scoring, sync, schéma, intégration DB)
+just test                    # suites hors stack (libs, scoring, sync, schéma, intégration DB)
 docker compose ps            # 4 conteneurs running/healthy
 git status                   # ne montre JAMAIS .env
 ```

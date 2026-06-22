@@ -13,7 +13,7 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "SELECT id, name, keywords, location_insee, radius_km, contract_types, seniority, must_have, exclusions, score_threshold FROM search_profiles WHERE active = true ORDER BY id;",
+        "query": "SELECT id, name, keywords, location_insee, location_label, radius_km, contract_types, seniority, must_have, exclusions, score_threshold FROM search_profiles WHERE active = true ORDER BY id;",
         "options": {}
       },
       "id": "a1000000-0000-4000-8000-000000000002",
@@ -40,7 +40,7 @@
           { "name": "app_id", "value": "={{ $env.ADZUNA_APP_ID }}" },
           { "name": "app_key", "value": "={{ $env.ADZUNA_APP_KEY }}" },
           { "name": "what", "value": "={{ $('Boucle profils').item.json.keywords }}" },
-          { "name": "where", "value": "France" },
+          { "name": "where", "value": "={{ $('Boucle profils').item.json.location_label }}" },
           { "name": "results_per_page", "value": "50" }
         ] },
         "options": {}
@@ -114,7 +114,7 @@
         "sendQuery": true,
         "queryParameters": { "parameters": [
           { "name": "term", "value": "={{ $('Boucle profils').item.json.keywords }}" },
-          { "name": "location", "value": "France" },
+          { "name": "location", "value": "={{ $('Boucle profils').item.json.location_label }}, France" },
           { "name": "results", "value": "50" }
         ] },
         "options": {}
@@ -141,7 +141,7 @@
         "queryParameters": { "parameters": [
           { "name": "engine", "value": "google_jobs" },
           { "name": "q", "value": "={{ $('Boucle profils').item.json.keywords }}" },
-          { "name": "location", "value": "France" },
+          { "name": "location", "value": "={{ $('Boucle profils').item.json.location_label }}, France" },
           { "name": "gl", "value": "fr" },
           { "name": "hl", "value": "fr" },
           { "name": "api_key", "value": "={{ $env.SERPAPI_KEY }}" }
@@ -190,7 +190,7 @@
         ] },
         "sendQuery": true,
         "queryParameters": { "parameters": [
-          { "name": "query", "value": "={{ $('Boucle profils').item.json.keywords }}" },
+          { "name": "query", "value": "={{ $('Boucle profils').item.json.keywords }} in {{ $('Boucle profils').item.json.location_label }}, France" },
           { "name": "page", "value": "1" },
           { "name": "num_pages", "value": "1" },
           { "name": "country", "value": "fr" }
@@ -212,7 +212,72 @@
       "position": [460, 880]
     },
     {
-      "parameters": { "numberInputs": 6 },
+      "parameters": {
+        "url": "https://api.apprentissage.beta.gouv.fr/api/job/v1/search",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [
+          { "name": "Authorization", "value": "=Bearer {{ $env.LBA_API_KEY }}" }
+        ] },
+        "sendQuery": true,
+        "queryParameters": { "parameters": [
+          { "name": "romes", "value": "={{ $('Boucle profils').item.json.rome_codes }}" },
+          { "name": "latitude", "value": "={{ $('Boucle profils').item.json.latitude }}" },
+          { "name": "longitude", "value": "={{ $('Boucle profils').item.json.longitude }}" },
+          { "name": "radius", "value": "={{ $('Boucle profils').item.json.radius_km }}" }
+        ] },
+        "options": {}
+      },
+      "id": "a1000000-0000-4000-8000-000000000060",
+      "name": "LBA - search",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [240, 1040]
+    },
+    {
+      "parameters": { "jsCode": "// La Bonne Alternance — OFFRES d'alternance (jobs[]). Cf. lib/sources.mjs normalizeLaBonneAlternanceJobs.\nconst s=(v)=>String(v??'').trim();\nconst jobs=$input.first().json.jobs||[];\nreturn jobs.map((j)=>{const wp=j.workplace||{};const t=j.contract&&j.contract.type;return{json:{source:'la_bonne_alternance',source_id:s((j.identifier&&(j.identifier.id||j.identifier.partner_job_id))),title:s(j.offer&&j.offer.title),company:s(wp.brand||wp.name||wp.legal_name),location:s(wp.location&&wp.location.address),contract_type:s(Array.isArray(t)?t.join(', '):t)||'Alternance',salary:'',description:s(j.offer&&j.offer.description),url:s(j.apply&&j.apply.url)}};});" },
+      "id": "a1000000-0000-4000-8000-000000000061",
+      "name": "norm LBA",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 1000]
+    },
+    {
+      "parameters": { "jsCode": "// La Bonne Alternance — ENTREPRISES à contacter (recruiters[]), candidature spontanée.\n// Cf. lib/sources.mjs normalizeLBARecruiters. Filtre les fiches sans nom.\nconst s=(v)=>String(v??'').trim();\nconst rs=$input.first().json.recruiters||[];\nreturn rs.map((r)=>{const wp=r.workplace||{};return{json:{source:'la_bonne_alternance',source_id:s((r.identifier&&r.identifier.id)||wp.siret),name:s(wp.brand||wp.name||wp.legal_name),siret:s(wp.siret),sector:s((wp.domain&&wp.domain.naf&&wp.domain.naf.label)||(wp.naf&&wp.naf.label)),website:s(wp.website),location:s(wp.location&&wp.location.address),apply_url:s(r.apply&&r.apply.url),phone:s(r.apply&&r.apply.phone)}};}).filter((o)=>o.json.name);" },
+      "id": "a1000000-0000-4000-8000-000000000062",
+      "name": "norm LBA recruteurs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 1120]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO companies (name, website, sector, last_updated) VALUES ($1, $2, $3, now()) ON CONFLICT (name) DO UPDATE SET website = COALESCE(NULLIF(EXCLUDED.website, ''), companies.website), sector = COALESCE(NULLIF(EXCLUDED.sector, ''), companies.sector), last_updated = now();",
+        "options": { "queryReplacement": "={{ [$json.name, $json.website || '', $json.sector || ''] }}" }
+      },
+      "id": "a1000000-0000-4000-8000-000000000063",
+      "name": "Upsert entreprise (spontanée)",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [680, 1120],
+      "credentials": { "postgres": { "id": "REMPLACER", "name": "Postgres job-hunter" } }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.DISCORD_WEBHOOK_ALERTS }}",
+        "sendBody": true, "specifyBody": "json",
+        "jsonBody": "={{ { \"content\": `🏢 **Candidature spontanée (alternance)** — ${$json.name}${$json.sector ? ' · ' + $json.sector : ''}\\n[${$('Boucle profils').item.json.name}] ${$json.location || ''}\\n${$json.website || ''}${$json.apply_url ? '\\n➡️ Contact: ' + $json.apply_url : ''}` } }}",
+        "options": {}
+      },
+      "id": "a1000000-0000-4000-8000-000000000064",
+      "name": "Discord spontanée",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [900, 1120]
+    },
+    {
+      "parameters": { "numberInputs": 7 },
       "id": "a1000000-0000-4000-8000-000000000050",
       "name": "Fusionner sources",
       "type": "n8n-nodes-base.merge",
@@ -343,7 +408,8 @@
         { "node": "JobSpy - search", "type": "main", "index": 0 },
         { "node": "Google Jobs - SerpApi", "type": "main", "index": 0 },
         { "node": "WTTJ - RSS", "type": "main", "index": 0 },
-      { "node": "JSearch - search", "type": "main", "index": 0 }
+        { "node": "JSearch - search", "type": "main", "index": 0 },
+        { "node": "LBA - search", "type": "main", "index": 0 }
       ]
     ] },
     "Adzuna - search": { "main": [[{ "node": "norm Adzuna", "type": "main", "index": 0 }]] },
@@ -359,6 +425,10 @@
     "norm WTTJ": { "main": [[{ "node": "Fusionner sources", "type": "main", "index": 4 }]] },
     "JSearch - search": { "main": [[{ "node": "norm JSearch", "type": "main", "index": 0 }]] },
     "norm JSearch": { "main": [[{ "node": "Fusionner sources", "type": "main", "index": 5 }]] },
+    "LBA - search": { "main": [[{ "node": "norm LBA", "type": "main", "index": 0 }, { "node": "norm LBA recruteurs", "type": "main", "index": 0 }]] },
+    "norm LBA": { "main": [[{ "node": "Fusionner sources", "type": "main", "index": 6 }]] },
+    "norm LBA recruteurs": { "main": [[{ "node": "Upsert entreprise (spontanée)", "type": "main", "index": 0 }]] },
+    "Upsert entreprise (spontanée)": { "main": [[{ "node": "Discord spontanée", "type": "main", "index": 0 }]] },
     "Fusionner sources": { "main": [[{ "node": "Scorer + hashSource", "type": "main", "index": 0 }]] },
     "Scorer + hashSource": { "main": [[{ "node": "Hash dédup", "type": "main", "index": 0 }]] },
     "Hash dédup": { "main": [[{ "node": "Insert offers (dédup)", "type": "main", "index": 0 }]] },
@@ -373,6 +443,6 @@
   "settings": { "executionOrder": "v1" },
   "active": false,
   "meta": {
-    "note": "BROUILLON multi-profils à vérifier à l'import. Boucle: Profils actifs (Postgres) -> SplitInBatches 'Boucle profils' (sortie 1 = itération, sortie 0 = fin). Pour CHAQUE profil: 5 sources (Adzuna, France Travail, JobSpy, Google Jobs/SerpApi) -> Merge(5 entrées, indices 0-3 reliés + JobSpy/GJob) -> score déterministe + profile_id -> hash -> INSERT (skipOnConflict) -> affinage DeepSeek top-N avec must_have/exclusions DU PROFIL -> MAJ score -> seuil score_threshold du profil -> Discord alerts -> retour à 'Boucle profils'. 5 sources reliées au Merge (indices 0-4). À VÉRIFIER à l'import: comportement exact du loopback SplitInBatches (sortie 1 = boucle, 0 = fin), le passage de $('Boucle profils').item dans toute la boucle, le mode du Merge à 5 entrées, et les credentials Postgres. Logique = workflows/lib/*.mjs (testées). jobs-log à rebrancher dans la boucle si besoin."
+    "note": "BROUILLON multi-profils à vérifier à l'import. Boucle: Profils actifs (Postgres) -> SplitInBatches 'Boucle profils' (sortie 1 = itération, sortie 0 = fin). Pour CHAQUE profil: 7 sources (Adzuna, France Travail, JobSpy, Google Jobs/SerpApi, WTTJ, JSearch, La Bonne Alternance) -> Merge(7 entrées, indices 0-6) -> score déterministe + profile_id -> hash -> INSERT (skipOnConflict) -> affinage DeepSeek top-N avec must_have/exclusions DU PROFIL -> MAJ score -> seuil score_threshold du profil -> Discord alerts -> retour à 'Boucle profils'. La source LBA fan-out: 'norm LBA' (offres) -> Merge index 6 ; 'norm LBA recruteurs' (entreprises sans offre) -> Upsert companies -> Discord 'candidature spontanée' (branche terminale). À VÉRIFIER à l'import: comportement exact du loopback SplitInBatches (sortie 1 = boucle, 0 = fin), le passage de $('Boucle profils').item dans toute la boucle, le mode du Merge à 7 entrées, la FORME de réponse LBA (api.apprentissage.beta.gouv.fr, non vérifiée sur workflow réel), et les credentials Postgres. Logique = workflows/lib/*.mjs (testées). jobs-log à rebrancher dans la boucle si besoin."
   }
 }

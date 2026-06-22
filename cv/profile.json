@@ -10,6 +10,7 @@
     "portfolio": "https://benjamin-santrisse.vercel.app"
   },
   "summary": "Développeur Python spécialisé en IA et backend, reconverti vers l'IA via une formation certifiante (RNCP 6). Conçoit des projets concrets et déployés : agents LLM, pipelines MLOps, ETL et APIs FastAPI.",
+  "residence": "Marly (59)",
   "salary": {
     "min": null,
     "ideal": null

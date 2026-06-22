@@ -249,6 +249,40 @@ Source orientée tech / startups / IA, via flux RSS (pas d'API officielle publiq
 
 ---
 
+## 3d. La Bonne Alternance (alternance + entreprises à contacter)
+
+Service public (mission apprentissage / beta.gouv) **spécifique alternance**.
+Particularité : renvoie à la fois des **offres** d'alternance ET des
+**entreprises à fort potentiel d'embauche** sans offre publiée, à contacter en
+**candidature spontanée**. (À ne pas confondre avec *La Bonne Boîte* /
+France Travail, qui vise la candidature spontanée tous contrats, pas l'alternance.)
+
+- Inscription : espace développeurs sur https://api.apprentissage.beta.gouv.fr →
+  clé API (variable `LBA_API_KEY`).
+- **Recherche** (API emploi unifiée v3) :
+  - `GET https://api.apprentissage.beta.gouv.fr/api/job/v1/search`
+  - Header : `Authorization: Bearer $LBA_API_KEY` (ou `ApiKey` selon la doc — à vérifier).
+  - Paramètres : `romes` (codes ROME séparés par virgule, ex. `M1805`),
+    `latitude`, `longitude`, `radius` (km, défaut 30). **Pas** d'INSEE ni de
+    ville en texte → on passe par lat/long (colonnes `search_profiles.latitude`,
+    `longitude`, `rome_codes`).
+- **Réponse** : deux listes au schéma "offre" normalisé :
+  - `jobs[]` : offres d'alternance → normaliseur `normalizeLaBonneAlternanceJobs`.
+    Champs utiles : `identifier.id`, `offer.title`, `offer.description`,
+    `workplace.{name,brand,siret,location.address}`, `contract.type[]`, `apply.url`.
+  - `recruiters[]` : entreprises à contacter (candidature spontanée) →
+    normaliseur `normalizeLBARecruiters`. Champs : `workplace.{name,siret,website,
+    domain.naf.label,location.address}`, `apply.{url,phone}`. **Pas de
+    description de poste** → flux candidature spontanée (template
+    `assets/letters/candidature-spontanee.md`), pas le scoring d'offre classique.
+- ROME utiles (dév) : `M1805` (Études et développement informatique) couvre
+  dev / IA / backend ; éventuellement `M1810` (production/exploitation).
+- ⚠️ **Forme de réponse à confirmer** sur la doc officielle avant de fier le
+  pipeline dessus (API gouvernementale en évolution). Les normaliseurs sont
+  défensifs mais **non vérifiés sur un workflow réel** (≠ FT/JSearch).
+
+---
+
 ## 4. Notion (OPTIONNEL — consultation seule, hors V1)
 
 > ⚠️ Notion **n'est plus le stockage** : la source de vérité est PostgreSQL
@@ -337,7 +371,8 @@ Toutes lisibles via `{{ $env.NOM }}` dans les expressions (grâce à
 
 `DEEPSEEK_API_KEY`, `DEEPSEEK_BASE_URL`, `DEEPSEEK_MODEL`,
 `FRANCE_TRAVAIL_CLIENT_ID`, `FRANCE_TRAVAIL_CLIENT_SECRET`, `ADZUNA_APP_ID`,
-`ADZUNA_APP_KEY`, `JOBSPY_API_URL`, `WTTJ_RSS_URL`, `SERPAPI_KEY`, `DISCORD_WEBHOOK_ALERTS`,
+`ADZUNA_APP_KEY`, `JOBSPY_API_URL`, `WTTJ_RSS_URL`, `SERPAPI_KEY`, `RAPIDAPI_KEY`, `LBA_API_KEY`,
+`DISCORD_WEBHOOK_ALERTS`,
 `DISCORD_WEBHOOK_LOG`, `DISCORD_WEBHOOK_URL` (alias rétro-compat d'ALERTS),
 `GOOGLE_DRIVE_FOLDER`. Optionnels (hors V1) : `NOTION_API_KEY`,
 `NOTION_DB_OFFRES`, `NOTION_DB_ENTREPRISES`.

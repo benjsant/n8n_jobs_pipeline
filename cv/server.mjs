@@ -85,23 +85,27 @@ async function renderCv({ application_id, personalization }) {
 async function defaultCandidate() {
   try {
     const p = JSON.parse(await readFile(resolve(HERE, "profile.json"), "utf-8"));
-    return { name: p.name, email: p.email, phone: p.phone, location: p.location };
+    // Ligne de contact : résidence (ex. "Marly (59)") + zone de mobilité.
+    const location = [p.residence, p.location].filter(Boolean).join(" · ");
+    // Ville pour la date ("Marly, le …") : la résidence prime, sans le code dpt.
+    const city = String(p.residence || p.location || "").replace(/\s*\(.*?\)/, "").split(/[·,]/)[0].trim();
+    return { name: p.name, email: p.email, phone: p.phone, location, city };
   } catch {
     return {};
   }
 }
 
-function frenchDate(location) {
+function frenchDate(city) {
   const d = new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
-  const city = String(location || "").split(",")[0].trim();
-  return city ? `${city}, le ${d}` : `Le ${d}`;
+  const c = String(city || "").split(",")[0].trim();
+  return c ? `${c}, le ${d}` : `Le ${d}`;
 }
 
 async function renderLetter({ application_id, company, subject, body, date, candidate }) {
   const dir = appDir(application_id);
   await mkdir(dir, { recursive: true });
   const c = { ...(await defaultCandidate()), ...(candidate || {}) };
-  const html = buildLetterHtml({ candidate: c, company, subject, body, date: date || frenchDate(c.location) });
+  const html = buildLetterHtml({ candidate: c, company, subject, body, date: date || frenchDate(c.city || c.location) });
   const outPath = join(dir, "lettre.pdf");
   await serialize(() => htmlToPdf({ html, outPath }));
   return { letter_path: outPath };

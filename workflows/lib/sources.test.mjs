@@ -7,6 +7,8 @@ import {
   normalizeWTTJ,
   normalizeGoogleJobs,
   normalizeJSearch,
+  normalizeLaBonneAlternanceJobs,
+  normalizeLBARecruiters,
 } from "./sources.mjs";
 import { annotate } from "./offer-utils.mjs";
 
@@ -141,6 +143,58 @@ t("JSearch (RapidAPI) -> schéma commun (forme réelle)", () => {
   assert.equal(out[0].location, "Lille");
   assert.equal(out[0].contract_type, "FULLTIME");
   assert.equal(out[0].url, "https://apply/abc"); // apply_link prioritaire
+});
+
+t("La Bonne Alternance (jobs) -> schéma commun", () => {
+  const out = normalizeLaBonneAlternanceJobs({
+    jobs: [{
+      identifier: { id: "lba-1", partner_job_id: "p1" },
+      workplace: { name: "NovaTech", brand: "NovaTech IA", siret: "123",
+        location: { address: "59000 Lille" } },
+      contract: { type: ["Apprentissage", "Professionnalisation"] },
+      offer: { title: "Alternant Dev IA", description: "Python, ML" },
+      apply: { url: "https://lba/apply/1" },
+    }],
+  });
+  assert.equal(out.length, 1);
+  assert.ok(shapeOk(out[0]));
+  assert.equal(out[0].source, "la_bonne_alternance");
+  assert.equal(out[0].source_id, "lba-1");
+  assert.equal(out[0].company, "NovaTech IA"); // brand prioritaire
+  assert.equal(out[0].location, "59000 Lille");
+  assert.equal(out[0].contract_type, "Apprentissage, Professionnalisation");
+  assert.equal(out[0].url, "https://lba/apply/1");
+});
+
+t("La Bonne Alternance (jobs) : contrat absent -> 'Alternance' par défaut", () => {
+  const out = normalizeLaBonneAlternanceJobs({
+    jobs: [{ identifier: { id: "x" }, offer: { title: "T" }, workplace: {} }],
+  });
+  assert.equal(out[0].contract_type, "Alternance");
+});
+
+t("La Bonne Alternance (recruteurs) -> fiche entreprise (candidature spontanée)", () => {
+  const out = normalizeLBARecruiters({
+    recruiters: [{
+      identifier: { id: "r1" },
+      workplace: { name: "Acme", siret: "98765", website: "https://acme.fr",
+        domain: { naf: { label: "Programmation informatique" } },
+        location: { address: "59300 Valenciennes" } },
+      apply: { url: "https://lba/contact/r1", phone: "0102030405" },
+    }],
+  });
+  assert.equal(out.length, 1);
+  assert.equal(out[0].name, "Acme");
+  assert.equal(out[0].siret, "98765");
+  assert.equal(out[0].sector, "Programmation informatique");
+  assert.equal(out[0].website, "https://acme.fr");
+  assert.equal(out[0].location, "59300 Valenciennes");
+  assert.equal(out[0].apply_url, "https://lba/contact/r1");
+});
+
+t("La Bonne Alternance : payloads vides -> tableaux vides", () => {
+  assert.deepEqual(normalizeLaBonneAlternanceJobs({}), []);
+  assert.deepEqual(normalizeLBARecruiters(undefined), []);
 });
 
 t("sorties normalisées sont annotables (hash + score)", () => {

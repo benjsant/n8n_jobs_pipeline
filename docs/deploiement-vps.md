@@ -200,7 +200,7 @@ Puis dans l'UI (cf. [workflows/README.md](../workflows/README.md)) :
 ## 10. Tester le pipeline
 
 ```bash
-make test                                  # suites hors stack (sanity)
+just test                                  # suites hors stack (sanity)
 python3 scripts/test_deepseek.py           # agent réel (DEEPSEEK_API_KEY requis)
 ```
 Puis, dans l'UI, exécuter `01` manuellement (offres collectées + scorées en base),

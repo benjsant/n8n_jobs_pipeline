@@ -68,7 +68,7 @@
     (volume partagé n8n ↔ render) → `generated_documents` → `04`. Raison : un
     `docker run` one-shot n'est pas appelable depuis n8n en marche.
 13. **Profil réel synchronisé depuis le portfolio** (`benjsant/astro-portfolio`,
-    `src/data/cv.ts` = source de vérité) via `make cv-sync`
+    `src/data/cv.ts` = source de vérité) via `just cv-sync`
     (`cv/scripts/sync-from-portfolio.mjs`, fonctions pures testées). Anti-invention :
     champ absent du portfolio = vide ; champs optionnels manuels préservés.
 14. **Garde-fou anti-fuite modernisé** : le profil réel est committé volontairement
@@ -85,6 +85,41 @@
 17. **Source JSearch (RapidAPI)** : 6e source du `01` (LinkedIn/Indeed/Glassdoor
     via API), alternative fiable au scraping JobSpy. Forme FT + JSearch vérifiées
     sur un workflow n8n réel. §6 enrichi (`conseils`, `competences_a_ameliorer`).
+18. **Localisation réelle = Valenciennes + Lille** (2026-06-22). Le seed
+    d'exemple pointait Lyon (`69123`) ; remplacé par 4 profils réels (Dev IA/ML
+    junior + Dev Backend Python junior, chacun à Valenciennes `59606` et Lille
+    `59350`, rayon 30 km, contrats `CDI,Alternance`). **2 ancres** couvrent le
+    corridor ~50 km (la dédup gère le recouvrement). Surtout : seul France
+    Travail consommait la zone (INSEE+rayon) ; les 4 sources texte (Adzuna,
+    SerpApi, JobSpy, JSearch) cherchaient `"France"` **en dur** → corrigé via une
+    colonne `search_profiles.location_label` (nom de ville). Les API ne géocodent
+    pas une adresse/gare : INSEE+rayon (FT) ou nom de ville (le reste).
+19. **Source La Bonne Alternance** (2026-06-22, 7e source) : service public
+    apprentissage spécifique **alternance**, renvoie offres ET **entreprises à
+    contacter en candidature spontanée**. Cherche par **codes ROME + lat/long**
+    (≠ INSEE/ville) → colonnes `latitude`, `longitude`, `rome_codes` (`M1805`)
+    ajoutées à `search_profiles`. Le `01` fan-out la réponse : `jobs[]` → pipeline
+    offres ; `recruiters[]` → `normalizeLBARecruiters` → upsert `companies` +
+    Discord « candidature spontanée ». Clé `LBA_API_KEY`
+    (api.apprentissage.beta.gouv.fr). ⚠️ **Forme de réponse non vérifiée** sur un
+    workflow réel (normaliseurs défensifs, testés). **Reste à faire** : maillon de
+    génération de lettre spontanée (réutiliser `02`/`04` avec `offer_id` NULL +
+    template `candidature-spontanee.md`).
+20. **Runner = `Justfile`** (2026-06-22, remplace le `Makefile`). Mêmes noms de
+    cibles (`just up`, `just test`, `just cv-sync`…). Adapté **full Docker** : les
+    tâches Node/Python tournent dans un conteneur jetable (`node:20-alpine` /
+    `python:3.12-alpine`), donc **aucun node/python requis sur l'hôte**. `just`
+    s'installe via `dnf install just` (Fedora/Nobara). `set dotenv-load` charge
+    `.env`. Lister : `just --list`.
+21. **Voix candidat encodée + résidence Marly** (2026-06-22). 6 vraies lettres du
+    candidat (`astro-portfolio/lettres-motivation/*.docx`) lues et **distillées en
+    patterns** dans la §5 du system prompt + un bloc « ton de référence » dans
+    chacun des 5 `assets/letters/*.md`. **Lettres non committées** (dépôt public) :
+    seuls les patterns le sont. Faits confirmés : résidence **Marly (59)** (champ
+    manuel `cv/profile.json.residence`, **préservé au sync** via `keepIfFilled`,
+    injecté dans l'en-tête + la date « Marly, le … » par `cv/server.mjs`) ; email
+    des lettres = **santrissebenjamin@gmail.com** (principal, = CV). Garde-fou
+    inchangé : la voix guide le ton, jamais les faits.
 
 ## ⏳ En attente de l'utilisateur
 

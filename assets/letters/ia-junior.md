@@ -32,3 +32,15 @@ disposition pour en échanger.
 
 {{candidat.nom}}
 {{candidat.email}} · {{candidat.telephone}}
+
+<!--
+Ton de référence (vraies lettres du candidat — guide le ton, jamais les faits ;
+voir §5 du system prompt) :
+- Mettre en avant les projets IA : InfiniDex (agent LLM 9 outils, ETL Prefect) et
+  Audiomancy (agent ReAct) ; PredictionDex pour le volet MLOps.
+- Assumer la reconversion (certification Développeur IA RNCP 6) comme socle
+  technique + autonomie + capacité à apprendre vite.
+- Registre « produits réellement déployés, pas des démos ». Calibrer le
+  vocabulaire sur le niveau réel (junior), sans sur-promesse.
+-->
+

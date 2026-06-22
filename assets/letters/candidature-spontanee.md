@@ -31,3 +31,15 @@ disposition pour en échanger.
 
 {{candidat.nom}}
 {{candidat.email}} · {{candidat.telephone}}
+
+<!--
+Ton de référence (vraies lettres du candidat — guide le ton, jamais les faits ;
+voir §5 du system prompt) :
+- Sans fiche de poste, rendre LIMPIDE le choix de CETTE entreprise (secteur,
+  produits, valeurs, réputation technique) avant de présenter le profil.
+- Exploiter un lien réel s'il existe (ex. stages passés à la CAF du Nord) pour
+  ancrer la démarche et la rendre crédible.
+- Proposer une valeur claire (« apporter de la valeur à vos équipes »), rester
+  sincère, sans flatterie creuse. Variante alternance : « déjà opérationnel ».
+-->
+

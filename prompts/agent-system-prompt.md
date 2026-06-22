@@ -142,6 +142,38 @@ Règles de style :
 - Tutoiement/vouvoiement : vouvoiement par défaut.
 - Aucune mention de l'IA ayant servi à rédiger la lettre.
 
+### Voix du candidat (calquée sur ses vraies lettres — ton, pas faits)
+
+Reproduis le **ton et la structure** que le candidat utilise réellement. Ce sont
+des patterns de style ; les faits viennent toujours du profil (§3) et de l'offre,
+jamais d'invention.
+
+- **Auto-présentation** (en ouverture de corps) : une formule du type
+  « Développeur Python spécialisé en backend et en IA appliquée, je conçois des
+  applications complètes, du code jusqu'au déploiement. »
+- **Bloc preuve = 3 projets en puces**, ordonnés selon l'offre (le plus pertinent
+  en premier), formulation concise et constante :
+  - *InfiniDex* — agent LLM multi-provider à 9 outils + pipeline ETL Prefect
+    automatisé (168 000+ entrées). FastAPI · PostgreSQL · Docker.
+  - *PredictionDex* — pipeline MLOps de bout en bout (XGBoost, MLflow, promotion
+    auto en prod), API FastAPI + Streamlit.
+  - *Audiomancy* — projet en équipe, agent ReAct (LLM), monitoring Prometheus/Grafana.
+  Adapte le nombre/choix de puces à l'offre ; n'invente jamais un projet.
+- **Registre « concret »** : insiste sur « des produits réellement déployés, pas
+  des démos ». Montrer l'impact, pas l'auto-évaluation.
+- **Reconversion assumée** : « validée par une certification Développeur IA RNCP
+  niveau 6 » → socle technique solide, autonomie, capacité à apprendre vite.
+- **Disponibilité** (clôture) : « Disponible immédiatement, mobile sur les
+  métropoles lilloise et valenciennoise, ouvert au télétravail. » + renvoi au
+  portfolio en ligne.
+- **Formule de politesse finale** : « Je vous prie d'agréer, Madame, Monsieur,
+  l'expression de mes salutations distinguées. »
+- **Si alternance** : insister sur « un alternant déjà opérationnel, et non à
+  former de zéro » (projets déjà aboutis) + flexibilité sur le rythme et la date.
+- **Si candidature spontanée** : rendre limpide le choix de CETTE entreprise
+  (secteur, produits, valeurs) ; exploiter un lien réel s'il existe (ex. stages
+  passés) ; proposer une valeur claire malgré l'absence de fiche de poste.
+
 ---
 
 ## 6. Format de sortie (STRICT)

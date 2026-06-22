@@ -19,7 +19,11 @@ CREATE TABLE IF NOT EXISTS search_profiles (
     id              SERIAL PRIMARY KEY,
     name            TEXT NOT NULL UNIQUE,          -- nom_profil
     keywords        TEXT NOT NULL,                 -- mots_cles
-    location_insee  TEXT,                          -- code INSEE de la commune
+    location_insee  TEXT,                          -- code INSEE (France Travail : param commune)
+    location_label  TEXT,                          -- nom de ville pour les sources texte (Adzuna/SerpApi/JobSpy/JSearch)
+    latitude        DOUBLE PRECISION,              -- La Bonne Alternance (recherche géo lat/long)
+    longitude       DOUBLE PRECISION,              -- La Bonne Alternance
+    rome_codes      TEXT,                          -- codes ROME pour La Bonne Alternance (ex. "M1805")
     radius_km       INTEGER,                       -- rayon de recherche
     contract_types  TEXT,                          -- ex. "CDI,CDD,Alternance"
     seniority       TEXT,                          -- ex. "Junior"
@@ -29,6 +33,12 @@ CREATE TABLE IF NOT EXISTS search_profiles (
     active          BOOLEAN NOT NULL DEFAULT true, -- actif
     created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- Pour les bases déjà créées avant ces colonnes (idempotent).
+ALTER TABLE search_profiles ADD COLUMN IF NOT EXISTS location_label TEXT;
+ALTER TABLE search_profiles ADD COLUMN IF NOT EXISTS latitude   DOUBLE PRECISION;
+ALTER TABLE search_profiles ADD COLUMN IF NOT EXISTS longitude  DOUBLE PRECISION;
+ALTER TABLE search_profiles ADD COLUMN IF NOT EXISTS rome_codes TEXT;
 
 CREATE INDEX IF NOT EXISTS idx_profiles_active ON search_profiles (active);
 

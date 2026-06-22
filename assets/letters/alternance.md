@@ -31,3 +31,14 @@ disposition pour en échanger.
 
 {{candidat.nom}}
 {{candidat.email}} · {{candidat.telephone}}
+
+<!--
+Ton de référence (vraies lettres du candidat — guide le ton, jamais les faits ;
+voir §5 du system prompt) :
+- Argument clé : « un alternant déjà opérationnel, et non à former de zéro » —
+  s'appuyer sur des projets déjà aboutis et déployés (InfiniDex, PredictionDex).
+- Afficher la flexibilité sur le rythme d'alternance et la date de démarrage.
+- Reconversion RNCP 6 déjà obtenue → l'alternance prolonge une trajectoire
+  cohérente (consolider au contact des équipes tout en produisant tôt).
+-->
+

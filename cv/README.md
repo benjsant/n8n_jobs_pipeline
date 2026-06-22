@@ -27,7 +27,7 @@ Ces fichiers contiennent le **profil réel**, **synchronisé depuis le portfolio
 (`benjsant/astro-portfolio`, `src/data/cv.ts` = source de vérité) :
 
 ```bash
-make cv-sync   # récupère cv.ts sur GitHub -> régénère cv/*.json + cv-index.json
+just cv-sync   # récupère cv.ts sur GitHub -> régénère cv/*.json + cv-index.json
 ```
 
 Le mapping (portfolio → schéma du projet) vit dans
@@ -96,7 +96,7 @@ en page A4** (aucune invention). Données attendues : `candidate`, `company`,
 # aperçu HTML (hôte)
 node -e "import('./letter.mjs').then(m=>console.log(m.buildLetterHtml(require('./letter-data.sample.json'))))"
 # PDF (conteneurisé)
-make letter-pdf LETTER=cv/letter-data.sample.json   # -> cv/dist/lettre.pdf
+just letter-pdf LETTER=cv/letter-data.sample.json   # -> cv/dist/lettre.pdf
 ```
 Le chemin est enregistré dans `generated_documents.letter_path` et alimente le
 `letter_path` du workflow `04`.

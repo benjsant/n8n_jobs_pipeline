@@ -43,7 +43,7 @@ fournit donc **aucun document binaire** au pipeline.
 ## 4. CV : le portfolio est déjà la source (rien à refaire)
 
 Le CV vient de `github.com/benjsant/astro-portfolio` (`src/data/cv.ts`),
-synchronisé par `make cv-sync` → `cv/*.json` + `cv-index.json`. Donc le portfolio
+synchronisé par `just cv-sync` → `cv/*.json` + `cv-index.json`. Donc le portfolio
 **est déjà branché**. Pas besoin d'une page dédiée côté portfolio pour le CV.
 
 ## 5. Lettre : approche dynamique (pas une page portfolio)
@@ -74,7 +74,12 @@ synchronisé par `make cv-sync` → `cv/*.json` + `cv-index.json`. Donc le portf
 
 ## 7. En attente de l'utilisateur (pour avancer sur ce volet)
 
-- [ ] **Texte d'1-2 lettres** appréciées → j'aligne `assets/letters/*.md` + §5.
+- [x] **Lettres de référence fournies** : 6 vraies lettres du candidat
+  (`astro-portfolio/lettres-motivation/*.docx` — offre/spontanée × emploi/alternance
+  + CAF, Proxiad). Voix distillée encodée dans la **§5 du system prompt** (ton +
+  bloc 3 projets + reconversion RNCP + clôture). Non committées (dépôt public).
+  Reste optionnel : aligner aussi chaque `assets/letters/*.md` + trancher 2 faits
+  (résidence « Marly (59) » ? email `…portfolio@gmail.com` vs `…@gmail.com` ?).
 - [ ] (Optionnel) feu vert pour **générer un CV + lettre de démo en PDF** et
   juger la présentation / l'aspect ATS, puis ajuster le template Astro.
 - [ ] `DEEPSEEK_API_KEY` (+ une source : `RAPIDAPI_KEY` ou Adzuna) pour un test réel.
