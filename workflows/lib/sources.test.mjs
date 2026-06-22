@@ -6,6 +6,7 @@ import {
   normalizeJobSpy,
   normalizeWTTJ,
   normalizeGoogleJobs,
+  normalizeJSearch,
 } from "./sources.mjs";
 import { annotate } from "./offer-utils.mjs";
 
@@ -117,6 +118,29 @@ t("Google Jobs (SerpApi) -> schéma commun", () => {
   assert.equal(out[0].company, "NovaTech");
   assert.equal(out[0].contract_type, "Full-time");
   assert.equal(out[0].url, "https://g/apply");
+});
+
+t("JSearch (RapidAPI) -> schéma commun (forme réelle)", () => {
+  // Forme confirmée par un workflow n8n JSearch fonctionnel :
+  // data[].{job_id, job_title, job_description, job_apply_link/job_google_link,
+  // employer_name, job_city/job_location, job_employment_type, job_salary_string, job_publisher}
+  const out = normalizeJSearch({
+    data: [{
+      job_id: "abc123", job_title: "Développeur Python", job_description: "FastAPI, RAG",
+      job_apply_link: "https://apply/abc", job_google_link: "https://g/abc",
+      employer_name: "NovaTech", job_city: "Lille", job_location: "Lille, France",
+      job_employment_type: "FULLTIME", job_salary_string: "40k€-45k€",
+      job_publisher: "LinkedIn",
+    }],
+  });
+  assert.ok(shapeOk(out[0]));
+  assert.equal(out[0].source, "jsearch:linkedin");
+  assert.equal(out[0].source_id, "abc123");
+  assert.equal(out[0].title, "Développeur Python");
+  assert.equal(out[0].company, "NovaTech");
+  assert.equal(out[0].location, "Lille");
+  assert.equal(out[0].contract_type, "FULLTIME");
+  assert.equal(out[0].url, "https://apply/abc"); // apply_link prioritaire
 });
 
 t("sorties normalisées sont annotables (hash + score)", () => {

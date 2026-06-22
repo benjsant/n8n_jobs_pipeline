@@ -82,6 +82,11 @@
   `exclusions` du profil ; sous-scores fusionnés dans §6 ; source **Google Jobs
   (SerpApi)** ajoutée ; profil étendu (soft skills, certifs, langues, salaire).
   Specs d'origine archivées dans `docs/specs/`.
+- **Source JSearch (RapidAPI)** ajoutée (6e source) : agrégateur LinkedIn/Indeed/
+  Glassdoor via API officielle — alternative fiable au scraping JobSpy. Forme de
+  réponse + intégration France Travail **vérifiées sur un workflow n8n réel**
+  (normaliseurs `normalizeJSearch`/`normalizeFranceTravail` verrouillés par tests).
+  Clé `RAPIDAPI_KEY`.
 
 ## 🔑 À me fournir (toi)
 

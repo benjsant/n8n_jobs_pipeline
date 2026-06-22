@@ -9,7 +9,7 @@ elle, testée hors stack — voir `lib/` et `scripts/run-tests.sh`.
 
 ```
 01 Recherche d'offres (cron 8h)
-   4 sources (FT, Adzuna, JobSpy, WTTJ) → merge → score déterministe → hash
+   6 sources (FT, Adzuna, JobSpy, Google Jobs/SerpApi, WTTJ, JSearch/RapidAPI) → merge → score déterministe → hash
    → INSERT offers (status new, dédup) → scoring hybride : DeepSeek affine le
      top-N (score + score_reason) → Discord jobs-alerts (+ liens) + jobs-log
 

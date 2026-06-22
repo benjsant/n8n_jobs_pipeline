@@ -179,8 +179,40 @@
       "typeVersion": 2,
       "position": [460, 720]
     },
+
     {
-      "parameters": { "numberInputs": 5 },
+      "parameters": {
+        "url": "https://jsearch.p.rapidapi.com/search",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [
+          { "name": "X-RapidAPI-Key", "value": "={{ $env.RAPIDAPI_KEY }}" },
+          { "name": "X-RapidAPI-Host", "value": "jsearch.p.rapidapi.com" }
+        ] },
+        "sendQuery": true,
+        "queryParameters": { "parameters": [
+          { "name": "query", "value": "={{ $('Boucle profils').item.json.keywords }}" },
+          { "name": "page", "value": "1" },
+          { "name": "num_pages", "value": "1" },
+          { "name": "country", "value": "fr" }
+        ] },
+        "options": {}
+      },
+      "id": "a1000000-0000-4000-8000-000000000045",
+      "name": "JSearch - search",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [240, 880]
+    },
+    {
+      "parameters": { "jsCode": "const s=(v)=>String(v??'').trim();\nconst results=$input.first().json.data||[];\nreturn results.map((r)=>{const pub=s(r.job_publisher).toLowerCase().replace(/\\s+/g,'-');return{json:{source:pub?('jsearch:'+pub):'jsearch',source_id:s(r.job_id),title:s(r.job_title),company:s(r.employer_name),location:s(r.job_city||r.job_location),contract_type:s(r.job_employment_type),salary:s(r.job_salary_string),description:s(r.job_description),url:s(r.job_apply_link||r.job_google_link)}};});" },
+      "id": "a1000000-0000-4000-8000-000000000046",
+      "name": "norm JSearch",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 880]
+    },
+    {
+      "parameters": { "numberInputs": 6 },
       "id": "a1000000-0000-4000-8000-000000000050",
       "name": "Fusionner sources",
       "type": "n8n-nodes-base.merge",
@@ -310,7 +342,8 @@
         { "node": "FT - token", "type": "main", "index": 0 },
         { "node": "JobSpy - search", "type": "main", "index": 0 },
         { "node": "Google Jobs - SerpApi", "type": "main", "index": 0 },
-        { "node": "WTTJ - RSS", "type": "main", "index": 0 }
+        { "node": "WTTJ - RSS", "type": "main", "index": 0 },
+      { "node": "JSearch - search", "type": "main", "index": 0 }
       ]
     ] },
     "Adzuna - search": { "main": [[{ "node": "norm Adzuna", "type": "main", "index": 0 }]] },
@@ -324,6 +357,8 @@
     "norm Google Jobs": { "main": [[{ "node": "Fusionner sources", "type": "main", "index": 3 }]] },
     "WTTJ - RSS": { "main": [[{ "node": "norm WTTJ", "type": "main", "index": 0 }]] },
     "norm WTTJ": { "main": [[{ "node": "Fusionner sources", "type": "main", "index": 4 }]] },
+    "JSearch - search": { "main": [[{ "node": "norm JSearch", "type": "main", "index": 0 }]] },
+    "norm JSearch": { "main": [[{ "node": "Fusionner sources", "type": "main", "index": 5 }]] },
     "Fusionner sources": { "main": [[{ "node": "Scorer + hashSource", "type": "main", "index": 0 }]] },
     "Scorer + hashSource": { "main": [[{ "node": "Hash dédup", "type": "main", "index": 0 }]] },
     "Hash dédup": { "main": [[{ "node": "Insert offers (dédup)", "type": "main", "index": 0 }]] },

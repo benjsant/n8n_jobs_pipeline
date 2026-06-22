@@ -116,10 +116,34 @@ export function normalizeGoogleJobs(payload) {
   });
 }
 
+/**
+ * JSearch (RapidAPI) : { data: [...] } — agrégateur LinkedIn/Indeed/Glassdoor
+ * via API officielle (alternative fiable au scraping JobSpy). Forme de réponse
+ * vérifiée sur un workflow n8n fonctionnel. `source` = jsearch:<publisher>.
+ */
+export function normalizeJSearch(payload) {
+  const results = payload?.data ?? [];
+  return results.map((r) => {
+    const publisher = s(r.job_publisher).toLowerCase().replace(/\s+/g, "-");
+    return {
+      source: publisher ? `jsearch:${publisher}` : "jsearch",
+      source_id: s(r.job_id),
+      title: s(r.job_title),
+      company: s(r.employer_name),
+      location: s(r.job_city || r.job_location),
+      contract_type: s(r.job_employment_type),
+      salary: s(r.job_salary_string),
+      description: s(r.job_description),
+      url: s(r.job_apply_link || r.job_google_link),
+    };
+  });
+}
+
 export const NORMALIZERS = {
   adzuna: normalizeAdzuna,
   france_travail: normalizeFranceTravail,
   jobspy: normalizeJobSpy,
   wttj: normalizeWTTJ,
   google_jobs: normalizeGoogleJobs,
+  jsearch: normalizeJSearch,
 };
