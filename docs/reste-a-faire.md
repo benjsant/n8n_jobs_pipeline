@@ -82,6 +82,13 @@
   `exclusions` du profil ; sous-scores fusionnés dans §6 ; source **Google Jobs
   (SerpApi)** ajoutée ; profil étendu (soft skills, certifs, langues, salaire).
   Specs d'origine archivées dans `docs/specs/`.
+- **Scoring aligné sur le profil + exclusions + dédup renforcée** : le scoring
+  déterministe (`offer-utils.mjs` + nœud Scorer du `01`) dérive désormais ses
+  préférences du **profil** (`keywords`, `must_have`, `contract_types`,
+  `seniority`) au lieu de constantes en dur ; les `exclusions` sont un **filtre
+  dur** (offres écartées avant insertion) ; la **dédup canonicalise** titre
+  (`(H/F)`, `F/H`…), entreprise (formes juridiques) et ville (codes INSEE,
+  `France`) → moins de quasi-doublons inter-sources. 12 tests `offer-utils`.
 - **Source JSearch (RapidAPI)** ajoutée (6e source) : agrégateur LinkedIn/Indeed/
   Glassdoor via API officielle — alternative fiable au scraping JobSpy. Forme de
   réponse + intégration France Travail **vérifiées sur un workflow n8n réel**

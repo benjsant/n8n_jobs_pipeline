@@ -1,6 +1,7 @@
 // Tests de offer-utils — exécuter : node workflows/lib/offer-utils.test.mjs
 import assert from "node:assert/strict";
-import { computeHash, scoreOffer, annotate, norm } from "./offer-utils.mjs";
+import { computeHash, scoreOffer, annotate, norm,
+  prefsFromProfile, matchesExclusions, canonTitle } from "./offer-utils.mjs";
 
 let passed = 0;
 const t = (name, fn) => { fn(); passed++; console.log(`  ✓ ${name}`); };
@@ -62,6 +63,49 @@ t("annotate ajoute hash + score", () => {
 t("norm gère null/undefined", () => {
   assert.equal(norm(null), "");
   assert.equal(norm(undefined), "");
+});
+
+// --- Scoring piloté par le profil + exclusions + dédup canonicalisée ---
+
+t("dédup canonicalisée : '(H/F)' et 'F/H' donnent le même hash", () => {
+  const a = { title: "Développeur Python (H/F)", company: "NovaTech SAS", location: "59 - LILLE" };
+  const b = { title: "Développeur Python F/H", company: "NovaTech", location: "Lille, France" };
+  assert.equal(computeHash(a), computeHash(b));
+});
+
+t("prefsFromProfile : keywords/must_have/contrats/exclusions/seniority", () => {
+  const p = prefsFromProfile({
+    keywords: "dev python", must_have: "FastAPI, PostgreSQL",
+    contract_types: "CDI, alternance", exclusions: "5 ans, php",
+    seniority: "junior",
+  });
+  assert.ok(p.keywords.includes("python") && p.keywords.includes("fastapi"));
+  assert.deepEqual(p.contractTypes, ["cdi", "alternance"]);
+  assert.deepEqual(p.exclusions, ["5 ans", "php"]);
+  assert.equal(p.seniority, "junior");
+});
+
+t("exclusions = filtre dur (matchesExclusions + annotate.excluded)", () => {
+  const prefs = prefsFromProfile({ keywords: "python", exclusions: "php, 5 ans" });
+  const phpOffer = { title: "Dev PHP Symfony", description: "Symfony 6", contract_type: "CDI", location: "Lille" };
+  assert.equal(matchesExclusions(phpOffer, prefs.exclusions), true);
+  assert.equal(annotate(phpOffer, prefs).excluded, true);
+  const okOffer = { title: "Dev Python", description: "FastAPI", contract_type: "CDI", location: "Lille" };
+  assert.equal(annotate(okOffer, prefs).excluded, false);
+});
+
+t("séniorité du profil oriente le score (senior demandé vs offre junior)", () => {
+  const offerJunior = { title: "Développeur Python Junior", description: "python débutant", contract_type: "CDI", location: "Lille", salary: "" };
+  const wantJunior = prefsFromProfile({ keywords: "python", seniority: "junior" });
+  const wantSenior = prefsFromProfile({ keywords: "python", seniority: "senior" });
+  assert.ok(scoreOffer(offerJunior, wantJunior) > scoreOffer(offerJunior, wantSenior),
+    "une offre junior doit mieux scorer pour un profil junior que senior");
+});
+
+t("offre hors profil (Lille, Python) ne dépend plus de 'Lyon' en dur", () => {
+  const prefs = prefsFromProfile({ keywords: "python, fastapi, ia", contract_types: "CDI", seniority: "" });
+  const o = { title: "Développeur Python / IA", description: "FastAPI, RAG, télétravail", contract_type: "CDI", location: "Lille", salary: "40k" };
+  assert.ok(scoreOffer(o, prefs) >= 80, "offre alignée profil à Lille doit bien scorer");
 });
 
 console.log(`\n${passed} tests offer-utils OK`);
