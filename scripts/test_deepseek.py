@@ -36,6 +36,8 @@ REQUIRED_KEYS = {
     "justification_score": str,
     "matching_skills": list,
     "missing_skills": list,
+    "competences_a_ameliorer": list,
+    "conseils": str,
     "lettre_motivation": str,
     "adaptation_cv": str,
     "personnalisation_cv": dict,
@@ -117,6 +119,11 @@ MOCK_RESPONSE = {
     "expérience RAG du candidat collent au poste. Junior accepté.",
     "matching_skills": ["Python", "FastAPI", "RAG"],
     "missing_skills": ["Kubernetes"],
+    "competences_a_ameliorer": [
+        {"competence": "Kubernetes", "conseil": "Déployer un de tes projets FastAPI sur un cluster k3s local."}
+    ],
+    "conseils": "Mettre en avant InfiniDex et le pipeline MLOps de PredictionDex ; "
+    "se familiariser avec Kubernetes avant l'entretien.",
     "lettre_motivation": "Madame, Monsieur,\n\n[lettre mock]\n\nBenjamin Santrisse",
     "adaptation_cv": "Mettre en avant InfiniDex (agent LLM) et FastAPI ; "
     "ajouter les mots-clés LLM, RAG, pgvector.",
@@ -203,6 +210,12 @@ def validate(out: dict) -> list[str]:
         errors.append(f"langue invalide : {out.get('langue')}")
     if isinstance(out.get("personnalisation_cv"), dict):
         errors.extend(validate_personalization(out["personnalisation_cv"]))
+    for i, c in enumerate(out.get("competences_a_ameliorer", [])):
+        if not isinstance(c, dict) or not isinstance(c.get("competence"), str) \
+                or not isinstance(c.get("conseil"), str):
+            errors.append(
+                f"competences_a_ameliorer[{i}] doit avoir 'competence' et 'conseil' (str)"
+            )
     return errors
 
 

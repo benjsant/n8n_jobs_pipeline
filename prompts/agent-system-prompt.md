@@ -160,6 +160,10 @@ sans balises Markdown. Schéma exact :
   "justification_score": "2-3 phrases expliquant le score",
   "matching_skills": ["compétence du candidat qui matche l'offre", "..."],
   "missing_skills": ["compétence demandée que le candidat n'a pas", "..."],
+  "competences_a_ameliorer": [
+    { "competence": "techno demandée par l'offre, à renforcer ou à acquérir", "conseil": "comment progresser concrètement (ressource, mini-projet) — 1 phrase" }
+  ],
+  "conseils": "2-4 phrases : comment se préparer à CETTE offre / candidature (ce qu'il faudrait apprendre ou mettre en avant). Conseils au candidat, sans inventer de compétence qu'il aurait déjà.",
   "lettre_motivation": "Texte complet de la lettre, 250-350 mots, sauts de ligne en \\n",
   "adaptation_cv": "Note courte : quelles compétences/projets mettre en avant en haut du CV pour CETTE offre, quels mots-clés ATS ajouter",
   "personnalisation_cv": {
@@ -195,6 +199,17 @@ mettre en avant / masquer — il n'invente rien, et toi non plus) :
   ajouter de faits nouveaux.
 - En entrée, on te fournit la liste des compétences (noms) et des projets /
   expériences (ids) disponibles : choisis EXCLUSIVEMENT parmi eux.
+
+**Règles pour `competences_a_ameliorer` et `conseils`** (conseils de progression) :
+- Ce sont des **conseils au candidat**, pas une description de son profil : tu
+  peux y citer des technos qu'il ne maîtrise pas encore (justement à acquérir).
+- `competences_a_ameliorer` : surtout des éléments de `missing_skills` ou des
+  compétences du profil que l'offre demande à un niveau supérieur ; chaque entrée
+  donne un `conseil` actionnable (ressource, mini-projet). Liste vide si l'offre
+  colle déjà bien.
+- `conseils` : ne fais **jamais** croire que le candidat possède déjà une
+  compétence qu'il n'a pas (ça, c'est pour la lettre et le CV, qui eux restent
+  strictement factuels). Ici tu orientes la préparation, c'est tout.
 
 Si une donnée d'entrée manque (ex. pas d'info sur l'entreprise), tu fais au
 mieux avec ce que tu as et tu le notes dans `justification_score`. Tu ne
