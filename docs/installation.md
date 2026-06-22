@@ -3,6 +3,10 @@
 Guide pour cloner et relancer **n8n_jobs_pipeline** from scratch sur un nouveau PC
 (pour toi ou pour Claude Code en début de session).
 
+> 🔐 **Déploiement sur VPS privé (WireGuard + SSH durci)** : voir le guide dédié
+> [deploiement-vps.md](deploiement-vps.md). Le présent fichier couvre l'install
+> locale / dev ; le guide VPS couvre le durcissement, le tunnel et l'exposition privée.
+
 > Le dépôt GitHub contient **tout le code suivi** (workflows avec leurs `id`,
 > profil `cv/*.json`, services, schéma SQL, scripts), **mais pas** : le `.env`
 > (secrets) ni les volumes Docker (base Postgres + données n8n). Sur un nouveau

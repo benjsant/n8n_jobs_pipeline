@@ -15,6 +15,7 @@ Contexte projet pour Claude Code. Lis ce fichier en début de session.
    demande à l'utilisateur.
 
 > Première installation sur cette machine ? Suis `docs/installation.md`.
+> Déploiement sur VPS privé (WireGuard + SSH durci) ? Suis `docs/deploiement-vps.md`.
 
 ## Objectif
 

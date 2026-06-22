@@ -76,6 +76,15 @@
     plus sur « données réelles » mais sur motifs sensibles (tél/IBAN/NIR/adresse) + `.env`.
 15. **Workflows avec `id` racine stable** (`wf01rechercheoff`…) : requis pour
     l'import sur n8n 2.x ; appels croisés `03→02`/`02→04` câblés sur ces ids.
+16. **Cible de déploiement = VPS personnel privé** : accès UI n8n **uniquement
+    via WireGuard** (n8n bindé sur l'IP WG, jamais `0.0.0.0`), SSH durci (port
+    custom, clés only), `ufw` n'ouvre que SSH + WireGuard. `WEBHOOK_URL` = IP
+    WireGuard (les liens d'action Discord sont cliqués depuis le PC connecté au
+    tunnel ; Discord lui-même ne reçoit que des webhooks **sortants**). Guide
+    complet : `docs/deploiement-vps.md`.
+17. **Source JSearch (RapidAPI)** : 6e source du `01` (LinkedIn/Indeed/Glassdoor
+    via API), alternative fiable au scraping JobSpy. Forme FT + JSearch vérifiées
+    sur un workflow n8n réel. §6 enrichi (`conseils`, `competences_a_ameliorer`).
 
 ## ⏳ En attente de l'utilisateur
 
