@@ -49,6 +49,32 @@ t("France Travail -> schéma commun", () => {
   assert.equal(out[0].url, "https://ft/x");
 });
 
+t("France Travail -> payload RÉEL (forme vérifiée sur un workflow qui tourne)", () => {
+  // Structure confirmée par un workflow n8n France Travail fonctionnel :
+  // resultats[].{id, intitule, description, origineOffre.urlOrigine,
+  // entreprise.nom, lieuTravail.libelle, dateCreation, typeContratLibelle, salaire.libelle}
+  const out = normalizeFranceTravail({
+    resultats: [{
+      id: "189ABCD", intitule: "Développeur Python (H/F)",
+      description: "Conception d'APIs FastAPI.",
+      origineOffre: { urlOrigine: "https://candidat.francetravail.fr/offres/189ABCD" },
+      entreprise: { nom: "NovaTech" },
+      lieuTravail: { libelle: "59 - LILLE" },
+      dateCreation: "2026-06-18T09:00:00.000Z",
+      typeContratLibelle: "Contrat à durée indéterminée",
+      salaire: { libelle: "Annuel de 38000,00 Euros à 42000,00 Euros" },
+    }],
+  });
+  assert.ok(shapeOk(out[0]));
+  assert.equal(out[0].source_id, "189ABCD");
+  assert.equal(out[0].title, "Développeur Python (H/F)");
+  assert.equal(out[0].company, "NovaTech");
+  assert.equal(out[0].location, "59 - LILLE");
+  assert.equal(out[0].contract_type, "Contrat à durée indéterminée"); // typeContratLibelle
+  assert.equal(out[0].salary, "Annuel de 38000,00 Euros à 42000,00 Euros");
+  assert.equal(out[0].url, "https://candidat.francetravail.fr/offres/189ABCD");
+});
+
 t("JobSpy (déjà normalisé) -> revalidé", () => {
   const out = normalizeJobSpy({
     count: 1,
