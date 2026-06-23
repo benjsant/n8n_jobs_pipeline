@@ -3,12 +3,24 @@
   "name": "01 - Recherche d'offres (multi-profils)",
   "nodes": [
     {
-      "parameters": { "rule": { "interval": [ { "field": "cronExpression", "expression": "0 8 * * *" } ] } },
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 8 * * *"
+            }
+          ]
+        }
+      },
       "id": "a1000000-0000-4000-8000-000000000001",
       "name": "Tous les jours 8h",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
-      "position": [-400, 400]
+      "position": [
+        -400,
+        400
+      ]
     },
     {
       "parameters": {
@@ -20,326 +32,607 @@
       "name": "Profils actifs",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
-      "position": [-200, 400],
-      "credentials": { "postgres": { "id": "REMPLACER", "name": "Postgres job-hunter" } }
+      "position": [
+        -200,
+        400
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "REMPLACER",
+          "name": "Postgres job-hunter"
+        }
+      }
     },
     {
-      "parameters": { "options": {} },
+      "parameters": {
+        "options": {}
+      },
       "id": "a1000000-0000-4000-8000-000000000003",
       "name": "Boucle profils",
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
-      "position": [0, 400]
+      "position": [
+        0,
+        400
+      ]
     },
-
     {
       "parameters": {
         "url": "=https://api.adzuna.com/v1/api/jobs/fr/search/1",
         "sendQuery": true,
-        "queryParameters": { "parameters": [
-          { "name": "app_id", "value": "={{ $env.ADZUNA_APP_ID }}" },
-          { "name": "app_key", "value": "={{ $env.ADZUNA_APP_KEY }}" },
-          { "name": "what", "value": "={{ $('Boucle profils').item.json.keywords }}" },
-          { "name": "where", "value": "={{ $('Boucle profils').item.json.location_label }}" },
-          { "name": "results_per_page", "value": "50" }
-        ] },
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "app_id",
+              "value": "={{ $env.ADZUNA_APP_ID }}"
+            },
+            {
+              "name": "app_key",
+              "value": "={{ $env.ADZUNA_APP_KEY }}"
+            },
+            {
+              "name": "what",
+              "value": "={{ $('Boucle profils').first().json.keywords }}"
+            },
+            {
+              "name": "where",
+              "value": "={{ $('Boucle profils').first().json.location_label }}"
+            },
+            {
+              "name": "results_per_page",
+              "value": "50"
+            }
+          ]
+        },
         "options": {}
       },
       "id": "a1000000-0000-4000-8000-000000000010",
       "name": "Adzuna - search",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [240, 80]
+      "position": [
+        240,
+        80
+      ],
+      "onError": "continueRegularOutput"
     },
     {
-      "parameters": { "jsCode": "const s=(v)=>String(v??'').trim();\nconst results=$input.first().json.results||[];\nreturn results.map((r)=>({json:{source:'adzuna',source_id:s(r.id),title:s(r.title),company:s(r.company?.display_name),location:s(r.location?.display_name),contract_type:s(r.contract_time||r.contract_type),salary:r.salary_min?s(r.salary_min):'',description:s(r.description),url:s(r.redirect_url)}}));" },
+      "parameters": {
+        "jsCode": "const s=(v)=>String(v??'').trim();\nconst results=$input.first().json.results||[];\nreturn results.map((r)=>({json:{source:'adzuna',source_id:s(r.id),title:s(r.title),company:s(r.company?.display_name),location:s(r.location?.display_name),contract_type:s(r.contract_time||r.contract_type),salary:r.salary_min?s(r.salary_min):'',description:s(r.description),url:s(r.redirect_url)}}));"
+      },
       "id": "a1000000-0000-4000-8000-000000000011",
       "name": "norm Adzuna",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [460, 80]
+      "position": [
+        460,
+        80
+      ]
     },
-
     {
       "parameters": {
         "method": "POST",
         "url": "https://entreprise.francetravail.fr/connexion/oauth2/access_token?realm=/partenaire",
-        "sendBody": true, "contentType": "form-urlencoded",
-        "bodyParameters": { "parameters": [
-          { "name": "grant_type", "value": "client_credentials" },
-          { "name": "client_id", "value": "={{ $env.FRANCE_TRAVAIL_CLIENT_ID }}" },
-          { "name": "client_secret", "value": "={{ $env.FRANCE_TRAVAIL_CLIENT_SECRET }}" },
-          { "name": "scope", "value": "api_offresdemploiv2 o2dsoffre" }
-        ] },
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "grant_type",
+              "value": "client_credentials"
+            },
+            {
+              "name": "client_id",
+              "value": "={{ $env.FRANCE_TRAVAIL_CLIENT_ID }}"
+            },
+            {
+              "name": "client_secret",
+              "value": "={{ $env.FRANCE_TRAVAIL_CLIENT_SECRET }}"
+            },
+            {
+              "name": "scope",
+              "value": "api_offresdemploiv2 o2dsoffre"
+            }
+          ]
+        },
         "options": {}
       },
       "id": "a1000000-0000-4000-8000-000000000020",
       "name": "FT - token",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [240, 240]
+      "position": [
+        240,
+        240
+      ],
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
         "url": "https://api.francetravail.io/partenaire/offresdemploi/v2/offres/search",
         "sendHeaders": true,
-        "headerParameters": { "parameters": [ { "name": "Authorization", "value": "=Bearer {{ $json.access_token }}" } ] },
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.access_token }}"
+            }
+          ]
+        },
         "sendQuery": true,
-        "queryParameters": { "parameters": [
-          { "name": "motsCles", "value": "={{ $('Boucle profils').item.json.keywords }}" },
-          { "name": "commune", "value": "={{ $('Boucle profils').item.json.location_insee }}" },
-          { "name": "distance", "value": "={{ $('Boucle profils').item.json.radius_km }}" },
-          { "name": "range", "value": "0-149" }
-        ] },
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "motsCles",
+              "value": "={{ $('Boucle profils').first().json.keywords }}"
+            },
+            {
+              "name": "commune",
+              "value": "={{ $('Boucle profils').first().json.location_insee }}"
+            },
+            {
+              "name": "distance",
+              "value": "={{ $('Boucle profils').first().json.radius_km }}"
+            },
+            {
+              "name": "range",
+              "value": "0-149"
+            }
+          ]
+        },
         "options": {}
       },
       "id": "a1000000-0000-4000-8000-000000000021",
       "name": "FT - search",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [460, 240]
+      "position": [
+        460,
+        240
+      ],
+      "onError": "continueRegularOutput"
     },
     {
-      "parameters": { "jsCode": "const s=(v)=>String(v??'').trim();\nconst results=$input.first().json.resultats||[];\nreturn results.map((r)=>({json:{source:'france_travail',source_id:s(r.id),title:s(r.intitule),company:s(r.entreprise?.nom),location:s(r.lieuTravail?.libelle),contract_type:s(r.typeContrat||r.typeContratLibelle),salary:s(r.salaire?.libelle),description:s(r.description),url:s(r.origineOffre?.urlOrigine)}}));" },
+      "parameters": {
+        "jsCode": "const s=(v)=>String(v??'').trim();\nconst results=$input.first().json.resultats||[];\nreturn results.map((r)=>({json:{source:'france_travail',source_id:s(r.id),title:s(r.intitule),company:s(r.entreprise?.nom),location:s(r.lieuTravail?.libelle),contract_type:s(r.typeContrat||r.typeContratLibelle),salary:s(r.salaire?.libelle),description:s(r.description),url:s(r.origineOffre?.urlOrigine)}}));"
+      },
       "id": "a1000000-0000-4000-8000-000000000022",
       "name": "norm FT",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [680, 240]
+      "position": [
+        680,
+        240
+      ]
     },
-
     {
       "parameters": {
         "url": "={{ $env.JOBSPY_API_URL }}/search",
         "sendQuery": true,
-        "queryParameters": { "parameters": [
-          { "name": "term", "value": "={{ $('Boucle profils').item.json.keywords }}" },
-          { "name": "location", "value": "={{ $('Boucle profils').item.json.location_label }}, France" },
-          { "name": "results", "value": "50" }
-        ] },
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "term",
+              "value": "={{ $('Boucle profils').first().json.keywords }}"
+            },
+            {
+              "name": "location",
+              "value": "={{ $('Boucle profils').first().json.location_label }}, France"
+            },
+            {
+              "name": "results",
+              "value": "50"
+            }
+          ]
+        },
         "options": {}
       },
       "id": "a1000000-0000-4000-8000-000000000030",
       "name": "JobSpy - search",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [240, 400]
+      "position": [
+        240,
+        400
+      ],
+      "onError": "continueRegularOutput"
     },
     {
-      "parameters": { "jsCode": "const s=(v)=>String(v??'').trim();\nconst offers=$input.first().json.offers||[];\nreturn offers.map((o)=>({json:{source:s(o.source)||'jobspy',source_id:s(o.source_id||o.url),title:s(o.title),company:s(o.company),location:s(o.location),contract_type:s(o.contract_type),salary:s(o.salary),description:s(o.description),url:s(o.url)}}));" },
+      "parameters": {
+        "jsCode": "const s=(v)=>String(v??'').trim();\nconst offers=$input.first().json.offers||[];\nreturn offers.map((o)=>({json:{source:s(o.source)||'jobspy',source_id:s(o.source_id||o.url),title:s(o.title),company:s(o.company),location:s(o.location),contract_type:s(o.contract_type),salary:s(o.salary),description:s(o.description),url:s(o.url)}}));"
+      },
       "id": "a1000000-0000-4000-8000-000000000031",
       "name": "norm JobSpy",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [460, 400]
+      "position": [
+        460,
+        400
+      ]
     },
-
     {
       "parameters": {
         "url": "https://serpapi.com/search",
         "sendQuery": true,
-        "queryParameters": { "parameters": [
-          { "name": "engine", "value": "google_jobs" },
-          { "name": "q", "value": "={{ $('Boucle profils').item.json.keywords }}" },
-          { "name": "location", "value": "={{ $('Boucle profils').item.json.location_label }}, France" },
-          { "name": "gl", "value": "fr" },
-          { "name": "hl", "value": "fr" },
-          { "name": "api_key", "value": "={{ $env.SERPAPI_KEY }}" }
-        ] },
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "engine",
+              "value": "google_jobs"
+            },
+            {
+              "name": "q",
+              "value": "={{ $('Boucle profils').first().json.keywords }}"
+            },
+            {
+              "name": "location",
+              "value": "={{ $('Boucle profils').first().json.location_label }}, France"
+            },
+            {
+              "name": "gl",
+              "value": "fr"
+            },
+            {
+              "name": "hl",
+              "value": "fr"
+            },
+            {
+              "name": "api_key",
+              "value": "={{ $env.SERPAPI_KEY }}"
+            }
+          ]
+        },
         "options": {}
       },
       "id": "a1000000-0000-4000-8000-000000000035",
       "name": "Google Jobs - SerpApi",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [240, 560]
+      "position": [
+        240,
+        560
+      ],
+      "onError": "continueRegularOutput"
     },
     {
-      "parameters": { "jsCode": "const s=(v)=>String(v??'').trim();\nconst results=$input.first().json.jobs_results||[];\nreturn results.map((r)=>{const ext=r.detected_extensions||{};const url=r.share_link||(r.apply_options&&r.apply_options[0]&&r.apply_options[0].link)||'';return{json:{source:'google_jobs',source_id:s(r.job_id),title:s(r.title),company:s(r.company_name),location:s(r.location),contract_type:s(ext.schedule_type),salary:s(ext.salary),description:s(r.description),url:s(url)}};});" },
+      "parameters": {
+        "jsCode": "const s=(v)=>String(v??'').trim();\nconst results=$input.first().json.jobs_results||[];\nreturn results.map((r)=>{const ext=r.detected_extensions||{};const url=r.share_link||(r.apply_options&&r.apply_options[0]&&r.apply_options[0].link)||'';return{json:{source:'google_jobs',source_id:s(r.job_id),title:s(r.title),company:s(r.company_name),location:s(r.location),contract_type:s(ext.schedule_type),salary:s(ext.salary),description:s(r.description),url:s(url)}};});"
+      },
       "id": "a1000000-0000-4000-8000-000000000036",
       "name": "norm Google Jobs",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [460, 560]
+      "position": [
+        460,
+        560
+      ]
     },
-
     {
-      "parameters": { "url": "={{ $env.WTTJ_RSS_URL }}", "options": {} },
+      "parameters": {
+        "url": "={{ $env.WTTJ_RSS_URL }}",
+        "options": {}
+      },
       "id": "a1000000-0000-4000-8000-000000000040",
       "name": "WTTJ - RSS",
       "type": "n8n-nodes-base.rssFeedRead",
       "typeVersion": 1.1,
-      "position": [240, 720]
+      "position": [
+        240,
+        720
+      ],
+      "onError": "continueRegularOutput"
     },
     {
-      "parameters": { "jsCode": "const s=(v)=>String(v??'').trim();\nreturn $input.all().map(({json:it})=>{const rt=s(it.title);let title=rt,company='';const d=rt.split(/\\s[-–|]\\s/);if(d.length>=2){title=s(d[0]);company=s(d[d.length-1]);}return{json:{source:'wttj',source_id:s(it.guid||it.id||it.link),title,company,location:s(it.location),contract_type:'',salary:'',description:s(it.contentSnippet||it.content||it.description),url:s(it.link)}};});" },
+      "parameters": {
+        "jsCode": "const s=(v)=>String(v??'').trim();\nreturn $input.all().map(({json:it})=>{const rt=s(it.title);let title=rt,company='';const d=rt.split(/\\s[-–|]\\s/);if(d.length>=2){title=s(d[0]);company=s(d[d.length-1]);}return{json:{source:'wttj',source_id:s(it.guid||it.id||it.link),title,company,location:s(it.location),contract_type:'',salary:'',description:s(it.contentSnippet||it.content||it.description),url:s(it.link)}};});"
+      },
       "id": "a1000000-0000-4000-8000-000000000041",
       "name": "norm WTTJ",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [460, 720]
+      "position": [
+        460,
+        720
+      ]
     },
-
     {
       "parameters": {
         "url": "https://jsearch.p.rapidapi.com/search",
         "sendHeaders": true,
-        "headerParameters": { "parameters": [
-          { "name": "X-RapidAPI-Key", "value": "={{ $env.RAPIDAPI_KEY }}" },
-          { "name": "X-RapidAPI-Host", "value": "jsearch.p.rapidapi.com" }
-        ] },
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-RapidAPI-Key",
+              "value": "={{ $env.RAPIDAPI_KEY }}"
+            },
+            {
+              "name": "X-RapidAPI-Host",
+              "value": "jsearch.p.rapidapi.com"
+            }
+          ]
+        },
         "sendQuery": true,
-        "queryParameters": { "parameters": [
-          { "name": "query", "value": "={{ $('Boucle profils').item.json.keywords }} in {{ $('Boucle profils').item.json.location_label }}, France" },
-          { "name": "page", "value": "1" },
-          { "name": "num_pages", "value": "1" },
-          { "name": "country", "value": "fr" }
-        ] },
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "query",
+              "value": "={{ $('Boucle profils').first().json.keywords }} in {{ $('Boucle profils').first().json.location_label }}, France"
+            },
+            {
+              "name": "page",
+              "value": "1"
+            },
+            {
+              "name": "num_pages",
+              "value": "1"
+            },
+            {
+              "name": "country",
+              "value": "fr"
+            }
+          ]
+        },
         "options": {}
       },
       "id": "a1000000-0000-4000-8000-000000000045",
       "name": "JSearch - search",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [240, 880]
+      "position": [
+        240,
+        880
+      ],
+      "onError": "continueRegularOutput"
     },
     {
-      "parameters": { "jsCode": "const s=(v)=>String(v??'').trim();\nconst results=$input.first().json.data||[];\nreturn results.map((r)=>{const pub=s(r.job_publisher).toLowerCase().replace(/\\s+/g,'-');return{json:{source:pub?('jsearch:'+pub):'jsearch',source_id:s(r.job_id),title:s(r.job_title),company:s(r.employer_name),location:s(r.job_city||r.job_location),contract_type:s(r.job_employment_type),salary:s(r.job_salary_string),description:s(r.job_description),url:s(r.job_apply_link||r.job_google_link)}};});" },
+      "parameters": {
+        "jsCode": "const s=(v)=>String(v??'').trim();\nconst results=$input.first().json.data||[];\nreturn results.map((r)=>{const pub=s(r.job_publisher).toLowerCase().replace(/\\s+/g,'-');return{json:{source:pub?('jsearch:'+pub):'jsearch',source_id:s(r.job_id),title:s(r.job_title),company:s(r.employer_name),location:s(r.job_city||r.job_location),contract_type:s(r.job_employment_type),salary:s(r.job_salary_string),description:s(r.job_description),url:s(r.job_apply_link||r.job_google_link)}};});"
+      },
       "id": "a1000000-0000-4000-8000-000000000046",
       "name": "norm JSearch",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [460, 880]
+      "position": [
+        460,
+        880
+      ]
     },
     {
       "parameters": {
         "url": "https://api.apprentissage.beta.gouv.fr/api/job/v1/search",
         "sendHeaders": true,
-        "headerParameters": { "parameters": [
-          { "name": "Authorization", "value": "=Bearer {{ $env.LBA_API_KEY }}" }
-        ] },
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.LBA_API_KEY }}"
+            }
+          ]
+        },
         "sendQuery": true,
-        "queryParameters": { "parameters": [
-          { "name": "romes", "value": "={{ $('Boucle profils').item.json.rome_codes }}" },
-          { "name": "latitude", "value": "={{ $('Boucle profils').item.json.latitude }}" },
-          { "name": "longitude", "value": "={{ $('Boucle profils').item.json.longitude }}" },
-          { "name": "radius", "value": "={{ $('Boucle profils').item.json.radius_km }}" }
-        ] },
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "romes",
+              "value": "={{ $('Boucle profils').first().json.rome_codes }}"
+            },
+            {
+              "name": "latitude",
+              "value": "={{ $('Boucle profils').first().json.latitude }}"
+            },
+            {
+              "name": "longitude",
+              "value": "={{ $('Boucle profils').first().json.longitude }}"
+            },
+            {
+              "name": "radius",
+              "value": "={{ $('Boucle profils').first().json.radius_km }}"
+            }
+          ]
+        },
         "options": {}
       },
       "id": "a1000000-0000-4000-8000-000000000060",
       "name": "LBA - search",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [240, 1040]
+      "position": [
+        240,
+        1040
+      ],
+      "onError": "continueRegularOutput"
     },
     {
-      "parameters": { "jsCode": "// La Bonne Alternance — OFFRES d'alternance (jobs[]). Cf. lib/sources.mjs normalizeLaBonneAlternanceJobs.\nconst s=(v)=>String(v??'').trim();\nconst jobs=$input.first().json.jobs||[];\nreturn jobs.map((j)=>{const wp=j.workplace||{};const t=j.contract&&j.contract.type;return{json:{source:'la_bonne_alternance',source_id:s((j.identifier&&(j.identifier.id||j.identifier.partner_job_id))),title:s(j.offer&&j.offer.title),company:s(wp.brand||wp.name||wp.legal_name),location:s(wp.location&&wp.location.address),contract_type:s(Array.isArray(t)?t.join(', '):t)||'Alternance',salary:'',description:s(j.offer&&j.offer.description),url:s(j.apply&&j.apply.url)}};});" },
+      "parameters": {
+        "jsCode": "// La Bonne Alternance — OFFRES d'alternance (jobs[]). Cf. lib/sources.mjs normalizeLaBonneAlternanceJobs.\nconst s=(v)=>String(v??'').trim();\nconst jobs=$input.first().json.jobs||[];\nreturn jobs.map((j)=>{const wp=j.workplace||{};const t=j.contract&&j.contract.type;return{json:{source:'la_bonne_alternance',source_id:s((j.identifier&&(j.identifier.id||j.identifier.partner_job_id))),title:s(j.offer&&j.offer.title),company:s(wp.brand||wp.name||wp.legal_name),location:s(wp.location&&wp.location.address),contract_type:s(Array.isArray(t)?t.join(', '):t)||'Alternance',salary:'',description:s(j.offer&&j.offer.description),url:s(j.apply&&j.apply.url)}};});"
+      },
       "id": "a1000000-0000-4000-8000-000000000061",
       "name": "norm LBA",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [460, 1000]
+      "position": [
+        460,
+        1000
+      ]
     },
     {
-      "parameters": { "jsCode": "// La Bonne Alternance — ENTREPRISES à contacter (recruiters[]), candidature spontanée.\n// Cf. lib/sources.mjs normalizeLBARecruiters. Filtre les fiches sans nom.\nconst s=(v)=>String(v??'').trim();\nconst rs=$input.first().json.recruiters||[];\nreturn rs.map((r)=>{const wp=r.workplace||{};return{json:{source:'la_bonne_alternance',source_id:s((r.identifier&&r.identifier.id)||wp.siret),name:s(wp.brand||wp.name||wp.legal_name),siret:s(wp.siret),sector:s((wp.domain&&wp.domain.naf&&wp.domain.naf.label)||(wp.naf&&wp.naf.label)),website:s(wp.website),location:s(wp.location&&wp.location.address),apply_url:s(r.apply&&r.apply.url),phone:s(r.apply&&r.apply.phone)}};}).filter((o)=>o.json.name);" },
+      "parameters": {
+        "jsCode": "// La Bonne Alternance — ENTREPRISES à contacter (recruiters[]), candidature spontanée.\n// Cf. lib/sources.mjs normalizeLBARecruiters. Filtre les fiches sans nom.\nconst s=(v)=>String(v??'').trim();\nconst rs=$input.first().json.recruiters||[];\nreturn rs.map((r)=>{const wp=r.workplace||{};return{json:{source:'la_bonne_alternance',source_id:s((r.identifier&&r.identifier.id)||wp.siret),name:s(wp.brand||wp.name||wp.legal_name),siret:s(wp.siret),sector:s((wp.domain&&wp.domain.naf&&wp.domain.naf.label)||(wp.naf&&wp.naf.label)),website:s(wp.website),location:s(wp.location&&wp.location.address),apply_url:s(r.apply&&r.apply.url),phone:s(r.apply&&r.apply.phone)}};}).filter((o)=>o.json.name);"
+      },
       "id": "a1000000-0000-4000-8000-000000000062",
       "name": "norm LBA recruteurs",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [460, 1120]
+      "position": [
+        460,
+        1120
+      ]
     },
     {
       "parameters": {
         "operation": "executeQuery",
         "query": "INSERT INTO companies (name, website, sector, last_updated) VALUES ($1, $2, $3, now()) ON CONFLICT (name) DO UPDATE SET website = COALESCE(NULLIF(EXCLUDED.website, ''), companies.website), sector = COALESCE(NULLIF(EXCLUDED.sector, ''), companies.sector), last_updated = now();",
-        "options": { "queryReplacement": "={{ [$json.name, $json.website || '', $json.sector || ''] }}" }
+        "options": {
+          "queryReplacement": "={{ [$json.name, $json.website || '', $json.sector || ''] }}"
+        }
       },
       "id": "a1000000-0000-4000-8000-000000000063",
       "name": "Upsert entreprise (spontanée)",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
-      "position": [680, 1120],
-      "credentials": { "postgres": { "id": "REMPLACER", "name": "Postgres job-hunter" } }
+      "position": [
+        680,
+        1120
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "REMPLACER",
+          "name": "Postgres job-hunter"
+        }
+      }
     },
     {
       "parameters": {
         "method": "POST",
         "url": "={{ $env.DISCORD_WEBHOOK_ALERTS }}",
-        "sendBody": true, "specifyBody": "json",
-        "jsonBody": "={{ { \"content\": `🏢 **Candidature spontanée (alternance)** — ${$json.name}${$json.sector ? ' · ' + $json.sector : ''}\\n[${$('Boucle profils').item.json.name}] ${$json.location || ''}\\n${$json.website || ''}${$json.apply_url ? '\\n➡️ Contact: ' + $json.apply_url : ''}` } }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { \"content\": `🏢 **Candidature spontanée (alternance)** — ${$json.name}${$json.sector ? ' · ' + $json.sector : ''}\\n[${$('Boucle profils').first().json.name}] ${$json.location || ''}\\n${$json.website || ''}${$json.apply_url ? '\\n➡️ Contact: ' + $json.apply_url : ''}` } }}",
         "options": {}
       },
       "id": "a1000000-0000-4000-8000-000000000064",
       "name": "Discord spontanée",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [900, 1120]
+      "position": [
+        900,
+        1120
+      ]
     },
     {
-      "parameters": { "numberInputs": 7 },
+      "parameters": {
+        "numberInputs": 7
+      },
       "id": "a1000000-0000-4000-8000-000000000050",
       "name": "Fusionner sources",
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3,
-      "position": [900, 360]
+      "position": [
+        900,
+        360
+      ]
     },
     {
-      "parameters": { "jsCode": "// Score piloté par le PROFIL + exclusions (filtre dur) + hashSource canonicalisé.\n// Parité avec workflows/lib/offer-utils.mjs.\nconst prof=$('Boucle profils').item.json;\nconst norm=(s)=>String(s??'').toLowerCase().normalize('NFKD').replace(/\\s+/g,' ').trim();\nconst cT=(t)=>norm(t).replace(/\\(.*?\\)/g,' ').replace(/\\b[hf]\\s*\\/\\s*[hfx]\\b/g,' ').replace(/\\bf\\s*\\/\\s*h\\b/g,' ').replace(/[^a-z0-9àâäéèêëîïôöùûüç ]/g,' ').replace(/\\s+/g,' ').trim();\nconst cC=(c)=>norm(c).replace(/\\b(sas|sasu|sarl|sa|eurl|inc|ltd|llc|gmbh|group|groupe)\\b/g,' ').replace(/[^a-z0-9àâäéèêëîïôöùûüç ]/g,' ').replace(/\\s+/g,' ').trim();\nconst cL=(l)=>norm(l).replace(/\\bfrance\\b/g,' ').replace(/[^a-zàâäéèêëîïôöùûüç ]/g,' ').replace(/\\s+/g,' ').trim();\nconst DEF={keywords:['ia','intelligence artificielle','ml','machine learning','data','llm','python','développeur','developpeur','backend','api'],juniorTerms:['junior','débutant','debutant','alternance','apprenti','stage','stagiaire','entry level'],seniorTerms:['senior','confirmé','confirme','lead','principal','5 ans','expérimenté','experimente','10 ans'],remoteTerms:['télétravail','teletravail','remote','hybride','distanciel'],goodContracts:['cdi','alternance','cdd','apprentissage','freelance']};\nconst sw=(s)=>norm(s).split(/[,;\\n\\s]+/).filter(Boolean);\nconst sp=(s)=>String(s??'').split(/[,;\\n]+/).map(norm).filter(Boolean);\nconst kw=[...sw(prof.keywords),...sp(prof.must_have)];\nconst ct=sp(prof.contract_types);\nconst P={keywords:kw.length?kw:DEF.keywords,exclusions:sp(prof.exclusions),contractTypes:ct.length?ct:DEF.goodContracts,seniority:norm(prof.seniority)};\nfunction sen(hay){const j=DEF.juniorTerms.some(t=>hay.includes(norm(t)));const se=DEF.seniorTerms.some(t=>hay.includes(norm(t)));const w=P.seniority;if(/junior|alternance|débutant|debutant|apprenti|stage/.test(w)){if(j&&!se)return 20;return se?0:10;}if(/senior|confirm|lead|expérim|experim/.test(w)){if(se&&!j)return 20;return j?5:10;}return se&&!j?5:12;}\nfunction score(o){const hay=norm(`${o.title} ${o.description} ${o.contract_type}`);const loc=norm(o.location);let s=0;s+=Math.min(40,P.keywords.filter(k=>hay.includes(norm(k))).length*10);s+=sen(hay);if(DEF.remoteTerms.some(t=>hay.includes(norm(t))||loc.includes(norm(t))))s+=15;if(P.contractTypes.some(c=>hay.includes(norm(c))||norm(o.contract_type).includes(norm(c))))s+=15;if(norm(o.salary))s+=10;return Math.max(0,Math.min(100,Math.round(s)));}\nfunction exc(o){if(!P.exclusions.length)return false;const hay=norm(`${o.title} ${o.description} ${o.contract_type} ${o.location}`);return P.exclusions.some(x=>x&&hay.includes(norm(x)));}\nreturn $input.all().map(({json:o})=>o).filter(o=>!exc(o)).map((o)=>({json:{...o,score:score(o),profile_id:prof.id,hashSource:[cT(o.title),cC(o.company),cL(o.location)].join('|')}}));" },
+      "parameters": {
+        "jsCode": "// Score piloté par le PROFIL + exclusions (filtre dur) + hashSource canonicalisé.\n// Parité avec workflows/lib/offer-utils.mjs.\nconst prof=$('Boucle profils').first().json;\nconst norm=(s)=>String(s??'').toLowerCase().normalize('NFKD').replace(/\\s+/g,' ').trim();\nconst cT=(t)=>norm(t).replace(/\\(.*?\\)/g,' ').replace(/\\b[hf]\\s*\\/\\s*[hfx]\\b/g,' ').replace(/\\bf\\s*\\/\\s*h\\b/g,' ').replace(/[^a-z0-9àâäéèêëîïôöùûüç ]/g,' ').replace(/\\s+/g,' ').trim();\nconst cC=(c)=>norm(c).replace(/\\b(sas|sasu|sarl|sa|eurl|inc|ltd|llc|gmbh|group|groupe)\\b/g,' ').replace(/[^a-z0-9àâäéèêëîïôöùûüç ]/g,' ').replace(/\\s+/g,' ').trim();\nconst cL=(l)=>norm(l).replace(/\\bfrance\\b/g,' ').replace(/[^a-zàâäéèêëîïôöùûüç ]/g,' ').replace(/\\s+/g,' ').trim();\nconst DEF={keywords:['ia','intelligence artificielle','ml','machine learning','data','llm','python','développeur','developpeur','backend','api'],juniorTerms:['junior','débutant','debutant','alternance','apprenti','stage','stagiaire','entry level'],seniorTerms:['senior','confirmé','confirme','lead','principal','5 ans','expérimenté','experimente','10 ans'],remoteTerms:['télétravail','teletravail','remote','hybride','distanciel'],goodContracts:['cdi','alternance','cdd','apprentissage','freelance']};\nconst sw=(s)=>norm(s).split(/[,;\\n\\s]+/).filter(Boolean);\nconst sp=(s)=>String(s??'').split(/[,;\\n]+/).map(norm).filter(Boolean);\nconst kw=[...sw(prof.keywords),...sp(prof.must_have)];\nconst ct=sp(prof.contract_types);\nconst P={keywords:kw.length?kw:DEF.keywords,exclusions:sp(prof.exclusions),contractTypes:ct.length?ct:DEF.goodContracts,seniority:norm(prof.seniority)};\nfunction sen(hay){const j=DEF.juniorTerms.some(t=>hay.includes(norm(t)));const se=DEF.seniorTerms.some(t=>hay.includes(norm(t)));const w=P.seniority;if(/junior|alternance|débutant|debutant|apprenti|stage/.test(w)){if(j&&!se)return 20;return se?0:10;}if(/senior|confirm|lead|expérim|experim/.test(w)){if(se&&!j)return 20;return j?5:10;}return se&&!j?5:12;}\nfunction score(o){const hay=norm(`${o.title} ${o.description} ${o.contract_type}`);const loc=norm(o.location);let s=0;s+=Math.min(40,P.keywords.filter(k=>hay.includes(norm(k))).length*10);s+=sen(hay);if(DEF.remoteTerms.some(t=>hay.includes(norm(t))||loc.includes(norm(t))))s+=15;if(P.contractTypes.some(c=>hay.includes(norm(c))||norm(o.contract_type).includes(norm(c))))s+=15;if(norm(o.salary))s+=10;return Math.max(0,Math.min(100,Math.round(s)));}\nfunction exc(o){if(!P.exclusions.length)return false;const hay=norm(`${o.title} ${o.description} ${o.contract_type} ${o.location}`);return P.exclusions.some(x=>x&&hay.includes(norm(x)));}\nreturn $input.all().map(({json:o})=>o).filter(o=>!exc(o)).map((o)=>({json:{...o,score:score(o),profile_id:prof.id,hashSource:[cT(o.title),cC(o.company),cL(o.location)].join('|')}}));"
+      },
       "id": "a1000000-0000-4000-8000-000000000051",
       "name": "Scorer + hashSource",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1120, 360]
+      "position": [
+        1120,
+        360
+      ]
     },
     {
-      "parameters": { "action": "hash", "type": "SHA256", "value": "={{ $json.hashSource }}", "dataPropertyName": "hash", "options": {} },
+      "parameters": {
+        "action": "hash",
+        "type": "SHA256",
+        "value": "={{ $json.hashSource }}",
+        "dataPropertyName": "hash",
+        "options": {}
+      },
       "id": "a1000000-0000-4000-8000-000000000052",
       "name": "Hash dédup",
       "type": "n8n-nodes-base.crypto",
       "typeVersion": 1,
-      "position": [1340, 360]
+      "position": [
+        1340,
+        360
+      ]
     },
     {
       "parameters": {
         "operation": "insert",
-        "schema": { "__rl": true, "mode": "list", "value": "public" },
-        "table": { "__rl": true, "mode": "list", "value": "offers" },
-        "columns": { "mappingMode": "defineBelow", "value": {
-          "source": "={{ $json.source }}", "source_id": "={{ $json.source_id }}",
-          "hash": "={{ $json.hash }}", "title": "={{ $json.title }}",
-          "company": "={{ $json.company }}", "location": "={{ $json.location }}",
-          "contract_type": "={{ $json.contract_type }}", "salary": "={{ $json.salary }}",
-          "description": "={{ $json.description }}", "url": "={{ $json.url }}",
-          "score": "={{ $json.score }}", "profile_id": "={{ $json.profile_id }}"
-        } },
-        "options": { "skipOnConflict": true }
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "mode": "list",
+          "value": "offers"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "source": "={{ $json.source }}",
+            "source_id": "={{ $json.source_id }}",
+            "hash": "={{ $json.hash }}",
+            "title": "={{ $json.title }}",
+            "company": "={{ $json.company }}",
+            "location": "={{ $json.location }}",
+            "contract_type": "={{ $json.contract_type }}",
+            "salary": "={{ $json.salary }}",
+            "description": "={{ $json.description }}",
+            "url": "={{ $json.url }}",
+            "score": "={{ $json.score }}",
+            "profile_id": "={{ $json.profile_id }}"
+          }
+        },
+        "options": {
+          "skipOnConflict": true
+        }
       },
       "id": "a1000000-0000-4000-8000-000000000053",
       "name": "Insert offers (dédup)",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
-      "position": [1560, 360],
-      "credentials": { "postgres": { "id": "REMPLACER", "name": "Postgres job-hunter" } }
+      "position": [
+        1560,
+        360
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "REMPLACER",
+          "name": "Postgres job-hunter"
+        }
+      }
     },
     {
-      "parameters": { "jsCode": "// Affinage LLM du top-N avec must_have/exclusions DU PROFIL (cf. llm-scoring.mjs).\nconst prof=$('Boucle profils').item.json;\nconst all=$input.all().map(i=>i.json);\nconst offers=[...all].sort((a,b)=>(b.score??0)-(a.score??0)).slice(0,20);\nconst system=\"Tu es un expert en recrutement. Barème: 90-100 = correspond très bien aux critères indispensables et aucune exclusion; 50-89 = partiel; <50 = hors sujet ou exclusion. Réponds UNIQUEMENT en JSON {\\\"scores\\\":[{\\\"i\\\":<index>,\\\"score\\\":<0-100>,\\\"reason\\\":\\\"<une phrase>\\\"}]}.\";\nconst list=offers.map((o,i)=>`#${i} — ${o.title||'?'} @ ${o.company||'?'} (${o.location||'?'})\\n${String(o.description||'').slice(0,600)}`).join('\\n\\n');\nconst user=`Critères indispensables : ${prof.must_have||'(non précisés)'}\\nCritères d'exclusion : ${prof.exclusions||'(aucun)'}\\n\\nOFFRES:\\n${list}`;\nreturn [{json:{messages:[{role:'system',content:system},{role:'user',content:user}],offers,threshold:prof.score_threshold||60}}];" },
+      "parameters": {
+        "jsCode": "// Affinage LLM du top-N avec must_have/exclusions DU PROFIL (cf. llm-scoring.mjs).\nconst prof=$('Boucle profils').first().json;\nconst all=$input.all().map(i=>i.json);\nconst offers=[...all].sort((a,b)=>(b.score??0)-(a.score??0)).slice(0,20);\nconst system=\"Tu es un expert en recrutement. Barème: 90-100 = correspond très bien aux critères indispensables et aucune exclusion; 50-89 = partiel; <50 = hors sujet ou exclusion. Réponds UNIQUEMENT en JSON {\\\"scores\\\":[{\\\"i\\\":<index>,\\\"score\\\":<0-100>,\\\"reason\\\":\\\"<une phrase>\\\"}]}.\";\nconst list=offers.map((o,i)=>`#${i} — ${o.title||'?'} @ ${o.company||'?'} (${o.location||'?'})\\n${String(o.description||'').slice(0,600)}`).join('\\n\\n');\nconst user=`Critères indispensables : ${prof.must_have||'(non précisés)'}\\nCritères d'exclusion : ${prof.exclusions||'(aucun)'}\\n\\nOFFRES:\\n${list}`;\nreturn [{json:{messages:[{role:'system',content:system},{role:'user',content:user}],offers,threshold:prof.score_threshold||60}}];"
+      },
       "id": "a1000000-0000-4000-8000-000000000056",
       "name": "Préparer scoring LLM",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1780, 360]
+      "position": [
+        1780,
+        360
+      ]
     },
     {
       "parameters": {
         "method": "POST",
         "url": "={{ $env.DEEPSEEK_BASE_URL }}/chat/completions",
         "sendHeaders": true,
-        "headerParameters": { "parameters": [
-          { "name": "Authorization", "value": "=Bearer {{ $env.DEEPSEEK_API_KEY }}" },
-          { "name": "Content-Type", "value": "application/json" }
-        ] },
-        "sendBody": true, "specifyBody": "json",
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.DEEPSEEK_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
         "jsonBody": "={\n  \"model\": \"{{ $env.DEEPSEEK_MODEL }}\",\n  \"messages\": {{ JSON.stringify($json.messages) }},\n  \"response_format\": { \"type\": \"json_object\" },\n  \"temperature\": 0.2\n}",
         "options": {}
       },
@@ -347,102 +640,470 @@
       "name": "DeepSeek scoring",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [2000, 360]
+      "position": [
+        2000,
+        360
+      ]
     },
     {
-      "parameters": { "jsCode": "const clamp=(n)=>Math.max(0,Math.min(100,Math.round(Number(n)||0)));\nconst raw=$input.first().json.choices?.[0]?.message?.content??'';\nconst offers=$('Préparer scoring LLM').first().json.offers||[];\nlet data;try{data=JSON.parse(raw);}catch{data=null;}\nconst byI=new Map();for(const s of (data?.scores??[]))if(Number.isInteger(s.i))byI.set(s.i,s);\nreturn offers.map((o,i)=>{const s=byI.get(i);return{json:(!s||s.score==null)?o:{...o,score:clamp(s.score),score_reason:String(s.reason??'')}};});" },
+      "parameters": {
+        "jsCode": "const clamp=(n)=>Math.max(0,Math.min(100,Math.round(Number(n)||0)));\nconst raw=$input.first().json.choices?.[0]?.message?.content??'';\nconst offers=$('Préparer scoring LLM').first().json.offers||[];\nlet data;try{data=JSON.parse(raw);}catch{data=null;}\nconst byI=new Map();for(const s of (data?.scores??[]))if(Number.isInteger(s.i))byI.set(s.i,s);\nreturn offers.map((o,i)=>{const s=byI.get(i);return{json:(!s||s.score==null)?o:{...o,score:clamp(s.score),score_reason:String(s.reason??'')}};});"
+      },
       "id": "a1000000-0000-4000-8000-000000000058",
       "name": "Fusion scores",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [2220, 360]
+      "position": [
+        2220,
+        360
+      ]
     },
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "UPDATE offers SET score = $1, score_reason = $2 WHERE hash = $3;",
-        "options": { "queryReplacement": "={{ [$json.score, $json.score_reason || '', $json.hash] }}" }
+        "query": "UPDATE offers SET score = $1, score_reason = $2 WHERE hash = $3 RETURNING *;",
+        "options": {
+          "queryReplacement": "={{ [$json.score, $json.score_reason || '', $json.hash] }}"
+        }
       },
       "id": "a1000000-0000-4000-8000-000000000059",
       "name": "MAJ score (LLM)",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
-      "position": [2440, 360],
-      "credentials": { "postgres": { "id": "REMPLACER", "name": "Postgres job-hunter" } }
+      "position": [
+        2440,
+        360
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "REMPLACER",
+          "name": "Postgres job-hunter"
+        }
+      }
     },
     {
       "parameters": {
-        "conditions": { "options": { "caseSensitive": true, "version": 2 }, "combinator": "and",
-          "conditions": [ { "leftValue": "={{ $json.score }}", "rightValue": "={{ $('Boucle profils').item.json.score_threshold }}", "operator": { "type": "number", "operation": "gte" } } ] },
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "version": 2
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.score }}",
+              "rightValue": "={{ $('Boucle profils').first().json.score_threshold }}",
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ]
+        },
         "options": {}
       },
       "id": "a1000000-0000-4000-8000-000000000054",
       "name": "Score suffisant ?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
-      "position": [2660, 360]
+      "position": [
+        2660,
+        360
+      ]
     },
     {
       "parameters": {
         "method": "POST",
         "url": "={{ $env.DISCORD_WEBHOOK_ALERTS }}",
-        "sendBody": true, "specifyBody": "json",
-        "jsonBody": "={{ { \"content\": `🆕 **${$json.title}** — ${$json.company || 'Entreprise inconnue'}\\n[${$('Boucle profils').item.json.name}] Score ${$json.score} · ${$json.location} · ${$json.source}${$json.score_reason ? '\\n💡 ' + $json.score_reason : ''}\\n${$json.url}\\n✅ Générer: ${$env.WEBHOOK_URL}webhook/offer-status?hash=${$json.hash}&action=selected\\n🚫 Ignorer: ${$env.WEBHOOK_URL}webhook/offer-status?hash=${$json.hash}&action=ignored` } }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { \"content\": `🆕 **${$json.title}** — ${$json.company || 'Entreprise inconnue'}\\n[${$('Boucle profils').first().json.name}] Score ${$json.score} · ${$json.location} · ${$json.source}${$json.score_reason ? '\\n💡 ' + $json.score_reason : ''}\\n${$json.url}\\n✅ Générer: ${$env.WEBHOOK_URL}webhook/offer-status?hash=${$json.hash}&action=selected\\n🚫 Ignorer: ${$env.WEBHOOK_URL}webhook/offer-status?hash=${$json.hash}&action=ignored` } }}",
         "options": {}
       },
       "id": "a1000000-0000-4000-8000-000000000055",
       "name": "Discord jobs-alerts",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [2880, 260]
+      "position": [
+        2880,
+        260
+      ]
     }
   ],
   "connections": {
-    "Tous les jours 8h": { "main": [[{ "node": "Profils actifs", "type": "main", "index": 0 }]] },
-    "Profils actifs": { "main": [[{ "node": "Boucle profils", "type": "main", "index": 0 }]] },
-    "Boucle profils": { "main": [
-      [],
-      [
-        { "node": "Adzuna - search", "type": "main", "index": 0 },
-        { "node": "FT - token", "type": "main", "index": 0 },
-        { "node": "JobSpy - search", "type": "main", "index": 0 },
-        { "node": "Google Jobs - SerpApi", "type": "main", "index": 0 },
-        { "node": "WTTJ - RSS", "type": "main", "index": 0 },
-        { "node": "JSearch - search", "type": "main", "index": 0 },
-        { "node": "LBA - search", "type": "main", "index": 0 }
+    "Tous les jours 8h": {
+      "main": [
+        [
+          {
+            "node": "Profils actifs",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
-    ] },
-    "Adzuna - search": { "main": [[{ "node": "norm Adzuna", "type": "main", "index": 0 }]] },
-    "norm Adzuna": { "main": [[{ "node": "Fusionner sources", "type": "main", "index": 0 }]] },
-    "FT - token": { "main": [[{ "node": "FT - search", "type": "main", "index": 0 }]] },
-    "FT - search": { "main": [[{ "node": "norm FT", "type": "main", "index": 0 }]] },
-    "norm FT": { "main": [[{ "node": "Fusionner sources", "type": "main", "index": 1 }]] },
-    "JobSpy - search": { "main": [[{ "node": "norm JobSpy", "type": "main", "index": 0 }]] },
-    "norm JobSpy": { "main": [[{ "node": "Fusionner sources", "type": "main", "index": 2 }]] },
-    "Google Jobs - SerpApi": { "main": [[{ "node": "norm Google Jobs", "type": "main", "index": 0 }]] },
-    "norm Google Jobs": { "main": [[{ "node": "Fusionner sources", "type": "main", "index": 3 }]] },
-    "WTTJ - RSS": { "main": [[{ "node": "norm WTTJ", "type": "main", "index": 0 }]] },
-    "norm WTTJ": { "main": [[{ "node": "Fusionner sources", "type": "main", "index": 4 }]] },
-    "JSearch - search": { "main": [[{ "node": "norm JSearch", "type": "main", "index": 0 }]] },
-    "norm JSearch": { "main": [[{ "node": "Fusionner sources", "type": "main", "index": 5 }]] },
-    "LBA - search": { "main": [[{ "node": "norm LBA", "type": "main", "index": 0 }, { "node": "norm LBA recruteurs", "type": "main", "index": 0 }]] },
-    "norm LBA": { "main": [[{ "node": "Fusionner sources", "type": "main", "index": 6 }]] },
-    "norm LBA recruteurs": { "main": [[{ "node": "Upsert entreprise (spontanée)", "type": "main", "index": 0 }]] },
-    "Upsert entreprise (spontanée)": { "main": [[{ "node": "Discord spontanée", "type": "main", "index": 0 }]] },
-    "Fusionner sources": { "main": [[{ "node": "Scorer + hashSource", "type": "main", "index": 0 }]] },
-    "Scorer + hashSource": { "main": [[{ "node": "Hash dédup", "type": "main", "index": 0 }]] },
-    "Hash dédup": { "main": [[{ "node": "Insert offers (dédup)", "type": "main", "index": 0 }]] },
-    "Insert offers (dédup)": { "main": [[{ "node": "Préparer scoring LLM", "type": "main", "index": 0 }]] },
-    "Préparer scoring LLM": { "main": [[{ "node": "DeepSeek scoring", "type": "main", "index": 0 }]] },
-    "DeepSeek scoring": { "main": [[{ "node": "Fusion scores", "type": "main", "index": 0 }]] },
-    "Fusion scores": { "main": [[{ "node": "MAJ score (LLM)", "type": "main", "index": 0 }]] },
-    "MAJ score (LLM)": { "main": [[{ "node": "Score suffisant ?", "type": "main", "index": 0 }]] },
-    "Score suffisant ?": { "main": [[{ "node": "Discord jobs-alerts", "type": "main", "index": 0 }], []] },
-    "Discord jobs-alerts": { "main": [[{ "node": "Boucle profils", "type": "main", "index": 0 }]] }
+    },
+    "Profils actifs": {
+      "main": [
+        [
+          {
+            "node": "Boucle profils",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Boucle profils": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Adzuna - search",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "FT - token",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "JobSpy - search",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Google Jobs - SerpApi",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "WTTJ - RSS",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "JSearch - search",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "LBA - search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Adzuna - search": {
+      "main": [
+        [
+          {
+            "node": "norm Adzuna",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "norm Adzuna": {
+      "main": [
+        [
+          {
+            "node": "Fusionner sources",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FT - token": {
+      "main": [
+        [
+          {
+            "node": "FT - search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FT - search": {
+      "main": [
+        [
+          {
+            "node": "norm FT",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "norm FT": {
+      "main": [
+        [
+          {
+            "node": "Fusionner sources",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "JobSpy - search": {
+      "main": [
+        [
+          {
+            "node": "norm JobSpy",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "norm JobSpy": {
+      "main": [
+        [
+          {
+            "node": "Fusionner sources",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Google Jobs - SerpApi": {
+      "main": [
+        [
+          {
+            "node": "norm Google Jobs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "norm Google Jobs": {
+      "main": [
+        [
+          {
+            "node": "Fusionner sources",
+            "type": "main",
+            "index": 3
+          }
+        ]
+      ]
+    },
+    "WTTJ - RSS": {
+      "main": [
+        [
+          {
+            "node": "norm WTTJ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "norm WTTJ": {
+      "main": [
+        [
+          {
+            "node": "Fusionner sources",
+            "type": "main",
+            "index": 4
+          }
+        ]
+      ]
+    },
+    "JSearch - search": {
+      "main": [
+        [
+          {
+            "node": "norm JSearch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "norm JSearch": {
+      "main": [
+        [
+          {
+            "node": "Fusionner sources",
+            "type": "main",
+            "index": 5
+          }
+        ]
+      ]
+    },
+    "LBA - search": {
+      "main": [
+        [
+          {
+            "node": "norm LBA",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "norm LBA recruteurs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "norm LBA": {
+      "main": [
+        [
+          {
+            "node": "Fusionner sources",
+            "type": "main",
+            "index": 6
+          }
+        ]
+      ]
+    },
+    "norm LBA recruteurs": {
+      "main": [
+        [
+          {
+            "node": "Upsert entreprise (spontanée)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upsert entreprise (spontanée)": {
+      "main": [
+        [
+          {
+            "node": "Discord spontanée",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fusionner sources": {
+      "main": [
+        [
+          {
+            "node": "Scorer + hashSource",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Scorer + hashSource": {
+      "main": [
+        [
+          {
+            "node": "Hash dédup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hash dédup": {
+      "main": [
+        [
+          {
+            "node": "Insert offers (dédup)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert offers (dédup)": {
+      "main": [
+        [
+          {
+            "node": "Préparer scoring LLM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Préparer scoring LLM": {
+      "main": [
+        [
+          {
+            "node": "DeepSeek scoring",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DeepSeek scoring": {
+      "main": [
+        [
+          {
+            "node": "Fusion scores",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fusion scores": {
+      "main": [
+        [
+          {
+            "node": "MAJ score (LLM)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MAJ score (LLM)": {
+      "main": [
+        [
+          {
+            "node": "Score suffisant ?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Score suffisant ?": {
+      "main": [
+        [
+          {
+            "node": "Discord jobs-alerts",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Discord jobs-alerts": {
+      "main": [
+        [
+          {
+            "node": "Boucle profils",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
   },
-  "settings": { "executionOrder": "v1" },
+  "settings": {
+    "executionOrder": "v1"
+  },
   "active": false,
   "meta": {
-    "note": "BROUILLON multi-profils à vérifier à l'import. Boucle: Profils actifs (Postgres) -> SplitInBatches 'Boucle profils' (sortie 1 = itération, sortie 0 = fin). Pour CHAQUE profil: 7 sources (Adzuna, France Travail, JobSpy, Google Jobs/SerpApi, WTTJ, JSearch, La Bonne Alternance) -> Merge(7 entrées, indices 0-6) -> score déterministe + profile_id -> hash -> INSERT (skipOnConflict) -> affinage DeepSeek top-N avec must_have/exclusions DU PROFIL -> MAJ score -> seuil score_threshold du profil -> Discord alerts -> retour à 'Boucle profils'. La source LBA fan-out: 'norm LBA' (offres) -> Merge index 6 ; 'norm LBA recruteurs' (entreprises sans offre) -> Upsert companies -> Discord 'candidature spontanée' (branche terminale). À VÉRIFIER à l'import: comportement exact du loopback SplitInBatches (sortie 1 = boucle, 0 = fin), le passage de $('Boucle profils').item dans toute la boucle, le mode du Merge à 7 entrées, la FORME de réponse LBA (api.apprentissage.beta.gouv.fr, non vérifiée sur workflow réel), et les credentials Postgres. Logique = workflows/lib/*.mjs (testées). jobs-log à rebrancher dans la boucle si besoin."
+    "note": "BROUILLON multi-profils à vérifier à l'import. Boucle: Profils actifs (Postgres) -> SplitInBatches 'Boucle profils' (sortie 1 = itération, sortie 0 = fin). Pour CHAQUE profil: 7 sources (Adzuna, France Travail, JobSpy, Google Jobs/SerpApi, WTTJ, JSearch, La Bonne Alternance) -> Merge(7 entrées, indices 0-6) -> score déterministe + profile_id -> hash -> INSERT (skipOnConflict) -> affinage DeepSeek top-N avec must_have/exclusions DU PROFIL -> MAJ score -> seuil score_threshold du profil -> Discord alerts -> retour à 'Boucle profils'. La source LBA fan-out: 'norm LBA' (offres) -> Merge index 6 ; 'norm LBA recruteurs' (entreprises sans offre) -> Upsert companies -> Discord 'candidature spontanée' (branche terminale). À VÉRIFIER à l'import: comportement exact du loopback SplitInBatches (sortie 1 = boucle, 0 = fin), le passage de $('Boucle profils').first() dans toute la boucle, le mode du Merge à 7 entrées, la FORME de réponse LBA (api.apprentissage.beta.gouv.fr, non vérifiée sur workflow réel), et les credentials Postgres. Logique = workflows/lib/*.mjs (testées). jobs-log à rebrancher dans la boucle si besoin."
   }
 }
