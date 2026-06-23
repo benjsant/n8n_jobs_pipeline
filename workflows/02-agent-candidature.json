@@ -5,18 +5,36 @@
     {
       "parameters": {
         "formTitle": "Générer une candidature",
-        "formFields": { "values": [
-          { "fieldLabel": "Titre du poste", "requiredField": true },
-          { "fieldLabel": "Entreprise", "requiredField": true },
-          { "fieldLabel": "Description de l'offre", "fieldType": "textarea", "requiredField": true },
-          { "fieldLabel": "Infos entreprise (site, valeurs, stack)", "fieldType": "textarea" }
-        ] }
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Titre du poste",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Entreprise",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Description de l'offre",
+              "fieldType": "textarea",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Infos entreprise (site, valeurs, stack)",
+              "fieldType": "textarea"
+            }
+          ]
+        }
       },
       "id": "trigger-form",
       "name": "Formulaire offre",
       "type": "n8n-nodes-base.formTrigger",
       "typeVersion": 2,
-      "position": [-200, 200]
+      "position": [
+        -200,
+        200
+      ]
     },
     {
       "parameters": {},
@@ -24,7 +42,10 @@
       "name": "Appel orchestration",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1,
-      "position": [-200, 400]
+      "position": [
+        -200,
+        400
+      ]
     },
     {
       "parameters": {
@@ -34,49 +55,86 @@
       "name": "Normaliser entrée",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [20, 300]
+      "position": [
+        20,
+        300
+      ]
     },
     {
-      "parameters": { "fileSelector": "/cv/cv-index.json", "options": {} },
+      "parameters": {
+        "fileSelector": "/cv/cv-index.json",
+        "options": {}
+      },
       "id": "read-cvindex",
       "name": "Lire index CV",
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1,
-      "position": [180, 460]
+      "position": [
+        180,
+        460
+      ]
     },
     {
-      "parameters": { "operation": "text", "sourceProperty": "data", "options": {} },
+      "parameters": {
+        "operation": "text",
+        "sourceProperty": "data",
+        "options": {}
+      },
       "id": "extract-cvindex",
       "name": "Extraire index CV",
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1,
-      "position": [360, 460]
+      "position": [
+        360,
+        460
+      ]
     },
     {
-      "parameters": { "fileSelector": "/prompts/agent-system-prompt.md", "options": {} },
+      "parameters": {
+        "fileSelector": "/prompts/agent-system-prompt.md",
+        "options": {}
+      },
       "id": "read-prompt",
       "name": "Lire system prompt",
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1,
-      "position": [540, 300]
+      "position": [
+        540,
+        300
+      ]
     },
     {
-      "parameters": { "operation": "text", "sourceProperty": "data", "options": {} },
+      "parameters": {
+        "operation": "text",
+        "sourceProperty": "data",
+        "options": {}
+      },
       "id": "extract-prompt",
       "name": "Extraire texte prompt",
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1,
-      "position": [460, 300]
+      "position": [
+        460,
+        300
+      ]
     },
     {
       "parameters": {
         "method": "POST",
         "url": "={{ $env.DEEPSEEK_BASE_URL }}/chat/completions",
         "sendHeaders": true,
-        "headerParameters": { "parameters": [
-          { "name": "Authorization", "value": "=Bearer {{ $env.DEEPSEEK_API_KEY }}" },
-          { "name": "Content-Type", "value": "application/json" }
-        ] },
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.DEEPSEEK_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={\n  \"model\": \"{{ $env.DEEPSEEK_MODEL }}\",\n  \"messages\": [\n    { \"role\": \"system\", \"content\": {{ JSON.stringify($json.data) }} },\n    { \"role\": \"user\", \"content\": {{ JSON.stringify('Offre: ' + $('Normaliser entrée').first().json.title + ' chez ' + $('Normaliser entrée').first().json.company + '\\n\\nDescription:\\n' + $('Normaliser entrée').first().json.description + '\\n\\nInfos entreprise:\\n' + ($('Normaliser entrée').first().json.company_info || 'Non fournies') + '\\n\\nVALEURS DISPONIBLES POUR personnalisation_cv (choisis EXCLUSIVEMENT parmi elles, ids/noms exacts):\\n' + $('Extraire index CV').first().json.data) }} }\n  ],\n  \"response_format\": { \"type\": \"json_object\" },\n  \"temperature\": 0.7\n}",
@@ -86,7 +144,10 @@
       "name": "Appel DeepSeek",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [680, 300]
+      "position": [
+        680,
+        300
+      ]
     },
     {
       "parameters": {
@@ -96,23 +157,41 @@
       "name": "Parser sortie agent",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [900, 300]
+      "position": [
+        900,
+        300
+      ]
     },
     {
       "parameters": {
-        "conditions": { "options": { "caseSensitive": true, "version": 2 }, "combinator": "and",
-          "conditions": [ {
-            "leftValue": "={{ $('Normaliser entrée').first().json.offer_id }}",
-            "rightValue": "",
-            "operator": { "type": "string", "operation": "exists", "singleValue": true }
-          } ] },
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "version": 2
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ String($('Normaliser entrée').first().json.offer_id ?? '') }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ]
+        },
         "options": {}
       },
       "id": "if-offer",
       "name": "Offre liée ?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
-      "position": [1120, 300]
+      "position": [
+        1120,
+        300
+      ]
     },
     {
       "parameters": {
@@ -122,17 +201,28 @@
       "name": "Préparer enrichissement",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1300, 120]
+      "position": [
+        1300,
+        120
+      ]
     },
     {
       "parameters": {
         "method": "POST",
         "url": "={{ $env.DEEPSEEK_BASE_URL }}/chat/completions",
         "sendHeaders": true,
-        "headerParameters": { "parameters": [
-          { "name": "Authorization", "value": "=Bearer {{ $env.DEEPSEEK_API_KEY }}" },
-          { "name": "Content-Type", "value": "application/json" }
-        ] },
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.DEEPSEEK_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={\n  \"model\": \"{{ $env.DEEPSEEK_MODEL }}\",\n  \"messages\": {{ JSON.stringify($json.messages) }},\n  \"response_format\": { \"type\": \"json_object\" },\n  \"temperature\": 0.2\n}",
@@ -142,7 +232,10 @@
       "name": "DeepSeek entreprise",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1480, 120]
+      "position": [
+        1480,
+        120
+      ]
     },
     {
       "parameters": {
@@ -152,53 +245,95 @@
       "name": "Parser entreprise",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1660, 120]
+      "position": [
+        1660,
+        120
+      ]
     },
     {
       "parameters": {
         "operation": "executeQuery",
         "query": "INSERT INTO companies (name, sector, ai_summary, last_updated) VALUES ($1, NULLIF($2,''), NULLIF($3,''), now()) ON CONFLICT (name) DO UPDATE SET sector = COALESCE(NULLIF(EXCLUDED.sector,''), companies.sector), ai_summary = COALESCE(NULLIF(EXCLUDED.ai_summary,''), companies.ai_summary), last_updated = now() RETURNING id;",
-        "options": { "queryReplacement": "={{ [$('Normaliser entrée').first().json.company, $json.sector, $json.ai_summary] }}" }
+        "options": {
+          "queryReplacement": "={{ [$('Normaliser entrée').first().json.company, $json.sector, $json.ai_summary] }}"
+        }
       },
       "id": "upsert-company",
       "name": "Upsert entreprise",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
-      "position": [1840, 120],
-      "credentials": { "postgres": { "id": "REMPLACER", "name": "Postgres job-hunter" } }
+      "position": [
+        1840,
+        120
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "REMPLACER",
+          "name": "Postgres job-hunter"
+        }
+      }
     },
     {
       "parameters": {
         "operation": "insert",
-        "schema": { "__rl": true, "mode": "list", "value": "public" },
-        "table": { "__rl": true, "mode": "list", "value": "applications" },
-        "columns": { "mappingMode": "defineBelow", "value": {
-          "offer_id": "={{ $('Normaliser entrée').first().json.offer_id }}",
-          "company_id": "={{ $('Upsert entreprise').first().json.id }}",
-          "status": "draft",
-          "notes": "={{ 'score ' + $('Parser sortie agent').first().json.score + ' — ' + ($('Parser sortie agent').first().json.justification_score || '') }}"
-        } },
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "mode": "list",
+          "value": "applications"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "offer_id": "={{ $('Normaliser entrée').first().json.offer_id }}",
+            "company_id": "={{ $('Upsert entreprise').first().json.id }}",
+            "status": "draft",
+            "notes": "={{ 'score ' + $('Parser sortie agent').first().json.score + ' — ' + ($('Parser sortie agent').first().json.justification_score || '') }}"
+          }
+        },
         "options": {}
       },
       "id": "insert-application",
       "name": "Créer candidature (draft)",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
-      "position": [1560, 200],
-      "credentials": { "postgres": { "id": "REMPLACER", "name": "Postgres job-hunter" } }
+      "position": [
+        1560,
+        200
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "REMPLACER",
+          "name": "Postgres job-hunter"
+        }
+      }
     },
     {
       "parameters": {
         "operation": "executeQuery",
         "query": "UPDATE offers SET status = 'applied' WHERE id = $1 RETURNING id, status;",
-        "options": { "queryReplacement": "={{ $('Normaliser entrée').first().json.offer_id }}" }
+        "options": {
+          "queryReplacement": "={{ $('Normaliser entrée').first().json.offer_id }}"
+        }
       },
       "id": "offer-applied",
       "name": "Offre -> applied",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
-      "position": [2480, 200],
-      "credentials": { "postgres": { "id": "REMPLACER", "name": "Postgres job-hunter" } }
+      "position": [
+        2480,
+        200
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "REMPLACER",
+          "name": "Postgres job-hunter"
+        }
+      }
     },
     {
       "parameters": {
@@ -208,54 +343,91 @@
       "name": "Préparer rendu",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1780, 300]
+      "position": [
+        1780,
+        300
+      ]
     },
     {
       "parameters": {
         "method": "POST",
         "url": "={{ $env.RENDER_API_URL }}/cv",
         "sendHeaders": true,
-        "headerParameters": { "parameters": [ { "name": "Content-Type", "value": "application/json" } ] },
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify($json.cv_payload) }}",
-        "options": { "timeout": 120000 }
+        "options": {
+          "timeout": 120000
+        }
       },
       "id": "render-cv",
       "name": "Rendu CV (PDF)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1960, 300]
+      "position": [
+        1960,
+        300
+      ]
     },
     {
       "parameters": {
         "method": "POST",
         "url": "={{ $env.RENDER_API_URL }}/letter",
         "sendHeaders": true,
-        "headerParameters": { "parameters": [ { "name": "Content-Type", "value": "application/json" } ] },
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify($('Préparer rendu').first().json.letter_payload) }}",
-        "options": { "timeout": 60000 }
+        "options": {
+          "timeout": 60000
+        }
       },
       "id": "render-letter",
       "name": "Rendu lettre (PDF)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [2140, 300]
+      "position": [
+        2140,
+        300
+      ]
     },
     {
       "parameters": {
         "operation": "executeQuery",
         "query": "INSERT INTO generated_documents (application_id, cv_path, letter_path) VALUES ($1, NULLIF($2,''), NULLIF($3,'')) RETURNING id;",
-        "options": { "queryReplacement": "={{ [ $('Préparer rendu').first().json.application_id, $('Rendu CV (PDF)').first().json.cv_path, $('Rendu lettre (PDF)').first().json.letter_path ] }}" }
+        "options": {
+          "queryReplacement": "={{ [ $('Préparer rendu').first().json.application_id, $('Rendu CV (PDF)').first().json.cv_path, $('Rendu lettre (PDF)').first().json.letter_path ] }}"
+        }
       },
       "id": "insert-documents",
       "name": "Enregistrer documents",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
-      "position": [2320, 300],
-      "credentials": { "postgres": { "id": "REMPLACER", "name": "Postgres job-hunter" } }
+      "position": [
+        2320,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "REMPLACER",
+          "name": "Postgres job-hunter"
+        }
+      }
     },
     {
       "parameters": {
@@ -265,44 +437,270 @@
       "name": "Préparer finalisation",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [2660, 200]
+      "position": [
+        2660,
+        200
+      ]
     },
     {
       "parameters": {
-        "workflowId": { "__rl": true, "mode": "list", "value": "wf04finalisatio", "cachedResultName": "04 - Finalisation candidature (Drive + brouillon Gmail)" },
-        "options": { "waitForSubWorkflow": false }
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "wf04finalisatio",
+          "cachedResultName": "04 - Finalisation candidature (Drive + brouillon Gmail)"
+        },
+        "options": {
+          "waitForSubWorkflow": false
+        }
       },
       "id": "launch-04",
       "name": "Lancer finalisation (04)",
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.2,
-      "position": [2840, 200]
+      "position": [
+        2840,
+        200
+      ]
     }
   ],
   "connections": {
-    "Formulaire offre": { "main": [[{ "node": "Normaliser entrée", "type": "main", "index": 0 }]] },
-    "Appel orchestration": { "main": [[{ "node": "Normaliser entrée", "type": "main", "index": 0 }]] },
-    "Normaliser entrée": { "main": [[{ "node": "Lire index CV", "type": "main", "index": 0 }]] },
-    "Lire index CV": { "main": [[{ "node": "Extraire index CV", "type": "main", "index": 0 }]] },
-    "Extraire index CV": { "main": [[{ "node": "Lire system prompt", "type": "main", "index": 0 }]] },
-    "Lire system prompt": { "main": [[{ "node": "Extraire texte prompt", "type": "main", "index": 0 }]] },
-    "Extraire texte prompt": { "main": [[{ "node": "Appel DeepSeek", "type": "main", "index": 0 }]] },
-    "Appel DeepSeek": { "main": [[{ "node": "Parser sortie agent", "type": "main", "index": 0 }]] },
-    "Parser sortie agent": { "main": [[{ "node": "Offre liée ?", "type": "main", "index": 0 }]] },
-    "Offre liée ?": { "main": [[{ "node": "Préparer enrichissement", "type": "main", "index": 0 }], []] },
-    "Préparer enrichissement": { "main": [[{ "node": "DeepSeek entreprise", "type": "main", "index": 0 }]] },
-    "DeepSeek entreprise": { "main": [[{ "node": "Parser entreprise", "type": "main", "index": 0 }]] },
-    "Parser entreprise": { "main": [[{ "node": "Upsert entreprise", "type": "main", "index": 0 }]] },
-    "Upsert entreprise": { "main": [[{ "node": "Créer candidature (draft)", "type": "main", "index": 0 }]] },
-    "Créer candidature (draft)": { "main": [[{ "node": "Préparer rendu", "type": "main", "index": 0 }]] },
-    "Préparer rendu": { "main": [[{ "node": "Rendu CV (PDF)", "type": "main", "index": 0 }]] },
-    "Rendu CV (PDF)": { "main": [[{ "node": "Rendu lettre (PDF)", "type": "main", "index": 0 }]] },
-    "Rendu lettre (PDF)": { "main": [[{ "node": "Enregistrer documents", "type": "main", "index": 0 }]] },
-    "Enregistrer documents": { "main": [[{ "node": "Offre -> applied", "type": "main", "index": 0 }]] },
-    "Offre -> applied": { "main": [[{ "node": "Préparer finalisation", "type": "main", "index": 0 }]] },
-    "Préparer finalisation": { "main": [[{ "node": "Lancer finalisation (04)", "type": "main", "index": 0 }]] }
+    "Formulaire offre": {
+      "main": [
+        [
+          {
+            "node": "Normaliser entrée",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Appel orchestration": {
+      "main": [
+        [
+          {
+            "node": "Normaliser entrée",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normaliser entrée": {
+      "main": [
+        [
+          {
+            "node": "Lire index CV",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lire index CV": {
+      "main": [
+        [
+          {
+            "node": "Extraire index CV",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extraire index CV": {
+      "main": [
+        [
+          {
+            "node": "Lire system prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lire system prompt": {
+      "main": [
+        [
+          {
+            "node": "Extraire texte prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extraire texte prompt": {
+      "main": [
+        [
+          {
+            "node": "Appel DeepSeek",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Appel DeepSeek": {
+      "main": [
+        [
+          {
+            "node": "Parser sortie agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parser sortie agent": {
+      "main": [
+        [
+          {
+            "node": "Offre liée ?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Offre liée ?": {
+      "main": [
+        [
+          {
+            "node": "Préparer enrichissement",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Préparer enrichissement": {
+      "main": [
+        [
+          {
+            "node": "DeepSeek entreprise",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DeepSeek entreprise": {
+      "main": [
+        [
+          {
+            "node": "Parser entreprise",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parser entreprise": {
+      "main": [
+        [
+          {
+            "node": "Upsert entreprise",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upsert entreprise": {
+      "main": [
+        [
+          {
+            "node": "Créer candidature (draft)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Créer candidature (draft)": {
+      "main": [
+        [
+          {
+            "node": "Préparer rendu",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Préparer rendu": {
+      "main": [
+        [
+          {
+            "node": "Rendu CV (PDF)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rendu CV (PDF)": {
+      "main": [
+        [
+          {
+            "node": "Rendu lettre (PDF)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rendu lettre (PDF)": {
+      "main": [
+        [
+          {
+            "node": "Enregistrer documents",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enregistrer documents": {
+      "main": [
+        [
+          {
+            "node": "Offre -> applied",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Offre -> applied": {
+      "main": [
+        [
+          {
+            "node": "Préparer finalisation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Préparer finalisation": {
+      "main": [
+        [
+          {
+            "node": "Lancer finalisation (04)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
   },
-  "settings": { "executionOrder": "v1" },
+  "settings": {
+    "executionOrder": "v1"
+  },
   "active": false,
   "meta": {
     "note": "BROUILLON à vérifier à l'import. Deux entrées : Formulaire (test manuel, offer_id absent -> pas d'écriture DB ni rendu) et Appel orchestration (offer_id présent -> enrichissement entreprise + upsert + candidature draft + RENDU CV/lettre + generated_documents + offre->applied + lancement 04). ENRICHISSEMENT GROUNDED : DeepSeek résume l'entreprise UNIQUEMENT à partir du texte de l'offre (lib/company-enrichment.mjs) -> companies.sector/ai_summary. RENDU : Préparer rendu (cf. lib/render-payloads.mjs) -> POST {{RENDER_API_URL}}/cv et /letter (service render, PDF écrits dans ./output, volume partagé) -> chemins enregistrés dans generated_documents -> passés au 04. credentials Postgres + workflowId du 04 à associer à l'import. La personnalisation structurée du CV (personnalisation_cv §6) est produite par l'agent et recopiée telle quelle (aucune invention)."

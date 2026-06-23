@@ -68,6 +68,9 @@ services:
       GOOGLE_DRIVE_FOLDER: ${GOOGLE_DRIVE_FOLDER:-Candidatures}
       # --- Permet de lire les variables d'env dans les expressions n8n ---
       N8N_BLOCK_ENV_ACCESS_IN_NODE: "false"
+      # --- Autorise les nœuds Read/Write Files à lire le prompt, l'index CV et
+      #     les PDF de sortie (sinon n8n restreint à /home/node/.n8n-files) ---
+      N8N_RESTRICT_FILE_ACCESS_TO: /prompts;/cv;/output
     volumes:
       - n8n_data:/home/node/.n8n
       - ./workflows:/workflows
