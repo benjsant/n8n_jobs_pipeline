@@ -152,8 +152,10 @@ export function mapCv(cv, existingProfile = {}) {
       portfolio: findContactHref(cv, /portfolio|site/i),
     },
     summary: cv.header?.summary ?? "",
-    // Champ manuel (absent du portfolio) : préservé d'un sync à l'autre.
+    // Champs manuels (absents du portfolio) : préservés d'un sync à l'autre.
     residence: keepIfFilled(existingProfile.residence, ""),
+    mobility_label: keepIfFilled(existingProfile.mobility_label, ""),
+    alternance: keepIfFilled(existingProfile.alternance, { formation_visee: "", rythme: "", date_debut: "" }),
     salary: keepIfFilled(existingProfile.salary, { min: null, ideal: null }),
     soft_skills: keepIfFilled(existingProfile.soft_skills, []),
     strengths: keepIfFilled(existingProfile.strengths, []),

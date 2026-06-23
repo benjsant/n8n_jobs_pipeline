@@ -40,16 +40,26 @@ t("buildCvPayload n'invente rien : aucune clé hors contrat", () => {
   ]);
 });
 
-t("buildLetterPayload prend le texte de l'agent tel quel", () => {
+t("buildLetterPayload (assemblage déterministe) : template + accroche + vars", () => {
   const out = buildLetterPayload({
     application_id: 7, company: "NovaTech",
-    subject: AGENT.objet_email, body: AGENT.lettre_motivation,
+    template: "backend", accroche: "Votre plateforme me parle.",
+    vars: { poste: "Dev Backend Python" },
   });
   assert.equal(out.application_id, "7");
   assert.equal(out.company, "NovaTech");
-  assert.equal(out.subject, "Candidature — Dev IA Junior");
-  assert.equal(out.body, AGENT.lettre_motivation);
+  assert.equal(out.template, "backend");
+  assert.equal(out.accroche, "Votre plateforme me parle.");
+  assert.deepEqual(out.vars, { poste: "Dev Backend Python" });
+  assert.ok(!("body" in out), "pas de body quand template fourni");
   assert.ok(!("date" in out), "date omise si non fournie");
+});
+
+t("buildLetterPayload : rétro-compat subject/body direct", () => {
+  const out = buildLetterPayload({ application_id: 7, company: "X", subject: "S", body: "B" });
+  assert.equal(out.subject, "S");
+  assert.equal(out.body, "B");
+  assert.ok(!("template" in out));
 });
 
 t("buildLetterPayload inclut date si fournie", () => {

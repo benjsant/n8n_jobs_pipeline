@@ -38,12 +38,13 @@ REQUIRED_KEYS = {
     "missing_skills": list,
     "competences_a_ameliorer": list,
     "conseils": str,
-    "lettre_motivation": str,
+    "lettre": dict,
     "adaptation_cv": str,
     "personnalisation_cv": dict,
     "objet_email": str,
     "langue": str,
 }
+ALLOWED_TEMPLATES = {"ia-junior", "backend", "frontend", "alternance", "candidature-spontanee"}
 SUBSCORES = ("skills_score", "experience_score", "location_score", "salary_score")
 ALLOWED_RECO = {"postuler", "postuler_si_peu_options", "ne_pas_postuler"}
 ALLOWED_HIDDEN = {"summary", "skills", "experiences", "projects", "education",
@@ -124,7 +125,10 @@ MOCK_RESPONSE = {
     ],
     "conseils": "Mettre en avant InfiniDex et le pipeline MLOps de PredictionDex ; "
     "se familiariser avec Kubernetes avant l'entretien.",
-    "lettre_motivation": "Madame, Monsieur,\n\n[lettre mock]\n\nBenjamin Santrisse",
+    "lettre": {
+        "template": "ia-junior",
+        "accroche": "Votre travail sur les assistants documentaires RAG résonne directement avec mes projets d'agents LLM.",
+    },
     "adaptation_cv": "Mettre en avant InfiniDex (agent LLM) et FastAPI ; "
     "ajouter les mots-clés LLM, RAG, pgvector.",
     "personnalisation_cv": {
@@ -208,6 +212,15 @@ def validate(out: dict) -> list[str]:
         )
     if out.get("langue") not in {"fr", "en"}:
         errors.append(f"langue invalide : {out.get('langue')}")
+    lettre = out.get("lettre")
+    if isinstance(lettre, dict):
+        if lettre.get("template") not in ALLOWED_TEMPLATES:
+            errors.append(
+                f"lettre.template invalide : {lettre.get('template')} "
+                f"(attendu l'un de {sorted(ALLOWED_TEMPLATES)})"
+            )
+        if not isinstance(lettre.get("accroche"), str) or not lettre.get("accroche", "").strip():
+            errors.append("lettre.accroche manquante ou vide (seul texte rédigé par l'agent)")
     if isinstance(out.get("personnalisation_cv"), dict):
         errors.extend(validate_personalization(out["personnalisation_cv"]))
     for i, c in enumerate(out.get("competences_a_ameliorer", [])):

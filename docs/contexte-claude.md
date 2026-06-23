@@ -111,6 +111,18 @@
     `python:3.12-alpine`), donc **aucun node/python requis sur l'hôte**. `just`
     s'installe via `dnf install just` (Fedora/Nobara). `set dotenv-load` charge
     `.env`. Lister : `just --list`.
+22. **Lettre = corps figé + assemblage déterministe** (2026-06-23, refonte initiée
+    par l'utilisateur). Les `assets/letters/*.md` sont désormais **quasi-complets** :
+    le corps est **figé et validé** par le candidat ; l'agent ne produit QUE
+    l'**accroche** (2-3 phrases). §6 : `lettre_motivation` (texte complet) →
+    remplacé par `lettre: { template, accroche }`. L'assemblage (corps figé +
+    accroche + `{{placeholders}}`) est **déterministe**, fait par le service de
+    rendu (`cv/letter-template.mjs`, `assembleLetter`, 7 tests), **jamais par le
+    LLM** → corps garanti verbatim. `./assets` monté en RO dans le conteneur
+    `render` (`LETTERS_DIR=/assets/letters`). Le `02` envoie `template`+`accroche`+
+    `vars{poste}` ; le service complète le reste depuis `profile.json`. Vars
+    alternance (`formation_visee`/`rythme`/`date_debut`) = bloc `profile.alternance`
+    (manuel, préservé au sync, défauts neutres si vide — **à compléter par l'utilisateur**).
 21. **Voix candidat encodée + résidence Marly** (2026-06-22). 6 vraies lettres du
     candidat (`astro-portfolio/lettres-motivation/*.docx`) lues et **distillées en
     patterns** dans la §5 du system prompt + un bloc « ton de référence » dans

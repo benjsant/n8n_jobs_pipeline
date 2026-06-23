@@ -1,9 +1,15 @@
 # assets/letters/ — modèles de lettres de motivation
 
-Squelettes **typés** servant de base à l'agent. L'agent choisit le plus adapté à
-l'offre, puis rédige le texte final (`lettre_motivation`, 250-350 mots) en
-suivant la structure et le ton du modèle. Il ne recopie pas le squelette tel
-quel et **n'invente rien** (cf. `prompts/agent-system-prompt.md`, sections 5 et 7).
+Modèles **quasi-complets et typés** : le **corps est figé** (texte validé par le
+candidat). L'agent ne fait que **choisir le bon modèle** et rédiger l'**accroche**
+(2-3 phrases : « pourquoi cette entreprise ») — cf. `prompts/agent-system-prompt.md`
+§5 et §6 (`lettre: { template, accroche }`).
+
+L'assemblage est **déterministe**, fait par le service de rendu
+(`cv/letter-template.mjs`) : il colle l'accroche dans le corps figé et résout les
+`{{placeholders}}`. **Le LLM ne touche jamais au corps** → garanti verbatim, aucune
+invention. (L'expéditeur, l'objet et la signature sont mis en page par
+`cv/letter.mjs` depuis `cv/profile.json`.)
 
 ## Choisir le bon modèle
 
@@ -19,20 +25,19 @@ En cas d'offre hybride, prendre le modèle dominant et adapter.
 
 ## Convention
 
-- `{{placeholder}}` : variable à remplir depuis le profil / l'offre / l'entreprise.
-- `[note entre crochets]` : consigne de rédaction — **ne doit pas** apparaître
-  dans le texte final.
-- Commentaire HTML en tête : mode d'emploi du modèle, non rendu.
+- `[Accroche : …]` : **seule** zone rédigée par l'agent (remplacée par l'accroche).
+- `{{placeholder}}` : variable résolue **déterministe** à l'assemblage.
+- Commentaires HTML (en tête + « ton de référence ») : non rendus.
 
-### Placeholders communs
-`{{candidat.nom}}`, `{{candidat.titre}}`, `{{candidat.email}}`,
-`{{candidat.telephone}}`, `{{candidat.localisation}}`,
-`{{entreprise.nom}}`, `{{entreprise.element_concret}}` (produit / mission / actu /
-stack — l'élément concret qui justifie le choix de l'entreprise),
-`{{poste.intitule}}`, `{{realisation_1}}`, `{{realisation_2}}`.
+### Placeholders résolus à l'assemblage
+- depuis l'**offre** : `{{poste.intitule}}`, `{{entreprise.nom}}` ;
+- depuis le **profil** (`cv/profile.json`) : `{{candidat.titre}}`, `{{candidat.nom}}`,
+  `{{candidat.email}}`, `{{candidat.telephone}}` (signature gérée par la mise en page) ;
+- **alternance** (`profile.alternance`, défauts neutres si vides) : `{{formation}}`,
+  `{{rythme_alternance}}`, `{{date_debut}}`.
 
-Placeholders spécifiques : `{{formation}}`, `{{rythme_alternance}}`,
-`{{date_debut}}` (alternance).
+> Le corps figé ne contient plus de `{{realisation_*}}` : les projets/expériences
+> y sont écrits en dur (texte validé). Seule l'accroche reste dynamique.
 
 ## Règles de style (rappel)
 

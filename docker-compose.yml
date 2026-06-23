@@ -98,12 +98,17 @@ services:
     restart: unless-stopped
     # Rendu CV (Astro) + lettre en PDF. Lancé en serveur HTTP, pas en one-shot.
     command: ["node", "server.mjs"]
+    environment:
+      # Dossier des templates de lettres (corps figé) lus pour l'assemblage.
+      LETTERS_DIR: /assets/letters
     # Pas de port exposé vers l'hôte : seul n8n l'appelle, via http://render:8000
     expose:
       - "8000"
     volumes:
       # PDF écrits ici, partagés avec n8n (lecture par le workflow 04).
       - ./output:/output
+      # Templates de lettres (corps figé validé) en lecture seule.
+      - ./assets:/assets:ro
     healthcheck:
       test: ["CMD-SHELL", "node -e \"require('http').get('http://localhost:8000/health',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))\""]
       interval: 30s

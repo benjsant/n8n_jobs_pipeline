@@ -40,7 +40,7 @@ seed:
 # Suites de tests JS (logique offres, sources, scoring, rendu…) en conteneur Node
 test:
     docker run --rm -v "$PWD":/app -w /app node:20-alpine \
-      sh -c 'for f in workflows/lib/*.test.mjs cv/scripts/sync.test.mjs cv/letter.test.mjs; do echo "── $f"; node "$f" || exit 1; done'
+      sh -c 'for f in workflows/lib/*.test.mjs cv/*.test.mjs cv/scripts/*.test.mjs; do echo "── $f"; node "$f" || exit 1; done'
 
 # Test du schéma de sortie de l'agent DeepSeek (mock, sans clé) en conteneur Python
 test-py:
@@ -83,12 +83,12 @@ cv-build perso="":
 
 # Génère le PDF du CV (image cv-render, Chromium inclus)
 cv-pdf:
-    docker build -t cv-render cv
+    docker build --network=host -t cv-render cv
     docker run --rm -v "$PWD/cv/dist":/app/dist cv-render
 
 # Génère le PDF d'une lettre (data : LETTER=chemin.json, défaut l'échantillon)
 letter-pdf letter="letter-data.sample.json":
-    docker build -t cv-render cv
+    docker build --network=host -t cv-render cv
     docker run --rm -e LETTER_DATA=/data.json \
       -v "$PWD/cv/{{letter}}":/data.json:ro -v "$PWD/cv/dist":/app/dist \
       cv-render npm run letter

@@ -2,7 +2,8 @@
 // pour n8n (workflow 02). Même rôle que services/jobspy, côté documents.
 //
 //   POST /cv      { application_id, personalization }  -> { cv_path }
-//   POST /letter  { application_id, company, subject, body, date?, candidate? } -> { letter_path }
+//   POST /letter  { application_id, company, template, accroche, vars? } -> { letter_path }
+//                 (ou { …, subject, body } en direct pour test/rétro-compat)
 //   GET  /health  -> { status: "ok" }
 //
 // Les PDF sont écrits dans OUTPUT_DIR (/output, volume partagé avec n8n) sous
@@ -21,6 +22,7 @@ import { dirname, resolve, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { chromium } from "playwright";
 import { buildLetterHtml } from "./letter.mjs";
+import { assembleLetter } from "./letter-template.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const OUTPUT_DIR = process.env.OUTPUT_DIR || "/output";
@@ -85,8 +87,9 @@ async function renderCv({ application_id, personalization }) {
 async function defaultCandidate() {
   try {
     const p = JSON.parse(await readFile(resolve(HERE, "profile.json"), "utf-8"));
-    // Ligne de contact : résidence (ex. "Marly (59)") + zone de mobilité.
-    const location = [p.residence, p.location].filter(Boolean).join(" · ");
+    // Ligne de contact : résidence (ex. "Marly (59)") + libellé de mobilité
+    // (mobility_label si fourni, sinon la zone du profil).
+    const location = [p.residence, p.mobility_label || p.location].filter(Boolean).join(" · ");
     // Ville pour la date ("Marly, le …") : la résidence prime, sans le code dpt.
     const city = String(p.residence || p.location || "").replace(/\s*\(.*?\)/, "").split(/[·,]/)[0].trim();
     return { name: p.name, email: p.email, phone: p.phone, location, city };
@@ -101,10 +104,33 @@ function frenchDate(city) {
   return c ? `${c}, le ${d}` : `Le ${d}`;
 }
 
-async function renderLetter({ application_id, company, subject, body, date, candidate }) {
+async function loadProfile() {
+  try { return JSON.parse(await readFile(resolve(HERE, "profile.json"), "utf-8")); }
+  catch { return {}; }
+}
+
+async function renderLetter({ application_id, company, subject, body, date, candidate, template, accroche, vars }) {
   const dir = appDir(application_id);
   await mkdir(dir, { recursive: true });
   const c = { ...(await defaultCandidate()), ...(candidate || {}) };
+  // Assemblage déterministe : si un template est fourni, le corps FIGÉ vient de
+  // assets/letters/<template>.md ; le LLM n'a produit que l'accroche. Sinon, on
+  // utilise subject/body tels quels (chemin de test / rétro-compat).
+  if (template) {
+    const prof = await loadProfile();
+    const alt = prof.alternance || {};
+    const v = {
+      company,
+      poste: (vars && vars.poste) || "",
+      titre: (vars && vars.titre) || prof.title || "",
+      formation: (vars && vars.formation) || alt.formation_visee || "une formation de niveau supérieur en développement / IA",
+      rythme_alternance: (vars && vars.rythme_alternance) || alt.rythme || "à convenir selon votre organisation",
+      date_debut: (vars && vars.date_debut) || alt.date_debut || "immédiatement",
+    };
+    const asm = await assembleLetter({ template, accroche: accroche || "", vars: v });
+    subject = asm.subject;
+    body = asm.body;
+  }
   const html = buildLetterHtml({ candidate: c, company, subject, body, date: date || frenchDate(c.city || c.location) });
   const outPath = join(dir, "lettre.pdf");
   await serialize(() => htmlToPdf({ html, outPath }));

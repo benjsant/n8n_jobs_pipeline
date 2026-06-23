@@ -1,43 +1,41 @@
 <!--
-Template : Développeur front-end.
+Template QUASI-COMPLET : Développeur front-end.
 Quand le choisir : offre orientée front-end (UI, frameworks JS, accessibilité,
 performance perçue, design system).
-L'agent s'appuie sur ce squelette pour rédiger `lettre_motivation` (250-350
-mots). {{placeholders}} = à remplir ; [notes entre crochets] = consignes.
-Vouvoiement. Aucune invention.
+
+⚠️ Le corps de la lettre est FIGÉ (texte validé par le candidat). L'agent doit :
+  1. Rédiger UNIQUEMENT l'[Accroche] (2-3 phrases : « pourquoi cette entreprise »).
+  2. Substituer les {{placeholders}} (entreprise, poste…).
+  3. Recopier tout le reste TEL QUEL, sans reformuler.
+Objectif : fiabilité maximale, une seule zone de rédaction libre. Aucune invention.
+Le front n'est pas le cœur du profil : la version figée reste honnête. Vouvoiement.
 -->
 
 Objet : Candidature au poste de {{poste.intitule}}
 
 Madame, Monsieur,
 
-[Accroche — 2-3 phrases. Pourquoi {{entreprise.nom}} : citer un élément concret
-({{entreprise.element_concret}} — produit, expérience utilisateur, stack
-front-end, soin du design).]
+[Accroche : 2-3 phrases. Pourquoi {{entreprise.nom}} précisément, en citant un
+élément concret ({{entreprise.element_concret}} : produit, expérience utilisateur,
+stack front-end, soin du design). SEULE partie à rédiger.]
 
-[Corps — 1-2 paragraphes. Relier 2-3 exigences de l'offre à des réalisations
-front-end concrètes ({{realisation_1}}, {{realisation_2}}) : interfaces livrées,
-composants réutilisables, accessibilité, performance perçue. Montrer le rendu et
-l'impact utilisateur.]
+Développeur Python orienté backend et IA, je dispose aussi d'une vraie expérience du front (React, Next.js) et de la polyvalence d'un profil qui couvre toute la chaîne. Mes réalisations en témoignent :
 
-[Projection — 1 paragraphe. Ce que le candidat apporterait à l'équipe produit de
-{{entreprise.nom}} (qualité d'interface, cohérence, attention au détail).]
+• InfiniDex : Pokédex augmenté par IA avec un front Next.js 15 (App Router, TypeScript, PWA) sur une API FastAPI.
+• Audiomancy : application web en équipe, avec interface Next.js et agent conversationnel.
+• Mon portfolio : développé en Astro et TypeScript, soigné côté performance et accessibilité.
 
-[Clôture — 1-2 phrases. Disponibilité et ouverture à un échange.]
+Mon cœur de métier reste le backend et l'IA, mais ma double compétence (PHP/Symfony, JavaScript/React) me permet de m'adapter vite à une stack front et de contribuer utilement côté interface, sur des produits réellement déployés, pas des démos. Issu d'une reconversion validée par une certification Développeur IA RNCP niveau 6, j'apporte autonomie, rigueur et soin du détail.
 
-Je vous remercie de l'attention portée à ma candidature et reste à votre
-disposition pour en échanger.
+Disponible immédiatement et mobile sur les métropoles lilloise et valenciennoise (télétravail possible), je serais ravi d'échanger avec vous. Vous trouverez l'ensemble de mes réalisations sur mon portfolio : benjamin-santrisse.vercel.app
+
+Je vous remercie de l'attention portée à ma candidature et reste à votre disposition pour en échanger.
 
 {{candidat.nom}}
 {{candidat.email}} · {{candidat.telephone}}
 
 <!--
-Ton de référence (vraies lettres du candidat — guide le ton, jamais les faits ;
-voir §5 du system prompt) :
-- Le front n'est pas le cœur du profil : rester honnête. S'appuyer sur du React /
-  Next.js réel (InfiniDex et Audiomancy ont un front Next.js) sans surjouer.
-- Jouer la polyvalence (PHP/Symfony, JavaScript/React) comme atout d'adaptation
-  rapide à une stack ; calibrer le vocabulaire sur le niveau réel.
-- « Produits réellement déployés, pas des démos. »
+Ton de référence (pour l'accroche uniquement ; guide le ton, jamais les faits) :
+- Rester honnête : le front n'est pas le cœur du profil. Jouer la polyvalence
+  et l'adaptation rapide, sans surjouer. Aucune sur-promesse.
 -->
-

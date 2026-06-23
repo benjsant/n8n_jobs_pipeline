@@ -21,6 +21,7 @@ run "Enrichissement entreprise" node workflows/lib/company-enrichment.test.mjs
 run "Payloads de rendu (CV/lettre)" node workflows/lib/render-payloads.test.mjs
 run "Sync profil (portfolio -> cv/*.json)" node cv/scripts/sync.test.mjs
 run "Rendu lettre (HTML)" node cv/letter.test.mjs
+run "Assemblage lettre (corps figé + accroche)" node cv/letter-template.test.mjs
 run "Agent DeepSeek — schéma (mock)" python3 scripts/test_deepseek.py --mock
 
 echo "── Couche candidature (intégration DB, conteneur jetable)"

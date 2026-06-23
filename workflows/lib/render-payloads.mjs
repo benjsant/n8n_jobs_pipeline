@@ -30,18 +30,26 @@ export function buildCvPayload({ application_id, personnalisation_cv } = {}) {
 }
 
 /**
- * Corps de POST /letter : id + destinataire + objet + corps de la lettre.
- * Le texte vient de l'agent (lettre_motivation) ; le service complète l'expéditeur
- * depuis cv/profile.json. `date` est optionnel (sinon le service met la date du jour).
- * @param {{application_id:(string|number), company?:string, subject?:string, body?:string, date?:string}} input
+ * Corps de POST /letter (assemblage DÉTERMINISTE) : id + destinataire + template
+ * choisi + accroche (seul texte de l'agent) + variables de substitution. Le
+ * service charge le corps FIGÉ du template, y colle l'accroche et résout les
+ * placeholders ; l'expéditeur vient de cv/profile.json. `date` optionnel.
+ * Rétro-compat : si `subject`/`body` sont fournis (test), ils sont transmis tels quels.
+ * @param {{application_id:(string|number), company?:string, template?:string, accroche?:string, vars?:object, subject?:string, body?:string, date?:string}} input
  */
-export function buildLetterPayload({ application_id, company, subject, body, date } = {}) {
+export function buildLetterPayload({ application_id, company, template, accroche, vars, subject, body, date } = {}) {
   const payload = {
     application_id: asString(application_id),
     company: asString(company),
-    subject: asString(subject),
-    body: asString(body),
   };
+  if (template) {
+    payload.template = asString(template);
+    payload.accroche = asString(accroche);
+    payload.vars = vars && typeof vars === "object" ? vars : {};
+  } else {
+    payload.subject = asString(subject);
+    payload.body = asString(body);
+  }
   if (date) payload.date = asString(date);
   return payload;
 }

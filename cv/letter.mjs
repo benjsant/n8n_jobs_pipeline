@@ -1,7 +1,7 @@
 // Rendu de la lettre de motivation -> HTML A4 (puis PDF via render-letter.mjs).
 //
-// La lettre TEXTE est produite par l'agent DeepSeek (champ `lettre_motivation`,
-// cf. system prompt §6) à partir d'un template de assets/letters/. Ici on ne
+// La lettre TEXTE est assemblée de façon déterministe (cv/letter-template.mjs) :
+// corps FIGÉ du template assets/letters/ + accroche de l'agent (§5/§6). Ici on ne
 // fait QUE la mise en page : on n'invente ni ne reformule rien.
 
 const escape = (s) =>
