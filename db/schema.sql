@@ -90,14 +90,26 @@ CREATE TABLE IF NOT EXISTS companies (
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS applications (
     id          SERIAL PRIMARY KEY,
-    offer_id    INTEGER NOT NULL REFERENCES offers (id) ON DELETE CASCADE,
+    -- offer_id NULL = candidature SPONTANÉE (entreprise visée sans offre publiée).
+    offer_id    INTEGER REFERENCES offers (id) ON DELETE CASCADE,
     company_id  INTEGER REFERENCES companies (id) ON DELETE SET NULL,
+    kind        TEXT NOT NULL DEFAULT 'offer'
+                CHECK (kind IN ('offer', 'spontaneous')),
     status      TEXT NOT NULL DEFAULT 'draft'
                 CHECK (status IN ('draft', 'sent', 'interview', 'rejected', 'accepted')),
     applied_at  TIMESTAMPTZ,
     response_at TIMESTAMPTZ,                      -- NULL tant que pas de réponse (relances V2)
     notes       TEXT
 );
+
+-- Pour les bases déjà créées (idempotent) : autoriser la candidature spontanée.
+ALTER TABLE applications ALTER COLUMN offer_id DROP NOT NULL;
+ALTER TABLE applications ADD COLUMN IF NOT EXISTS kind TEXT NOT NULL DEFAULT 'offer';
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'applications_kind_check') THEN
+    ALTER TABLE applications ADD CONSTRAINT applications_kind_check CHECK (kind IN ('offer', 'spontaneous'));
+  END IF;
+END $$;
 
 CREATE INDEX IF NOT EXISTS idx_applications_offer ON applications (offer_id);
 CREATE INDEX IF NOT EXISTS idx_applications_status ON applications (status);

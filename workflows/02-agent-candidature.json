@@ -49,7 +49,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Normalise l'entrée, qu'elle vienne du formulaire (test manuel) ou d'un\n// appel programmatique (orchestration). offer_id présent => écriture en base.\nconst j = $input.first().json;\nconst fromForm = j['Titre du poste'] !== undefined;\nconst out = fromForm ? {\n  offer_id: null,\n  title: j['Titre du poste'] || '',\n  company: j['Entreprise'] || '',\n  location: '',\n  description: j[\"Description de l'offre\"] || '',\n  company_info: j['Infos entreprise (site, valeurs, stack)'] || '',\n} : {\n  offer_id: j.offer_id ?? null,\n  title: j.title || '',\n  company: j.company || '',\n  location: j.location || '',\n  description: j.description || '',\n  company_info: j.company_info || '',\n};\nreturn [{ json: out }];"
+        "jsCode": "// Normalise l'entrée : formulaire (test), orchestration OFFRE, ou SPONTANÉE.\nconst j = $input.first().json;\nconst fromForm = j['Titre du poste'] !== undefined;\nif (fromForm) {\n  return [{ json: { offer_id: null, spontaneous: false, title: j['Titre du poste']||'', company: j['Entreprise']||'', location: '', description: j[\"Description de l'offre\"]||'', company_info: j['Infos entreprise (site, valeurs, stack)']||'' } }];\n}\nconst spontaneous = j.spontaneous === true;\nreturn [{ json: {\n  offer_id: spontaneous ? null : (j.offer_id ?? null),\n  spontaneous,\n  title: spontaneous ? 'Candidature spontanée' : (j.title||''),\n  company: j.company||'',\n  location: j.location||'',\n  description: spontaneous ? ('CANDIDATURE SPONTANÉE — aucune offre publiée. Choisis IMPÉRATIVEMENT le template \"candidature-spontanee\" et rédige une accroche disant pourquoi CETTE entreprise (secteur, valeurs, produits). Infos connues: ' + (j.description||'(peu d info)')) : (j.description||''),\n  company_info: j.company_info||'',\n} }];"
       },
       "id": "normalize-input",
       "name": "Normaliser entrée",
@@ -172,7 +172,7 @@
           "combinator": "and",
           "conditions": [
             {
-              "leftValue": "={{ String($('Normaliser entrée').first().json.offer_id ?? '') }}",
+              "leftValue": "={{ (String($('Normaliser entrée').first().json.offer_id ?? '') !== '' || $('Normaliser entrée').first().json.spontaneous === true) ? 'yes' : '' }}",
               "rightValue": "",
               "operator": {
                 "type": "string",
@@ -289,10 +289,11 @@
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
-            "offer_id": "={{ $('Normaliser entrée').first().json.offer_id }}",
+            "offer_id": "={{ $('Normaliser entrée').first().json.offer_id ?? null }}",
             "company_id": "={{ $('Upsert entreprise').first().json.id }}",
             "status": "draft",
-            "notes": "={{ 'score ' + $('Parser sortie agent').first().json.score + ' — ' + ($('Parser sortie agent').first().json.justification_score || '') }}"
+            "notes": "={{ $('Normaliser entrée').first().json.spontaneous ? 'Candidature spontanée' : ('score ' + ($('Parser sortie agent').first().json.score) + ' — ' + ($('Parser sortie agent').first().json.justification_score || '')) }}",
+            "kind": "={{ $('Normaliser entrée').first().json.spontaneous ? 'spontaneous' : 'offer' }}"
           }
         },
         "options": {}
@@ -333,11 +334,12 @@
           "id": "REMPLACER",
           "name": "Postgres job-hunter"
         }
-      }
+      },
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
-        "jsCode": "// Construit les corps de requête du service de rendu (cf. lib/render-payloads.mjs).\n// On NE FAIT QUE recopier ce que l'agent a produit : aucune invention, aucune\n// reformulation. L'expéditeur de la lettre est complété côté service depuis\n// cv/profile.json (profil réel).\nconst agent = $('Parser sortie agent').first().json;\nconst norm = $('Normaliser entrée').first().json;\nconst application_id = String($('Créer candidature (draft)').first().json.id);\nconst arr = (v) => (Array.isArray(v) ? v : []);\nconst p = (agent.personnalisation_cv && typeof agent.personnalisation_cv === 'object') ? agent.personnalisation_cv : {};\nconst company = String(norm.company ?? '');\nconst lettre = (agent.lettre && typeof agent.lettre === 'object') ? agent.lettre : {};\nconst template = String(lettre.template ?? '');\nconst accroche = String(lettre.accroche ?? '');\nconst subject = String(agent.objet_email ?? '');\nconst body = accroche;\nconst cv_payload = { application_id, personalization: {\n  summary: String(p.summary ?? ''),\n  highlight_skills: arr(p.highlight_skills),\n  highlight_projects: arr(p.highlight_projects),\n  highlight_experiences: arr(p.highlight_experiences),\n  hidden_sections: arr(p.hidden_sections),\n} };\nconst letter_payload = { application_id, company, template, accroche, vars: { poste: String(norm.title ?? '') } };\nreturn [{ json: { application_id, company, subject, body, cv_payload, letter_payload } }];"
+        "jsCode": "// Construit les corps de requête du service de rendu (cf. lib/render-payloads.mjs).\n// On NE FAIT QUE recopier ce que l'agent a produit : aucune invention, aucune\n// reformulation. L'expéditeur de la lettre est complété côté service depuis\n// cv/profile.json (profil réel).\nconst agent = $('Parser sortie agent').first().json;\nconst norm = $('Normaliser entrée').first().json;\nconst application_id = String($('Créer candidature (draft)').first().json.id);\nconst arr = (v) => (Array.isArray(v) ? v : []);\nconst p = (agent.personnalisation_cv && typeof agent.personnalisation_cv === 'object') ? agent.personnalisation_cv : {};\nconst company = String(norm.company ?? '');\nconst lettre = (agent.lettre && typeof agent.lettre === 'object') ? agent.lettre : {};\nconst template = norm.spontaneous ? 'candidature-spontanee' : String(lettre.template ?? '');\nconst accroche = String(lettre.accroche ?? '');\nconst subject = String(agent.objet_email ?? '');\nconst body = accroche;\nconst cv_payload = { application_id, personalization: {\n  summary: String(p.summary ?? ''),\n  highlight_skills: arr(p.highlight_skills),\n  highlight_projects: arr(p.highlight_projects),\n  highlight_experiences: arr(p.highlight_experiences),\n  hidden_sections: arr(p.hidden_sections),\n} };\nconst letter_payload = { application_id, company, template, accroche, vars: { poste: String(norm.title ?? '') } };\nreturn [{ json: { application_id, company, subject, body, cv_payload, letter_payload } }];"
       },
       "id": "prep-render",
       "name": "Préparer rendu",

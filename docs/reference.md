@@ -67,8 +67,9 @@ Index : unique sur `hash`, index sur `status`.
 | Colonne | Type | Notes |
 |---|---|---|
 | id | serial PK | |
-| offer_id | int FK → offers.id | |
+| offer_id | int FK → offers.id, **nullable** | NULL = candidature **spontanée** |
 | company_id | int FK → companies.id | |
+| kind | text | `offer` (défaut) / `spontaneous` |
 | status | text | `draft` / `sent` / `interview` / `rejected` / `accepted` |
 | applied_at | timestamptz | |
 | response_at | timestamptz | null tant que pas de réponse (relances V2) |

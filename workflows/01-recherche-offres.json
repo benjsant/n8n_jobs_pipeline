@@ -497,7 +497,7 @@
         "url": "={{ $env.DISCORD_WEBHOOK_ALERTS }}",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ { \"content\": `🏢 **Candidature spontanée (alternance)** — ${$json.name}${$json.sector ? ' · ' + $json.sector : ''}\\n[${$('Boucle profils').first().json.name}] ${$json.location || ''}\\n${$json.website || ''}${$json.apply_url ? '\\n➡️ Contact: ' + $json.apply_url : ''}` } }}",
+        "jsonBody": "={{ { \"content\": `🏢 **Candidature spontanée (alternance)** — ${$json.name}${$json.sector ? ' · ' + $json.sector : ''}\\n[${$('Boucle profils').first().json.name}] ${$json.location || ''}\\n${$json.website || ''}${$json.apply_url ? '\\n➡️ Contact: ' + $json.apply_url : ''}\\n✅ Postuler: ${$env.WEBHOOK_URL}webhook/spontaneous-apply?company=${encodeURIComponent($json.name)}` } }}",
         "options": {}
       },
       "id": "a1000000-0000-4000-8000-000000000064",

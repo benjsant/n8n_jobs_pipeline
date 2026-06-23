@@ -46,6 +46,13 @@ elle, testée hors stack — voir `lib/` et `scripts/run-tests.sh`.
 | `02-agent-candidature.json` | agent DeepSeek → `applications` (draft) → rendu PDF → lance 04 | Execute Workflow / Formulaire |
 | `03-statut-offre.json` | actions Discord → statut + lance 02 | Webhook |
 | `04-candidature-finalisation.json` | Drive + brouillon Gmail | Execute Workflow |
+| `05-candidature-spontanee.json` | entreprise LBA (sans offre) → `02` mode spontané | Webhook |
+
+> **Candidature spontanée** : l'alerte Discord « candidature spontanée » du `01`
+> (entreprises LBA à contacter) porte un lien `…/webhook/spontaneous-apply?company=<nom>`.
+> Le `05` charge l'entreprise → lance le `02` en **mode spontané** (`spontaneous=true`,
+> `offer_id` NULL) : le `02` force le template `candidature-spontanee`, écrit une
+> `applications` avec `kind=spontaneous`, génère CV+lettre et lance le `04`.
 
 > Le **rendu** (CV Astro + lettre → PDF) est un micro-service HTTP (`cv/server.mjs`,
 > conteneur `render`, `RENDER_API_URL`). Le `02` l'appelle ; les PDF sortent dans

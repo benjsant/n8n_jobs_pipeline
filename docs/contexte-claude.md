@@ -111,6 +111,19 @@
     `python:3.12-alpine`), donc **aucun node/python requis sur l'hôte**. `just`
     s'installe via `dnf install just` (Fedora/Nobara). `set dotenv-load` charge
     `.env`. Lister : `just --list`.
+23. **Maillon candidature spontanée** (2026-06-24, construit + testé en réel). Les
+    entreprises LBA « à contacter » (sans offre) sont traitées via un nouveau
+    workflow **`05-candidature-spontanee`** (webhook `spontaneous-apply?company=<nom>`,
+    lien dans l'alerte Discord spontanée du `01`). Le `05` charge l'entreprise →
+    appelle le **`02` en mode spontané** : le `02` a été étendu (`spontaneous=true`,
+    `offer_id` NULL) → même branche que les offres (enrichissement → application →
+    rendu → `04`), mais **force le template `candidature-spontanee`** et écrit
+    `applications.kind='spontaneous'`. Schéma : `applications.offer_id` rendu
+    **nullable** + colonne **`kind`** (`offer`/`spontaneous`). **Testé end-to-end**
+    avec une entreprise factice → lettre spontanée parfaite (accroche spécifique +
+    corps figé verbatim + `{{entreprise.nom}}` substitué). ⚠️ Réimporter un workflow
+    le repasse **inactif** : réactiver `02` après réimport (sinon `05`/`03` échouent
+    « Workflow is not active »).
 22. **Lettre = corps figé + assemblage déterministe** (2026-06-23, refonte initiée
     par l'utilisateur). Les `assets/letters/*.md` sont désormais **quasi-complets** :
     le corps est **figé et validé** par le candidat ; l'agent ne produit QUE
