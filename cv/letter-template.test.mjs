@@ -56,6 +56,16 @@ t("candidature-spontanee : titre dans l'objet, entreprise.nom dans le corps", ()
   assert.ok(!body.includes("{{"));
 });
 
+t("garde-fou : tiret cadratin de l'accroche retiré, trait d'union préservé", () => {
+  const { body } = fillTemplate(tpl("backend"), {
+    accroche: "Votre échelle technique me parle — un vrai défi.",
+    vars: { poste: "Dev Backend", company: "X" },
+  });
+  assert.ok(!body.includes("—"), "plus de tiret cadratin");
+  assert.ok(body.includes("me parle, un vrai défi"), "remplacé par une virgule");
+  assert.ok(body.includes("multi-provider"), "le trait d'union normal du corps figé est préservé");
+});
+
 t("placeholder inconnu laissé intact (robustesse)", () => {
   const { body } = fillTemplate("Objet : x\n\nText {{inconnu.xyz}} fin\n{{candidat.nom}}\n", {});
   assert.ok(body.includes("{{inconnu.xyz}}"));

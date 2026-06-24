@@ -69,9 +69,12 @@ export function fillTemplate(md, { accroche = "", vars = {} } = {}) {
   // 4. Sujet = la ligne "Objet : …" (retirée ensuite du corps).
   const subject = extractSubject(t);
   t = t.replace(/^\s*Objet\s*:.*$/m, "");
-  // 5. Nettoyage : lignes vides multiples laissées par les retraits.
-  const body = t.replace(/\n{3,}/g, "\n\n").trim();
-  return { subject, body };
+  // 5. Garde-fou déterministe : retire les tirets cadratin (—) / demi-cadratin (–)
+  //    — marqueur de rédaction IA, banni (cf. §5). On NE touche PAS au trait
+  //    d'union "-" (bout-en-bout, etc.). Puis on compacte les lignes vides.
+  const noDash = (s) => String(s).replace(/\s*[—–]\s*/g, ", ");
+  const body = noDash(t).replace(/\n{3,}/g, "\n\n").trim();
+  return { subject: noDash(subject).trim(), body };
 }
 
 /** Charge le template depuis LETTERS_DIR et l'assemble. */

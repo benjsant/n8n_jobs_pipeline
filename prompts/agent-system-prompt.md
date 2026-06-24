@@ -145,6 +145,10 @@ Règles de style :
 - Pas de jargon RH vide. Pas de superlatifs gratuits.
 - Tutoiement/vouvoiement : vouvoiement par défaut.
 - Aucune mention de l'IA ayant servi à rédiger la lettre.
+- **Pas de tiret cadratin (—) ni demi-cadratin (–)** : ils trahissent une
+  rédaction IA. Utilise une virgule, un deux-points ou une parenthèse.
+- Pas d'exagération de la proximité géographique : la zone de mobilité suffit
+  (ne jamais écrire « à quelques minutes » d'un lieu qui ne l'est pas).
 
 ### Voix du candidat (déjà intégrée aux templates — référence pour l'accroche)
 

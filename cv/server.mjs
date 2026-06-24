@@ -87,12 +87,18 @@ async function renderCv({ application_id, personalization }) {
 async function defaultCandidate() {
   try {
     const p = JSON.parse(await readFile(resolve(HERE, "profile.json"), "utf-8"));
-    // Ligne de contact : résidence (ex. "Marly (59)") + libellé de mobilité
-    // (mobility_label si fourni, sinon la zone du profil).
-    const location = [p.residence, p.mobility_label || p.location].filter(Boolean).join(" · ");
+    // Découpe le libellé de mobilité : "Mobilité … · Télétravail possible"
+    // -> mobilité (1 ligne) + télétravail (1 ligne séparée, comme le modèle).
+    const parts = String(p.mobility_label || "").split(/\s*·\s*/).filter(Boolean);
+    const remote = parts.find((x) => /télétravail|teletravail|remote/i.test(x)) || "";
+    const mobility = parts.filter((x) => x !== remote).join(" · ") || p.location || "";
     // Ville pour la date ("Marly, le …") : la résidence prime, sans le code dpt.
     const city = String(p.residence || p.location || "").replace(/\s*\(.*?\)/, "").split(/[·,]/)[0].trim();
-    return { name: p.name, email: p.email, phone: p.phone, location, city };
+    return {
+      name: p.name, title: p.title, email: p.email, phone: p.phone,
+      residence: p.residence || "", mobility, remote,
+      location: p.location, city,
+    };
   } catch {
     return {};
   }

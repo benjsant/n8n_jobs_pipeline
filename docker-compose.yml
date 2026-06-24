@@ -118,6 +118,28 @@ services:
       timeout: 5s
       retries: 3
 
+  # Purge automatique des candidatures locales (./output) au-delà de la rétention.
+  # Les PDF durables sont archivés sur Google Drive par le workflow 04 ; ./output
+  # n'est qu'un dossier de travail -> on le borne. Tourne 1x/jour, gère les
+  # fichiers root (écrits par le service render).
+  cleanup:
+    image: alpine:3.20
+    container_name: job-hunter-cleanup
+    restart: unless-stopped
+    environment:
+      OUTPUT_RETENTION_DAYS: ${OUTPUT_RETENTION_DAYS:-21}
+    volumes:
+      - ./output:/output
+    command:
+      - sh
+      - -c
+      - |
+        echo "[cleanup] rétention = ${OUTPUT_RETENTION_DAYS:-21} jours";
+        while true; do
+          find /output -mindepth 1 -maxdepth 1 -type d -mtime +${OUTPUT_RETENTION_DAYS:-21} -exec rm -rf {} + 2>/dev/null || true;
+          sleep 86400;
+        done
+
 volumes:
   postgres_data:
   n8n_data:

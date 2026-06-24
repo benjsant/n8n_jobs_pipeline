@@ -31,7 +31,23 @@ function paragraphs(body) {
  */
 export function buildLetterHtml(data = {}) {
   const c = data.candidate ?? {};
-  const contact = [c.email, c.phone, c.location].filter(Boolean).map(escape).join(" · ");
+  // Bloc EXPÉDITEUR (haut-gauche) : nom en gras + lignes empilées.
+  const senderLines = (data.senderLines ?? [
+    c.title,
+    c.email,
+    c.phone,
+    [c.residence, c.mobility].filter(Boolean).join(" · ") || c.location,
+    c.remote,
+  ]).filter(Boolean).map(escape);
+  // Bloc DESTINATAIRE (haut-droite, aligné à droite) : entreprise en gras +
+  // service + adresse (si connue) + date.
+  const r = data.recipient ?? {};
+  const service = r.service || (data.company ? "Service Recrutement" : "");
+  const recipientLines = [
+    service ? `À l'attention du ${service}` : "",
+    r.address || "",
+    data.date || "",
+  ].filter(Boolean).map(escape);
   return `<!doctype html>
 <html lang="fr">
   <head>
@@ -42,14 +58,14 @@ export function buildLetterHtml(data = {}) {
       html, body { margin: 0; padding: 0; }
       body { font-family: "Inter","Helvetica Neue",Arial,sans-serif; color: #1f2329; font-size: 11pt; line-height: 1.5; }
       .page { width: 210mm; min-height: 297mm; padding: 22mm 24mm; margin: 0 auto; background: #fff; }
-      .sender { font-weight: 600; }
-      .sender .contact { font-weight: 400; color: #5c6670; font-size: 9.5pt; }
-      .recipient { margin-top: 18px; }
-      .date { margin-top: 18px; color: #5c6670; }
-      .subject { margin-top: 18px; font-weight: 600; }
-      .body { margin-top: 14px; }
-      .body p { margin: 0 0 10px; text-align: justify; }
-      .sign { margin-top: 22px; }
+      .sender .sname { font-weight: 600; }
+      .sender div { line-height: 1.45; }
+      .recipient { margin-top: 30px; text-align: right; }
+      .recipient .rname { font-weight: 600; }
+      .subject { margin-top: 26px; font-weight: 600; }
+      .body { margin-top: 16px; }
+      .body p { margin: 0 0 11px; text-align: justify; }
+      .sign { margin-top: 24px; }
       @page { size: A4; margin: 0; }
       @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
     </style>
@@ -57,11 +73,13 @@ export function buildLetterHtml(data = {}) {
   <body>
     <main class="page">
       <div class="sender">
-        ${escape(c.name) || "[Nom]"}
-        ${contact ? `<div class="contact">${contact}</div>` : ""}
+        <div class="sname">${escape(c.name) || "[Nom]"}</div>
+        ${senderLines.map((l) => `<div>${l}</div>`).join("\n        ")}
       </div>
-      ${data.company ? `<div class="recipient">À l'attention de ${escape(data.company)}</div>` : ""}
-      ${data.date ? `<div class="date">${escape(data.date)}</div>` : ""}
+      <div class="recipient">
+        ${data.company ? `<div class="rname">${escape(data.company)}</div>` : ""}
+        ${recipientLines.map((l) => `<div>${l}</div>`).join("\n        ")}
+      </div>
       ${data.subject ? `<div class="subject">Objet : ${escape(data.subject)}</div>` : ""}
       <div class="body">
         ${paragraphs(data.body)}
