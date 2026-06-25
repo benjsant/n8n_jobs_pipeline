@@ -61,6 +61,16 @@ def test_template_invalide_normalise(monkeypatch):
     assert out["langue"] == "fr"
 
 
+def test_validate_retire_tiret_cadratin(monkeypatch):
+    _patch(monkeypatch, json.dumps({
+        "score": 70, "recommandation": "postuler", "langue": "fr",
+        "lettre": {"template": "ia-junior", "accroche": "Votre échelle me parle — un vrai défi."},
+    }))
+    out = G.run_agent({"title": "X"}, CTX)
+    assert "—" not in out["lettre"]["accroche"]
+    assert "me parle, un vrai défi" in out["lettre"]["accroche"]
+
+
 def test_message_spontane(monkeypatch):
     msg = G.build_user_message({"title": "Candidature spontanée", "company": "Acme",
                                 "description": "", "spontaneous": True}, "idx")
