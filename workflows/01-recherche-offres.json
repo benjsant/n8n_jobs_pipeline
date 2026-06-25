@@ -58,59 +58,6 @@
     },
     {
       "parameters": {
-        "url": "=https://api.adzuna.com/v1/api/jobs/fr/search/1",
-        "sendQuery": true,
-        "queryParameters": {
-          "parameters": [
-            {
-              "name": "app_id",
-              "value": "={{ $env.ADZUNA_APP_ID }}"
-            },
-            {
-              "name": "app_key",
-              "value": "={{ $env.ADZUNA_APP_KEY }}"
-            },
-            {
-              "name": "what",
-              "value": "={{ $('Boucle profils').first().json.keywords }}"
-            },
-            {
-              "name": "where",
-              "value": "={{ $('Boucle profils').first().json.location_label }}"
-            },
-            {
-              "name": "results_per_page",
-              "value": "50"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "id": "a1000000-0000-4000-8000-000000000010",
-      "name": "Adzuna - search",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        240,
-        80
-      ],
-      "onError": "continueRegularOutput"
-    },
-    {
-      "parameters": {
-        "jsCode": "const s=(v)=>String(v??'').trim();\nconst results=$input.first().json.results||[];\nreturn results.map((r)=>({json:{source:'adzuna',source_id:s(r.id),title:s(r.title),company:s(r.company?.display_name),location:s(r.location?.display_name),contract_type:s(r.contract_time||r.contract_type),salary:r.salary_min?s(r.salary_min):'',description:s(r.description),url:s(r.redirect_url)}}));"
-      },
-      "id": "a1000000-0000-4000-8000-000000000011",
-      "name": "norm Adzuna",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        460,
-        80
-      ]
-    },
-    {
-      "parameters": {
         "method": "POST",
         "url": "https://entreprise.francetravail.fr/connexion/oauth2/access_token?realm=/partenaire",
         "sendBody": true,
@@ -252,153 +199,6 @@
     },
     {
       "parameters": {
-        "url": "https://serpapi.com/search",
-        "sendQuery": true,
-        "queryParameters": {
-          "parameters": [
-            {
-              "name": "engine",
-              "value": "google_jobs"
-            },
-            {
-              "name": "q",
-              "value": "={{ $('Boucle profils').first().json.keywords }}"
-            },
-            {
-              "name": "location",
-              "value": "={{ $('Boucle profils').first().json.location_label }}, France"
-            },
-            {
-              "name": "gl",
-              "value": "fr"
-            },
-            {
-              "name": "hl",
-              "value": "fr"
-            },
-            {
-              "name": "api_key",
-              "value": "={{ $env.SERPAPI_KEY }}"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "id": "a1000000-0000-4000-8000-000000000035",
-      "name": "Google Jobs - SerpApi",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        240,
-        560
-      ],
-      "onError": "continueRegularOutput"
-    },
-    {
-      "parameters": {
-        "jsCode": "const s=(v)=>String(v??'').trim();\nconst results=$input.first().json.jobs_results||[];\nreturn results.map((r)=>{const ext=r.detected_extensions||{};const url=r.share_link||(r.apply_options&&r.apply_options[0]&&r.apply_options[0].link)||'';return{json:{source:'google_jobs',source_id:s(r.job_id),title:s(r.title),company:s(r.company_name),location:s(r.location),contract_type:s(ext.schedule_type),salary:s(ext.salary),description:s(r.description),url:s(url)}};});"
-      },
-      "id": "a1000000-0000-4000-8000-000000000036",
-      "name": "norm Google Jobs",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        460,
-        560
-      ]
-    },
-    {
-      "parameters": {
-        "url": "={{ $env.WTTJ_RSS_URL }}",
-        "options": {}
-      },
-      "id": "a1000000-0000-4000-8000-000000000040",
-      "name": "WTTJ - RSS",
-      "type": "n8n-nodes-base.rssFeedRead",
-      "typeVersion": 1.1,
-      "position": [
-        240,
-        720
-      ],
-      "onError": "continueRegularOutput"
-    },
-    {
-      "parameters": {
-        "jsCode": "const s=(v)=>String(v??'').trim();\nreturn $input.all().map(({json:it})=>{const rt=s(it.title);let title=rt,company='';const d=rt.split(/\\s[-–|]\\s/);if(d.length>=2){title=s(d[0]);company=s(d[d.length-1]);}return{json:{source:'wttj',source_id:s(it.guid||it.id||it.link),title,company,location:s(it.location),contract_type:'',salary:'',description:s(it.contentSnippet||it.content||it.description),url:s(it.link)}};});"
-      },
-      "id": "a1000000-0000-4000-8000-000000000041",
-      "name": "norm WTTJ",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        460,
-        720
-      ]
-    },
-    {
-      "parameters": {
-        "url": "https://jsearch.p.rapidapi.com/search",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "X-RapidAPI-Key",
-              "value": "={{ $env.RAPIDAPI_KEY }}"
-            },
-            {
-              "name": "X-RapidAPI-Host",
-              "value": "jsearch.p.rapidapi.com"
-            }
-          ]
-        },
-        "sendQuery": true,
-        "queryParameters": {
-          "parameters": [
-            {
-              "name": "query",
-              "value": "={{ $('Boucle profils').first().json.keywords }} in {{ $('Boucle profils').first().json.location_label }}, France"
-            },
-            {
-              "name": "page",
-              "value": "1"
-            },
-            {
-              "name": "num_pages",
-              "value": "1"
-            },
-            {
-              "name": "country",
-              "value": "fr"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "id": "a1000000-0000-4000-8000-000000000045",
-      "name": "JSearch - search",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        240,
-        880
-      ],
-      "onError": "continueRegularOutput"
-    },
-    {
-      "parameters": {
-        "jsCode": "const s=(v)=>String(v??'').trim();\nconst results=$input.first().json.data||[];\nreturn results.map((r)=>{const pub=s(r.job_publisher).toLowerCase().replace(/\\s+/g,'-');return{json:{source:pub?('jsearch:'+pub):'jsearch',source_id:s(r.job_id),title:s(r.job_title),company:s(r.employer_name),location:s(r.job_city||r.job_location),contract_type:s(r.job_employment_type),salary:s(r.job_salary_string),description:s(r.job_description),url:s(r.job_apply_link||r.job_google_link)}};});"
-      },
-      "id": "a1000000-0000-4000-8000-000000000046",
-      "name": "norm JSearch",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        460,
-        880
-      ]
-    },
-    {
-      "parameters": {
         "url": "https://api.apprentissage.beta.gouv.fr/api/job/v1/search",
         "sendHeaders": true,
         "headerParameters": {
@@ -511,7 +311,7 @@
     },
     {
       "parameters": {
-        "numberInputs": 7
+        "numberInputs": 3
       },
       "id": "a1000000-0000-4000-8000-000000000050",
       "name": "Fusionner sources",
@@ -758,11 +558,6 @@
         [],
         [
           {
-            "node": "Adzuna - search",
-            "type": "main",
-            "index": 0
-          },
-          {
             "node": "FT - token",
             "type": "main",
             "index": 0
@@ -773,44 +568,7 @@
             "index": 0
           },
           {
-            "node": "Google Jobs - SerpApi",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "WTTJ - RSS",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "JSearch - search",
-            "type": "main",
-            "index": 0
-          },
-          {
             "node": "LBA - search",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Adzuna - search": {
-      "main": [
-        [
-          {
-            "node": "norm Adzuna",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "norm Adzuna": {
-      "main": [
-        [
-          {
-            "node": "Fusionner sources",
             "type": "main",
             "index": 0
           }
@@ -845,7 +603,7 @@
           {
             "node": "Fusionner sources",
             "type": "main",
-            "index": 1
+            "index": 0
           }
         ]
       ]
@@ -867,73 +625,7 @@
           {
             "node": "Fusionner sources",
             "type": "main",
-            "index": 2
-          }
-        ]
-      ]
-    },
-    "Google Jobs - SerpApi": {
-      "main": [
-        [
-          {
-            "node": "norm Google Jobs",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "norm Google Jobs": {
-      "main": [
-        [
-          {
-            "node": "Fusionner sources",
-            "type": "main",
-            "index": 3
-          }
-        ]
-      ]
-    },
-    "WTTJ - RSS": {
-      "main": [
-        [
-          {
-            "node": "norm WTTJ",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "norm WTTJ": {
-      "main": [
-        [
-          {
-            "node": "Fusionner sources",
-            "type": "main",
-            "index": 4
-          }
-        ]
-      ]
-    },
-    "JSearch - search": {
-      "main": [
-        [
-          {
-            "node": "norm JSearch",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "norm JSearch": {
-      "main": [
-        [
-          {
-            "node": "Fusionner sources",
-            "type": "main",
-            "index": 5
+            "index": 1
           }
         ]
       ]
@@ -960,7 +652,7 @@
           {
             "node": "Fusionner sources",
             "type": "main",
-            "index": 6
+            "index": 2
           }
         ]
       ]
@@ -1104,6 +796,6 @@
   },
   "active": false,
   "meta": {
-    "note": "BROUILLON multi-profils à vérifier à l'import. Boucle: Profils actifs (Postgres) -> SplitInBatches 'Boucle profils' (sortie 1 = itération, sortie 0 = fin). Pour CHAQUE profil: 7 sources (Adzuna, France Travail, JobSpy, Google Jobs/SerpApi, WTTJ, JSearch, La Bonne Alternance) -> Merge(7 entrées, indices 0-6) -> score déterministe + profile_id -> hash -> INSERT (skipOnConflict) -> affinage DeepSeek top-N avec must_have/exclusions DU PROFIL -> MAJ score -> seuil score_threshold du profil -> Discord alerts -> retour à 'Boucle profils'. La source LBA fan-out: 'norm LBA' (offres) -> Merge index 6 ; 'norm LBA recruteurs' (entreprises sans offre) -> Upsert companies -> Discord 'candidature spontanée' (branche terminale). À VÉRIFIER à l'import: comportement exact du loopback SplitInBatches (sortie 1 = boucle, 0 = fin), le passage de $('Boucle profils').first() dans toute la boucle, le mode du Merge à 7 entrées, la FORME de réponse LBA (api.apprentissage.beta.gouv.fr, non vérifiée sur workflow réel), et les credentials Postgres. Logique = workflows/lib/*.mjs (testées). jobs-log à rebrancher dans la boucle si besoin."
+    "note": "01 multi-profils — sources retenues : France Travail (officiel, géoloc INSEE+rayon) + JobSpy (LinkedIn/Indeed FR/Glassdoor) + La Bonne Alternance (offres alternance + recruteurs spontanés). Adzuna/SerpApi/JSearch/WTTJ retirés (doublons/obsolètes). Boucle profils -> 3 collectes -> Merge(3) -> score -> hash -> INSERT (dédup, RETURNING only-new) -> affinage DeepSeek -> seuil -> Discord alerts ; LBA recruteurs -> upsert companies + Discord candidature spontanée. credentials Postgres = pgjobhunter0001."
   }
 }

@@ -1,6 +1,6 @@
 {
   "id": "wf04finalisatio",
-  "name": "04 - Finalisation candidature (Drive + brouillon Gmail)",
+  "name": "04 - Finalisation candidature (livraison Discord)",
   "nodes": [
     {
       "parameters": {},
@@ -16,7 +16,6 @@
           { "id": "i1", "name": "company", "value": "={{ $json.company }}", "type": "string" },
           { "id": "i2", "name": "cv_path", "value": "={{ $json.cv_path }}", "type": "string" },
           { "id": "i3", "name": "letter_path", "value": "={{ $json.letter_path }}", "type": "string" },
-          { "id": "i4", "name": "to_email", "value": "={{ $json.to_email }}", "type": "string" },
           { "id": "i5", "name": "subject", "value": "={{ $json.subject }}", "type": "string" },
           { "id": "i6", "name": "body", "value": "={{ $json.body }}", "type": "string" }
         ] },
@@ -52,7 +51,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Regroupe les DEUX binaires (cv + lettre) sur UN SEUL item : indispensable\n// pour que Gmail joigne les deux fichiers et que les deux uploads Drive aient\n// la donnée. Lectures faites en amont (chaîne Lire CV -> Lire lettre), donc les\n// deux nœuds ont déjà produit leur binaire.\nconst e = $('Entrées candidature').first().json;\nconst cv = $('Lire CV (PDF)').first().binary?.cv;\nconst letter = $('Lire lettre (PDF)').first().binary?.letter;\nif (!cv || !letter) throw new Error('Binaire manquant (cv ou letter) — vérifier cv_path / letter_path.');\nreturn [{ json: { company: e.company, to_email: e.to_email, subject: e.subject, body: e.body }, binary: { cv, letter } }];"
+        "jsCode": "// Regroupe les DEUX binaires (cv + lettre) sur UN SEUL item pour les joindre\n// au même message Discord. Lectures chaînées en amont (Lire CV -> Lire lettre).\nconst e = $('Entrées candidature').first().json;\nconst cv = $('Lire CV (PDF)').first().binary?.cv;\nconst letter = $('Lire lettre (PDF)').first().binary?.letter;\nif (!cv || !letter) throw new Error('Binaire manquant (cv ou letter) — vérifier cv_path / letter_path.');\nreturn [{ json: { company: e.company, subject: e.subject, body: e.body }, binary: { cv, letter } }];"
       },
       "id": "b4000000-0000-4000-8000-000000000008",
       "name": "Fusionner pièces jointes",
@@ -62,74 +61,27 @@
     },
     {
       "parameters": {
-        "resource": "folder",
-        "name": "={{ $('Entrées candidature').first().json.company }}",
-        "options": { "folderColorRgb": "" }
-      },
-      "id": "b4000000-0000-4000-8000-000000000005",
-      "name": "Drive: dossier entreprise",
-      "type": "n8n-nodes-base.googleDrive",
-      "typeVersion": 3,
-      "position": [880, 300],
-      "credentials": { "googleDriveOAuth2Api": { "id": "REMPLACER", "name": "Google Drive job-hunter" } }
-    },
-    {
-      "parameters": {
-        "jsCode": "// Réattache les deux binaires (perdus par le nœud de création de dossier) et\n// porte l'id du dossier Drive, pour que les uploads et Gmail partent du même item.\nconst folderId = $('Drive: dossier entreprise').first().json.id;\nconst e = $('Entrées candidature').first().json;\nconst fused = $('Fusionner pièces jointes').first();\nreturn [{ json: { folderId, company: e.company, to_email: e.to_email, subject: e.subject, body: e.body }, binary: fused.binary }];"
-      },
-      "id": "b4000000-0000-4000-8000-000000000009",
-      "name": "Préparer upload",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [1100, 300]
-    },
-    {
-      "parameters": {
-        "name": "=cv.pdf",
-        "driveId": { "__rl": true, "mode": "list", "value": "My Drive" },
-        "folderId": { "__rl": true, "mode": "id", "value": "={{ $json.folderId }}" },
-        "inputDataFieldName": "cv",
+        "method": "POST",
+        "url": "={{ $env.DISCORD_WEBHOOK_ALERTS }}",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "payload_json",
+              "value": "={{ JSON.stringify({ content: `🎯 **Candidature prête : ${$json.company || 'Entreprise'}**\\n📨 Objet : ${$json.subject || ''}\\n📎 CV + lettre ci-joints — à toi de postuler quand tu veux (relecture/envoi humain).` }) }}"
+            },
+            { "parameterType": "formBinaryData", "name": "files[0]", "inputDataFieldName": "cv" },
+            { "parameterType": "formBinaryData", "name": "files[1]", "inputDataFieldName": "letter" }
+          ]
+        },
         "options": {}
       },
-      "id": "b4000000-0000-4000-8000-000000000006",
-      "name": "Drive: upload CV",
-      "type": "n8n-nodes-base.googleDrive",
-      "typeVersion": 3,
-      "position": [1340, 180],
-      "credentials": { "googleDriveOAuth2Api": { "id": "REMPLACER", "name": "Google Drive job-hunter" } }
-    },
-    {
-      "parameters": {
-        "name": "=lettre.pdf",
-        "driveId": { "__rl": true, "mode": "list", "value": "My Drive" },
-        "folderId": { "__rl": true, "mode": "id", "value": "={{ $json.folderId }}" },
-        "inputDataFieldName": "letter",
-        "options": {}
-      },
-      "id": "b4000000-0000-4000-8000-000000000010",
-      "name": "Drive: upload lettre",
-      "type": "n8n-nodes-base.googleDrive",
-      "typeVersion": 3,
-      "position": [1340, 320],
-      "credentials": { "googleDriveOAuth2Api": { "id": "REMPLACER", "name": "Google Drive job-hunter" } }
-    },
-    {
-      "parameters": {
-        "resource": "draft",
-        "subject": "={{ $json.subject }}",
-        "emailType": "text",
-        "message": "={{ $json.body }}",
-        "options": {
-          "sendTo": "={{ $json.to_email }}",
-          "attachmentsUi": { "attachmentsBinary": [ { "property": "cv" }, { "property": "letter" } ] }
-        }
-      },
-      "id": "b4000000-0000-4000-8000-000000000007",
-      "name": "Gmail: créer BROUILLON",
-      "type": "n8n-nodes-base.gmail",
-      "typeVersion": 2.1,
-      "position": [1340, 460],
-      "credentials": { "gmailOAuth2": { "id": "REMPLACER", "name": "Gmail job-hunter" } }
+      "id": "b4000000-0000-4000-8000-000000000020",
+      "name": "Discord: livraison (CV + lettre)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [900, 300]
     }
   ],
   "connections": {
@@ -137,17 +89,11 @@
     "Entrées candidature": { "main": [[{ "node": "Lire CV (PDF)", "type": "main", "index": 0 }]] },
     "Lire CV (PDF)": { "main": [[{ "node": "Lire lettre (PDF)", "type": "main", "index": 0 }]] },
     "Lire lettre (PDF)": { "main": [[{ "node": "Fusionner pièces jointes", "type": "main", "index": 0 }]] },
-    "Fusionner pièces jointes": { "main": [[{ "node": "Drive: dossier entreprise", "type": "main", "index": 0 }]] },
-    "Drive: dossier entreprise": { "main": [[{ "node": "Préparer upload", "type": "main", "index": 0 }]] },
-    "Préparer upload": { "main": [[
-      { "node": "Drive: upload CV", "type": "main", "index": 0 },
-      { "node": "Drive: upload lettre", "type": "main", "index": 0 },
-      { "node": "Gmail: créer BROUILLON", "type": "main", "index": 0 }
-    ]] }
+    "Fusionner pièces jointes": { "main": [[{ "node": "Discord: livraison (CV + lettre)", "type": "main", "index": 0 }]] }
   },
   "settings": { "executionOrder": "v1" },
   "active": false,
   "meta": {
-    "note": "À vérifier à l'import : associer les credentials OAuth Google (Drive + Gmail). GARDE-FOU : Gmail crée un BROUILLON, jamais d'envoi automatique. Flux corrigé : les lectures CV puis lettre sont chaînées, « Fusionner pièces jointes » regroupe les DEUX binaires (cv+letter) sur un seul item, « Préparer upload » les réattache avec l'id du dossier Drive, puis fan-out vers 2 uploads Drive (cv.pdf + lettre.pdf) et le brouillon Gmail (2 pièces jointes). to_email peut être vide : destinataire renseigné à la main avant envoi."
+    "note": "Livraison SANS Google : lit CV+lettre depuis ./output, regroupe les 2 binaires, et POST multipart vers le webhook Discord ALERTS (files[0]=cv, files[1]=lettre, payload_json=message). Les PDF arrivent en pièces jointes dans le salon, prêts à télécharger. GARDE-FOU : aucune candidature n'est envoyée — relecture/envoi humain. (Variante Google Gmail/Drive disponible dans l'historique git si OAuth voulu plus tard.)"
   }
 }
