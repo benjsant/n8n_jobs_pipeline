@@ -4,6 +4,68 @@
 
 ---
 
+## 0. Mise à jour 2026-06-25 — état réel + design allégé
+
+> Addendum ajouté après coup. Le plan d'origine (sections 1+) date du 2026-06-23 et
+> reste valable dans l'esprit ; cette section corrige ce qui a évolué depuis et
+> **dégraisse la Phase 1** à la lumière de ce qui est désormais construit.
+
+### Phase 0 : quasi **verte**
+Le MVP n8n tourne de bout en bout **sans dépendance Google** :
+- Collecte **France Travail (réparé) + JobSpy** (cron 8h, actif) → scoring déterministe
+  + affinage DeepSeek → **alertes Discord actionnables** (anti-spam : seules les
+  nouvelles offres).
+- Clic « Générer » → `03 → 02` → **CV (design portfolio) + lettre** → `04` = **livraison
+  Discord** (CV + lettre en pièces jointes, prêts à envoyer — garde-fou humain).
+- Maillon **candidature spontanée** (`05`) opérationnel (manque `LBA_API_KEY` pour de
+  vraies entreprises).
+- Le critère « une vraie candidature livrée, prête à l'envoi » est **atteint** (via
+  Discord plutôt que brouillon Gmail). L'OAuth Google reste optionnel.
+
+→ **Feu vert Phase 1** quand tu veux. Côté MVP, ne reste que de l'optionnel (clés
+sources, harmonisation visuelle, OAuth si tu y tiens).
+
+### Le graphe est plus PETIT que prévu (décisions prises depuis)
+Plusieurs « nœuds » du plan d'origine sont devenus **déterministes** → moins de LLM :
+- **Lettre = corps figé + accroche** (assemblage déterministe `cv/letter-template.mjs`).
+  Le nœud `cover_letter_draft` ne produit donc **que l'accroche** (2-3 phrases), pas
+  toute la lettre. Le corps n'est jamais touché par le LLM.
+- **`cv_personalization`** = sélection **contrainte** (ids/noms exacts de `cv-index.json`),
+  pas de la rédaction → quasi déterministe, juste un choix guidé.
+- **Enrichissement entreprise** déjà **grounded** (résumé à partir du seul texte fourni).
+
+→ Cœur LLM réel à porter : **`scoring_adequation`** (le vrai raisonnement), **`accroche`**
+(ex-`cover_letter`, réduit), **`conseils` / `competences_a_ameliorer`**, et
+**`cv_personalization`** (sélection). Soit ~4 nœuds, pas 6.
+
+### Le **vrai** gain à viser : le tool `company_research`
+Seule capacité vraiment nouvelle que LangGraph apporte ici : **ancrer l'accroche sur des
+infos entreprise réelles** (recherche web légère). Bénéfice double : meilleures accroches
+**et** renforcement du garde-fou anti-invention. *(Incident réel : une accroche
+« Ponera = ESN » inventée, qu'un nœud de recherche aurait évitée.)* Si tu ne gardes
+qu'une idée du plan, c'est **celle-là**.
+
+### `interrupt` / validation humaine : déjà couvert
+n8n fait déjà le human-in-the-loop (clic Discord `selected/ignored`). L'`interrupt`
+LangGraph est une **vitrine** sympa mais **redondante** fonctionnellement → à garder
+pour la démo (Phase 3), pas comme priorité.
+
+### Contrat de sortie à respecter (a changé)
+Le service LangGraph doit produire le **même format que le `02` actuel** (§6 du system
+prompt), qui a évolué : `lettre: { template, accroche }` (plus `lettre_motivation`),
+`personnalisation_cv`, `score` + sous-scores, `conseils`, `competences_a_ameliorer`,
+`objet_email`. Le `02` poste ensuite vers le service de rendu (PDF) puis la livraison
+Discord (`04`).
+
+### Ordre d'attaque révisé
+1. Squelette `services/agent-langgraph/` qui **réplique l'actuel** (~4 nœuds) et se
+   branche au `02` (POST), sortie au format §6 ci-dessus.
+2. **+1 tool `company_research`** (DuckDuckGo léger) → grounding de l'accroche.
+3. **Mesure** : 5 lettres v1 (monolithique) vs v2 (graphe) avant de tagger v0.2.
+4. Streaming + interrupt **en dernier**, pour la démo.
+
+---
+
 ## 1. Contexte (à lire avant tout)
 
 `job-hunter` est un assistant de recherche d'emploi semi-automatique pour développeur IA junior. Source de vérité PostgreSQL. Orchestration n8n. Agent LLM DeepSeek. Génération CV Astro→PDF + lettre. Validation humaine obligatoire avant envoi.
