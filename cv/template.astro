@@ -1,7 +1,9 @@
 ---
-// CV maître — template fixe. DeepSeek ne touche JAMAIS à ce fichier ni au CSS.
-// Il fournit seulement `personalization` (cf. personalization.example.json),
-// qui sert à réordonner / mettre en avant / masquer — jamais à inventer.
+// CV maître — design repris de astro-portfolio/src/pages/cv-design.astro
+// (hero indigo, pills à icônes, badges de dates, timeline). DeepSeek ne touche
+// JAMAIS à ce fichier ni au CSS : il fournit seulement `personalization`
+// (réordonner / mettre en avant / masquer) — jamais d'invention.
+import { readFileSync, existsSync } from "node:fs";
 import profile from "./profile.json";
 import skillsData from "./skills.json";
 import projectsData from "./projects.json";
@@ -10,8 +12,15 @@ import educationData from "./education.json";
 import certificationsData from "./certifications.json";
 import languagesData from "./languages.json";
 
-// Sortie de l'agent (injectée par le pipeline n8n en Tâche 8).
-// Par défaut : aucune personnalisation → CV maître brut.
+// Photo embarquée en data-URI (le rendu charge le HTML en file://, donc pas de
+// chemin absolu /photo.jpg). Optionnelle : si absente, pas de photo.
+// cwd = racine du projet cv/ pendant `astro build` -> chemin relatif fiable.
+const photoPath = "public/photo.jpg";
+const photoSrc = existsSync(photoPath)
+  ? `data:image/jpeg;base64,${readFileSync(photoPath).toString("base64")}`
+  : "";
+
+// ── Personnalisation (sortie de l'agent) ───────────────────────────────
 const { personalization = {} } = Astro.props;
 const {
   summary: customSummary = "",
@@ -20,42 +29,66 @@ const {
   highlight_experiences = [],
   hidden_sections = [],
 } = personalization;
-
 const isHidden = (key) => hidden_sections.includes(key);
 const summary = customSummary || profile.summary;
 
-// Les éléments dont la clé figure dans `highlights` passent en premier (tri stable).
 function reorder(items, highlights, keyFn) {
   const hi = items.filter((i) => highlights.includes(keyFn(i)));
   const rest = items.filter((i) => !highlights.includes(keyFn(i)));
   return [...hi, ...rest];
 }
 
-// On ignore les entrées vides (utile tant que les JSON sont des squelettes).
-const projects = reorder(
-  projectsData.projects.filter((p) => p.name),
-  highlight_projects,
-  (p) => p.id,
-);
+const projects = reorder(projectsData.projects.filter((p) => p.name), highlight_projects, (p) => p.id);
 const experiences = reorder(
   experiencesData.experiences.filter((e) => e.role || e.company),
   highlight_experiences,
   (e) => e.id,
-);
+).map((e) => {
+  const bullets = e.bullets || [];
+  const stackB = bullets.find((b) => /^stack\s*:/i.test(b));
+  return {
+    ...e,
+    tasks: bullets.filter((b) => b !== stackB),
+    tags: stackB ? stackB.replace(/^stack\s*:\s*/i, "").split(/\s*[·,]\s*/).filter(Boolean) : [],
+  };
+});
 const education = educationData.education.filter((e) => e.degree || e.school);
 const certifications = (certificationsData.certifications || []).filter((c) => c.name);
 const languages = (languagesData.languages || []).filter((l) => l.name);
-const softSkills = (profile.soft_skills || []).filter(Boolean);
-const skillCategories = skillsData.categories
+
+const skillRows = skillsData.categories
   .map((cat) => ({
     name: cat.name,
-    items: reorder(
-      cat.items.filter((s) => s.name),
-      highlight_skills,
-      (s) => s.name,
-    ).map((s) => ({ ...s, highlighted: highlight_skills.includes(s.name) })),
+    items: reorder(cat.items.filter((s) => s.name), highlight_skills, (s) => s.name)
+      .map((s) => ({ label: s.level ? `${s.name} (${s.level})` : s.name, hl: highlight_skills.includes(s.name) })),
   }))
-  .filter((cat) => cat.items.length > 0);
+  .filter((c) => c.items.length > 0);
+if (!isHidden("languages") && languages.length) {
+  skillRows.push({
+    name: "Langues",
+    items: languages.map((l) => ({ label: l.level ? `${l.name} (${l.level})` : l.name, hl: false })),
+  });
+}
+
+// ── Pills de contact (icône + handle court) ────────────────────────────
+const strip = (u) => String(u || "").replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "");
+const contacts = [
+  { icon: "mail", value: profile.email, href: `mailto:${profile.email}` },
+  { icon: "link", value: strip(profile.links?.portfolio), href: profile.links?.portfolio },
+  { icon: "linkedin", value: strip(profile.links?.linkedin).replace(/^linkedin\.com\/in\//, ""), href: profile.links?.linkedin },
+  { icon: "github", value: strip(profile.links?.github).replace(/^github\.com\//, ""), href: profile.links?.github },
+].filter((c) => c.value);
+
+const infos = [];
+if (profile.permis) infos.push({ label: "Permis", value: profile.permis });
+if (profile.location || profile.mobility_label) infos.push({ label: "Mobilité", value: profile.location || profile.mobility_label });
+
+const icons = {
+  mail: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>',
+  link: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>',
+  linkedin: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zM8.34 17V9.99H6.01V17zM7.17 8.86a1.35 1.35 0 1 0 0-2.7 1.35 1.35 0 0 0 0 2.7M18 17v-3.84c0-2.05-1.1-3-2.56-3-1.18 0-1.71.65-2 1.11V9.99H10.9V17h2.33v-3.91c0-.36.26-.71.7-.71.43 0 .74.34.74.72V17z"/></svg>',
+  github: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33s1.71.11 2.5.33c1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5A10 10 0 0 0 22 12 10 10 0 0 0 12 2"/></svg>',
+};
 ---
 
 <!doctype html>
@@ -63,174 +96,216 @@ const skillCategories = skillsData.categories
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{profile.name || "CV"}{profile.title ? ` — ${profile.title}` : ""}</title>
-    <style>
-      :root {
-        --accent: #1a4d7a;
-        --text: #1f2329;
-        --muted: #5c6670;
-        --rule: #d9dee3;
-      }
-      * { box-sizing: border-box; }
-      html, body { margin: 0; padding: 0; }
-      body {
-        font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
-        color: var(--text);
-        font-size: 10.5pt;
-        line-height: 1.45;
-      }
-      /* Page A4 imprimable (utilisée pour l'export PDF) */
-      .page {
-        width: 210mm;
-        min-height: 297mm;
-        padding: 16mm 18mm;
-        margin: 0 auto;
-        background: #fff;
-      }
-      header { border-bottom: 2px solid var(--accent); padding-bottom: 8px; margin-bottom: 14px; }
-      h1 { font-size: 20pt; margin: 0; color: var(--accent); }
-      .role { font-size: 11.5pt; color: var(--muted); margin-top: 2px; }
-      .contact { font-size: 9pt; color: var(--muted); margin-top: 6px; display: flex; flex-wrap: wrap; gap: 4px 14px; }
-      .contact a { color: var(--muted); text-decoration: none; }
-      section { margin-top: 16px; }
-      h2 {
-        font-size: 11pt; text-transform: uppercase; letter-spacing: 0.06em;
-        color: var(--accent); margin: 0 0 8px; padding-bottom: 3px;
-        border-bottom: 1px solid var(--rule);
-      }
-      .summary { margin: 0; }
-      .skill-cat { margin-bottom: 5px; }
-      .skill-cat .cat-name { font-weight: 600; }
-      .skill.hl { font-weight: 600; color: var(--accent); }
-      .item { margin-bottom: 10px; }
-      .item-head { display: flex; justify-content: space-between; gap: 12px; }
-      .item-title { font-weight: 600; }
-      .item-sub { color: var(--muted); }
-      .item-dates { color: var(--muted); white-space: nowrap; font-size: 9.5pt; }
-      ul.bullets { margin: 4px 0 0; padding-left: 18px; }
-      ul.bullets li { margin-bottom: 2px; }
-      .tech { color: var(--muted); font-size: 9.5pt; margin-top: 2px; }
-      .empty { color: #b3001b; font-style: italic; }
-      @page { size: A4; margin: 0; }
-      @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
-    </style>
+    <title>CV — {profile.name}{profile.title ? ` (${profile.title})` : ""}</title>
   </head>
   <body>
-    <main class="page">
-      <header>
-        <h1>{profile.name || "[Nom à compléter]"}</h1>
-        {profile.title && <div class="role">{profile.title}</div>}
-        <div class="contact">
-          {profile.email && <span>{profile.email}</span>}
-          {profile.phone && <span>{profile.phone}</span>}
-          {profile.location && <span>{profile.location}</span>}
-          {profile.links?.github && <a href={profile.links.github}>GitHub</a>}
-          {profile.links?.linkedin && <a href={profile.links.linkedin}>LinkedIn</a>}
-          {profile.links?.portfolio && <a href={profile.links.portfolio}>Portfolio</a>}
-        </div>
-      </header>
+    <div class="cvd-root">
+      <main class="cvd-paper" role="main">
 
-      {!isHidden("summary") && summary && (
-        <section>
-          <h2>Profil</h2>
-          <p class="summary">{summary}</p>
-        </section>
-      )}
+        <!-- ════ HERO (indigo clair) ════ -->
+        <header class="cvd-hero">
+          <div class="cvd-hero-text">
+            <div class="cvd-status"><span class="cvd-status-dot"></span>Disponible · démarrage immédiat</div>
+            <h1 class="cvd-name">{profile.name || "[Nom]"}</h1>
+            {profile.title && <p class="cvd-role">{profile.title}</p>}
+            {!isHidden("summary") && summary && <p class="cvd-summary">{summary}</p>}
 
-      {!isHidden("skills") && skillCategories.length > 0 && (
-        <section>
-          <h2>Compétences</h2>
-          {skillCategories.map((cat) => (
-            <div class="skill-cat">
-              <span class="cat-name">{cat.name} : </span>
-              {cat.items.map((s, i) => (
-                <span class={s.highlighted ? "skill hl" : "skill"}>
-                  {s.name}{s.level ? ` (${s.level})` : ""}{i < cat.items.length - 1 ? ", " : ""}
+            <div class="cvd-pills">
+              {contacts.map((c) => (
+                <span class="cvd-pill">
+                  <span class="cvd-pill-icon" set:html={icons[c.icon]} />
+                  {c.href ? <a class="cvd-pill-link" href={c.href}>{c.value}</a> : <span class="cvd-pill-link">{c.value}</span>}
                 </span>
               ))}
             </div>
-          ))}
-          {softSkills.length > 0 && (
-            <div class="skill-cat">
-              <span class="cat-name">Savoir-être : </span>
-              <span class="skill">{softSkills.join(", ")}</span>
-            </div>
-          )}
-        </section>
-      )}
-
-      {!isHidden("experiences") && experiences.length > 0 && (
-        <section>
-          <h2>Expérience</h2>
-          {experiences.map((e) => (
-            <div class="item">
-              <div class="item-head">
-                <span class="item-title">{e.role}{e.company ? ` — ${e.company}` : ""}</span>
-                <span class="item-dates">{[e.start, e.end].filter(Boolean).join(" – ")}</span>
+            {infos.length > 0 && (
+              <div class="cvd-pills cvd-pills-info">
+                {infos.map((d) => (
+                  <span class="cvd-pill"><span class="cvd-pill-label">{d.label} :</span><span class="cvd-pill-link">{d.value}</span></span>
+                ))}
               </div>
-              {e.location && <div class="item-sub">{e.location}</div>}
-              {e.bullets?.length > 0 && (
-                <ul class="bullets">{e.bullets.map((b) => <li>{b}</li>)}</ul>
-              )}
-            </div>
-          ))}
-        </section>
-      )}
-
-      {!isHidden("projects") && projects.length > 0 && (
-        <section>
-          <h2>Projets</h2>
-          {projects.map((p) => (
-            <div class="item">
-              <div class="item-head">
-                <span class="item-title">{p.name}</span>
-                {p.url && <a class="item-dates" href={p.url}>{p.url}</a>}
-              </div>
-              {p.description && <div>{p.description}</div>}
-              {p.tech?.length > 0 && <div class="tech">{p.tech.join(" · ")}</div>}
-            </div>
-          ))}
-        </section>
-      )}
-
-      {!isHidden("education") && education.length > 0 && (
-        <section>
-          <h2>Formation</h2>
-          {education.map((e) => (
-            <div class="item">
-              <div class="item-head">
-                <span class="item-title">{e.degree}{e.school ? ` — ${e.school}` : ""}</span>
-                <span class="item-dates">{[e.start, e.end].filter(Boolean).join(" – ")}</span>
-              </div>
-              {e.location && <div class="item-sub">{e.location}</div>}
-              {e.details && <div>{e.details}</div>}
-            </div>
-          ))}
-        </section>
-      )}
-
-      {!isHidden("certifications") && certifications.length > 0 && (
-        <section>
-          <h2>Certifications</h2>
-          {certifications.map((c) => (
-            <div class="item-head">
-              <span>{c.name}{c.issuer ? ` — ${c.issuer}` : ""}</span>
-              {c.year && <span class="item-dates">{c.year}</span>}
-            </div>
-          ))}
-        </section>
-      )}
-
-      {!isHidden("languages") && languages.length > 0 && (
-        <section>
-          <h2>Langues</h2>
-          <div class="skill-cat">
-            {languages.map((l, i) => (
-              <span class="skill">{l.name}{l.level ? ` (${l.level})` : ""}{i < languages.length - 1 ? ", " : ""}</span>
-            ))}
+            )}
           </div>
-        </section>
-      )}
-    </main>
+          {photoSrc && (
+            <div class="cvd-photo-wrap"><img class="cvd-photo" src={photoSrc} alt={profile.name} width="96" height="116" /></div>
+          )}
+        </header>
+
+        <!-- ════ BODY ════ -->
+        <div class="cvd-body">
+
+          {!isHidden("skills") && skillRows.length > 0 && (
+            <section class="cvd-section">
+              <h2 class="cvd-h2"><span class="cvd-dot"></span>Compétences</h2>
+              <div class="cvd-skills">
+                {skillRows.map((cat) => (
+                  <div class="cvd-skill-row">
+                    <span class="cvd-badge-cat">{cat.name}</span>
+                    <span class="cvd-skill-val">
+                      {cat.items.map((s, i) => (
+                        <span class={s.hl ? "cvd-hl" : ""}>{s.label}{i < cat.items.length - 1 ? ", " : ""}</span>
+                      ))}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {!isHidden("projects") && projects.length > 0 && (
+            <section class="cvd-section">
+              <h2 class="cvd-h2"><span class="cvd-dot"></span>Projets réalisés</h2>
+              {projects.map((p) => (
+                <div class="cvd-project">
+                  <div class="cvd-proj-top">
+                    <span class="cvd-proj-name">{p.url ? <a href={p.url}>{p.name}</a> : p.name}</span>
+                    {p.period && <span class="cvd-proj-period">{p.period}</span>}
+                  </div>
+                  {p.tech?.length > 0 && <p class="cvd-proj-stack">{p.tech.join(" · ")}</p>}
+                  {p.description && <p class="cvd-proj-desc">{p.description}</p>}
+                </div>
+              ))}
+            </section>
+          )}
+
+          {!isHidden("experiences") && experiences.length > 0 && (
+            <section class="cvd-section">
+              <h2 class="cvd-h2"><span class="cvd-dot"></span>Expériences professionnelles</h2>
+              <div class="cvd-timeline">
+                {experiences.map((e) => (
+                  <div class="cvd-tl-item">
+                    <div class="cvd-tl-head">
+                      <div>
+                        <span class="cvd-tl-org">{e.company || e.role}</span>
+                        <span class="cvd-tl-role">{e.company ? e.role : e.location}</span>
+                      </div>
+                      {e.date && <span class="cvd-tl-date">{e.date}</span>}
+                    </div>
+                    {e.tasks.length > 0 && <ul class="cvd-tasks">{e.tasks.map((t) => <li>{t}</li>)}</ul>}
+                    {e.tags.length > 0 && <div class="cvd-tags">{e.tags.map((t) => <span class="cvd-tag">{t}</span>)}</div>}
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {!isHidden("education") && education.length > 0 && (
+            <section class="cvd-section">
+              <h2 class="cvd-h2"><span class="cvd-dot"></span>Formations</h2>
+              <div class="cvd-timeline">
+                {education.map((ed) => (
+                  <div class="cvd-tl-item cvd-tl-compact">
+                    <div class="cvd-tl-head">
+                      <div>
+                        <span class="cvd-tl-org">{ed.degree}</span>
+                        <span class="cvd-tl-role">{ed.school}{ed.location ? `, ${ed.location}` : ""}</span>
+                      </div>
+                      {ed.date && <span class="cvd-tl-date">{ed.date}</span>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {!isHidden("certifications") && certifications.length > 0 && (
+            <section class="cvd-section">
+              <h2 class="cvd-h2"><span class="cvd-dot"></span>Certifications</h2>
+              {certifications.map((c) => (
+                <p class="cvd-mini">{c.year && <span class="cvd-mini-date">{c.year}</span>}<strong>{c.name}</strong>{c.issuer ? ` — ${c.issuer}` : ""}</p>
+              ))}
+            </section>
+          )}
+
+        </div>
+      </main>
+    </div>
+
+    <style is:inline>
+      .cvd-root {
+        --bg: #fff; --fg: #141a1f; --fg-muted: #424d57; --fg-sub: #5f6b75; --border: #e3e8eb;
+        --b50: #eef2ff; --b100: #e0e7ff; --b200: #c7d2fe; --b300: #a5b4fc;
+        --b500: #4f46e5; --b600: #4338ca; --b700: #3730a3;
+        background: #fff; font-family: 'Manrope Variable', Manrope, system-ui, sans-serif;
+        color: var(--fg); -webkit-font-smoothing: antialiased;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; background: #fff; }
+      .cvd-paper { position: relative; background: var(--bg); overflow: visible; }
+
+      .cvd-hero { position: relative; display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; margin: 5mm 7mm 2mm; padding: 3.5mm 6mm; background: var(--b50); }
+      .cvd-hero::after { content: ''; position: absolute; inset: 0; pointer-events: none; background:
+        linear-gradient(var(--b500),var(--b500)) top left/15px 2px no-repeat, linear-gradient(var(--b500),var(--b500)) top left/2px 15px no-repeat,
+        linear-gradient(var(--b500),var(--b500)) top right/15px 2px no-repeat, linear-gradient(var(--b500),var(--b500)) top right/2px 15px no-repeat,
+        linear-gradient(var(--b500),var(--b500)) bottom left/15px 2px no-repeat, linear-gradient(var(--b500),var(--b500)) bottom left/2px 15px no-repeat,
+        linear-gradient(var(--b500),var(--b500)) bottom right/15px 2px no-repeat, linear-gradient(var(--b500),var(--b500)) bottom right/2px 15px no-repeat; }
+      .cvd-hero-text { position: relative; z-index: 1; flex: 1; }
+      .cvd-name { font-family: 'Outfit Variable', Outfit, system-ui, sans-serif; font-size: 30px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.05; color: var(--b700); margin: 0 0 4px; }
+      .cvd-role { font-size: 13.5px; font-weight: 700; color: var(--b600); margin: 0 0 7px; }
+      .cvd-summary { font-size: 11px; color: var(--fg-muted); max-width: 60ch; line-height: 1.5; margin: 0 0 9px; }
+
+      .cvd-pills { display: flex; flex-wrap: wrap; gap: 4px 5px; margin-bottom: 5px; }
+      .cvd-pill { display: inline-flex; align-items: center; gap: 4px; font-family: 'JetBrains Mono Variable','JetBrains Mono', ui-monospace, monospace; font-size: 8.5px; background: #fff; border: 1px solid var(--border); border-radius: 9999px; padding: 2px 7px; }
+      .cvd-pill-label { color: var(--fg-muted); }
+      .cvd-pill-link { color: var(--b700); text-decoration: none; font-weight: 600; }
+      .cvd-pill-icon { display: inline-flex; width: 11px; height: 11px; color: var(--b600); flex-shrink: 0; }
+      .cvd-pill-icon svg { width: 11px; height: 11px; }
+      .cvd-pills-info { margin-top: 2px; }
+
+      .cvd-status { display: inline-flex; align-items: center; gap: 6px; font-family: 'JetBrains Mono Variable','JetBrains Mono', ui-monospace, monospace; font-size: 9px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--b700); background: #fff; border: 1px solid var(--border); border-radius: 9999px; padding: 2px 10px; margin-bottom: 8px; }
+      .cvd-status-dot { width: 7px; height: 7px; border-radius: 50%; background: #34d399; box-shadow: 0 0 0 3px rgb(52 211 153 / .25); }
+
+      .cvd-photo-wrap { position: relative; z-index: 1; flex-shrink: 0; }
+      .cvd-photo { width: 96px; height: 116px; object-fit: cover; border-radius: 9px; display: block; border: 2px solid var(--b500); box-shadow: 0 2px 8px rgb(0 0 0 / .12); }
+
+      .cvd-body { padding: 4mm 11mm 5mm; }
+      .cvd-section { margin-bottom: 7px; }
+      .cvd-section:last-child { margin-bottom: 0; }
+      .cvd-h2 { font-family: 'JetBrains Mono Variable','JetBrains Mono', ui-monospace, monospace; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; color: var(--b600); display: flex; align-items: center; gap: 8px; margin: 0 0 5px; }
+      .cvd-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--b500); flex-shrink: 0; }
+      .cvd-h2::after { content: ''; flex: 1; height: 2px; border-radius: 2px; background: linear-gradient(90deg, var(--b200), transparent); }
+
+      .cvd-skills { display: flex; flex-direction: column; }
+      .cvd-skill-row { display: grid; grid-template-columns: 150px 1fr; gap: 4px 14px; font-size: 11px; padding: 2px 0; border-bottom: 1px solid var(--b50); align-items: center; }
+      .cvd-skill-row:last-child { border-bottom: none; }
+      .cvd-badge-cat { font-family: 'JetBrains Mono Variable','JetBrains Mono', ui-monospace, monospace; font-size: 9px; font-weight: 700; color: var(--b600); background: rgb(79 70 229 / .08); border: 1px solid rgb(79 70 229 / .18); border-radius: 4px; padding: 1px 5px; white-space: nowrap; justify-self: start; }
+      .cvd-skill-val { color: var(--fg); }
+      .cvd-skill-val .cvd-hl { font-weight: 700; color: var(--b700); }
+
+      .cvd-project { margin-bottom: 5px; }
+      .cvd-project:last-child { margin-bottom: 0; }
+      .cvd-proj-top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+      .cvd-proj-name { font-size: 12px; font-weight: 700; color: var(--fg); }
+      .cvd-proj-name a { color: var(--b600); text-decoration: none; border-bottom: 1.5px solid var(--b300); }
+      .cvd-proj-period { font-family: 'JetBrains Mono Variable','JetBrains Mono', ui-monospace, monospace; font-size: 8.5px; font-weight: 700; color: var(--b600); background: rgb(79 70 229 / .08); border: 1px solid rgb(79 70 229 / .18); border-radius: 4px; padding: 1px 6px; white-space: nowrap; }
+      .cvd-proj-stack { font-family: 'JetBrains Mono Variable','JetBrains Mono', ui-monospace, monospace; font-size: 8.5px; color: var(--fg-sub); margin: 1px 0 2px; }
+      .cvd-proj-desc { font-size: 10.5px; color: var(--fg-muted); line-height: 1.4; margin: 0; }
+
+      .cvd-timeline { position: relative; padding-left: 16px; }
+      .cvd-timeline::before { content: ''; position: absolute; left: 3px; top: 4px; bottom: 4px; width: 2px; border-radius: 2px; background: linear-gradient(180deg, var(--b300), var(--b200)); }
+      .cvd-tl-item { position: relative; margin-bottom: 7px; }
+      .cvd-tl-item:last-child { margin-bottom: 0; }
+      .cvd-tl-item::before { content: ''; position: absolute; left: -16px; top: 3px; width: 8px; height: 8px; border-radius: 50%; background: var(--b500); border: 2px solid var(--bg); box-shadow: 0 0 0 1.5px var(--b300); }
+      .cvd-tl-compact { margin-bottom: 4px; }
+      .cvd-tl-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+      .cvd-tl-org { display: block; font-size: 12px; font-weight: 700; color: var(--fg); }
+      .cvd-tl-role { display: block; font-size: 11px; font-weight: 500; color: var(--b600); }
+      .cvd-tl-date { font-family: 'JetBrains Mono Variable','JetBrains Mono', ui-monospace, monospace; font-size: 8.5px; font-weight: 700; color: var(--b600); white-space: nowrap; background: rgb(79 70 229 / .08); border: 1px solid rgb(79 70 229 / .18); border-radius: 4px; padding: 1px 6px; align-self: flex-start; }
+      .cvd-tasks { list-style: none; padding: 0; margin: 3px 0; }
+      .cvd-tasks li { position: relative; padding-left: 13px; font-size: 10.5px; color: var(--fg-muted); line-height: 1.35; margin-bottom: 1px; }
+      .cvd-tasks li::before { content: "▸"; position: absolute; left: 0; color: var(--b500); font-size: 9px; top: .12em; }
+      .cvd-tags { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 2px; }
+      .cvd-tag { font-family: 'JetBrains Mono Variable','JetBrains Mono', ui-monospace, monospace; font-size: 8.5px; font-weight: 600; color: var(--b700); background: var(--b50); border: 1px solid var(--b100); padding: 1px 6px; border-radius: 4px; }
+
+      .cvd-mini { font-size: 10.5px; color: var(--fg-muted); margin: 0 0 3px; line-height: 1.4; }
+      .cvd-mini strong { color: var(--fg); font-weight: 600; }
+      .cvd-mini-date { display: inline-block; font-family: 'JetBrains Mono Variable','JetBrains Mono', ui-monospace, monospace; font-size: 8.5px; font-weight: 700; color: var(--b600); margin-right: 6px; background: rgb(79 70 229 / .08); border: 1px solid rgb(79 70 229 / .18); border-radius: 4px; padding: 1px 6px; }
+
+      @page { size: A4; margin: 0; }
+      @media print {
+        *, *::before, *::after { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        .cvd-project, .cvd-tl-item, .cvd-mini { page-break-inside: avoid; }
+      }
+    </style>
   </body>
 </html>

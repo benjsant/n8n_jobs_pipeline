@@ -154,6 +154,7 @@ export function mapCv(cv, existingProfile = {}) {
     summary: cv.header?.summary ?? "",
     // Champs manuels (absents du portfolio) : préservés d'un sync à l'autre.
     residence: keepIfFilled(existingProfile.residence, ""),
+    permis: keepIfFilled(existingProfile.permis, ""),
     mobility_label: keepIfFilled(existingProfile.mobility_label, ""),
     alternance: keepIfFilled(existingProfile.alternance, { formation_visee: "", rythme: "", date_debut: "" }),
     salary: keepIfFilled(existingProfile.salary, { min: null, ideal: null }),
