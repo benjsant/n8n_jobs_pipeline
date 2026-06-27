@@ -1,14 +1,20 @@
 ---
 // Page de rendu du CV. Charge la personnalisation produite par l'agent (si
 // fournie via CV_PERSONALIZATION) et la passe au template maître.
+//
+// CV_STYLE choisit le rendu : "ats" (défaut, 1 colonne sans photo, pensé pour
+// les filtres ATS) ou "design" (hero indigo, timeline, photo optionnelle).
 import fs from "node:fs";
-import Cv from "../../template.astro";
+import CvAts from "../../template-ats.astro";
+import CvDesign from "../../template.astro";
 
 const file = process.env.CV_PERSONALIZATION;
 let personalization = {};
 if (file && fs.existsSync(file)) {
   personalization = JSON.parse(fs.readFileSync(file, "utf-8"));
 }
+
+const Cv = process.env.CV_STYLE === "design" ? CvDesign : CvAts;
 ---
 
 <Cv personalization={personalization} />

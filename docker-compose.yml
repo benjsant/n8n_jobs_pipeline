@@ -131,6 +131,8 @@ services:
     environment:
       # Dossier des templates de lettres (corps figé) lus pour l'assemblage.
       LETTERS_DIR: /assets/letters
+      # Style du CV rendu : "ats" (défaut, 1 colonne sans photo) ou "design".
+      CV_STYLE: ${CV_STYLE:-ats}
     # Pas de port exposé vers l'hôte : seul n8n l'appelle, via http://render:8000
     expose:
       - "8000"

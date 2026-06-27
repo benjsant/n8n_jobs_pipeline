@@ -5,6 +5,14 @@ personnalisation** ; Astro fait le rendu déterministe → PDF. L'agent ne touch
 jamais au HTML/CSS et **n'invente rien** : il ne peut que réordonner, mettre en
 avant ou masquer ce qui existe déjà dans les fichiers ci-dessous.
 
+**Deux styles, mêmes données.** La variable `CV_STYLE` choisit le rendu (les
+deux lisent les mêmes `*.json` + la personnalisation) :
+
+| `CV_STYLE` | Template | Rendu |
+|---|---|---|
+| `ats` (défaut) | `template-ats.astro` | 1 colonne, **sans photo**, bandeau contact texte — pensé pour les filtres ATS des recruteurs |
+| `design` | `template.astro` | hero indigo, pills à icônes, timeline, **photo optionnelle** (`public/photo.jpg`) |
+
 ## Fichiers (données — source unique et autorisée)
 
 | Fichier | Contenu | Forme d'un élément |
