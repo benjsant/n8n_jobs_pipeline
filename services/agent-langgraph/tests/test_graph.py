@@ -1,10 +1,20 @@
-"""Tests du graphe (LLM mocké, aucune clé requise)."""
+"""Tests du graphe (LLM + recherche web mockés, aucune clé ni réseau requis)."""
 import json
+
+import pytest
 
 from agent import graph as G
 from agent.schema import TEMPLATES, AgentOutput
 
 CTX = {"system_prompt": "system", "cv_index": "Python, FastAPI"}
+
+
+@pytest.fixture(autouse=True)
+def _no_web(monkeypatch):
+    """Neutralise la recherche web (le nœud research) — pas de réseau en test."""
+    import agent.tools as tools
+
+    monkeypatch.setattr(tools, "search_company_web", lambda *a, **k: "")
 
 
 class _Resp:

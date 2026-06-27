@@ -88,8 +88,24 @@ def analyze_node(state: AgentState) -> dict:
     return patch
 
 
+def research_node(state: AgentState) -> dict:
+    """Tool de grounding : extraits web réels sur l'entreprise (ou '' si rien)."""
+    from .tools import search_company_web
+
+    offer = state.get("offer", {})
+    return {"company_web": search_company_web(offer.get("company", ""), offer.get("location", ""))}
+
+
 def accroche_node(state: AgentState) -> dict:
-    user = build_user_message(state.get("offer", {}), state.get("cv_index", "")) + "\n\n" + ACCROCHE_TASK
+    web = state.get("company_web") or ""
+    grounding = (
+        "\n\nINFOS WEB RÉELLES sur l'entreprise (résultats de recherche — utilise-les "
+        "SI pertinents et fiables, sinon IGNORE ; n'invente JAMAIS un fait absent de "
+        f"ces extraits ou de l'offre) :\n{web}\n"
+        if web
+        else ""
+    )
+    user = build_user_message(state.get("offer", {}), state.get("cv_index", "")) + grounding + "\n\n" + ACCROCHE_TASK
     data, err = _llm_json(state.get("system_prompt", ""), user, 0.7)
     if isinstance(data.get("lettre"), dict):
         lettre = data["lettre"]
@@ -140,10 +156,12 @@ def coerce_output(data: object) -> dict:
 def build_graph():
     g = StateGraph(AgentState)
     g.add_node("analyze", analyze_node)
+    g.add_node("research", research_node)
     g.add_node("accroche", accroche_node)
     g.add_node("validate", validate_node)
     g.add_edge(START, "analyze")
-    g.add_edge("analyze", "accroche")
+    g.add_edge("analyze", "research")
+    g.add_edge("research", "accroche")
     g.add_edge("accroche", "validate")
     g.add_edge("validate", END)
     return g.compile(checkpointer=MemorySaver())

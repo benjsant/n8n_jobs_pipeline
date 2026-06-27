@@ -67,6 +67,7 @@ class AgentState(TypedDict, total=False):
     offer: dict          # Offer.model_dump()
     cv_index: str        # contenu de cv/cv-index.json (valeurs sélectionnables)
     system_prompt: str   # prompts/agent-system-prompt.md
+    company_web: str     # extraits web réels sur l'entreprise (nœud research)
     analysis: dict       # sortie du nœud analyze (§6 sans la lettre)
     lettre: dict         # sortie du nœud accroche ({template, accroche})
     output: dict         # AgentOutput.model_dump() — sortie finale (validate)
