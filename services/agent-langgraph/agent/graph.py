@@ -127,7 +127,7 @@ def validate_node(state: AgentState) -> dict:
     if lettre.get("template") not in TEMPLATES:
         lettre["template"] = "ia-junior"
     merged["lettre"] = lettre
-    merged["conseils"] = no_dash(merged.get("conseils", merged.get("conseils") or ""))
+    merged["conseils"] = no_dash(merged.get("conseils") or "")
     return {"output": coerce_output(merged)}
 
 
