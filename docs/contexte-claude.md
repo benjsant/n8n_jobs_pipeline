@@ -10,7 +10,7 @@
 
 ---
 
-## 🔄 REPRISE DE SESSION — handoff (2026-06-25)
+## 🔄 REPRISE DE SESSION — handoff (2026-06-27)
 
 > À lire en premier pour reprendre. Résume l'état exact et le travail en cours.
 
@@ -23,27 +23,26 @@ Service de rendu, purge auto (`cleanup`, 21 j), guides `docs/oauth-google.md` +
 `docs/cles-sources.md`. Préférences candidat : **pas de tiret cadratin (—)**, pas
 d'exagération de distance (encodées §5 du system prompt + mémoire).
 
-**EN COURS — branche `feat/agent-langgraph` (NON poussée)** : extraction de l'agent du
-`02` vers un service **LangGraph** (`services/agent-langgraph/`, plan `docs/plan-langgraph.md`).
+**EN COURS — branche `feat/agent-langgraph` (poussée sur `origin`)** : extraction de
+l'agent du `02` vers un service **LangGraph** (`services/agent-langgraph/`, plan
+`docs/plan-langgraph.md`).
 - ✅ Phase 1.1 (commit `ecfe064`) : squelette strangler, 1 nœud, parité §6 prouvée.
 - ✅ Phase 1.2 (commit `2444013`) : 3 nœuds `analyze`(0.2) → `accroche`(0.7) → `validate`
   (déterministe, anti tiret cadratin). 5 tests verts, parité réelle OK.
-- 🚧 Phase 2 — tool **`company_research`** (grounding anti-invention) : **code complet,
-  NON testé**. Fait : `agent/tools.py` (`search_company_web` DuckDuckGo HTML, tolérant),
-  `research_node` + edges `analyze → research → accroche` câblés, grounding injecté dans
-  `accroche_node`, canal `company_web` + `httpx` aux deps (`pyproject` + `Dockerfile`),
-  recherche **mockée** dans les tests. **RESTE À FAIRE** : (a) rebuild `docker build
-  --network=host -t agent-langgraph services/agent-langgraph` ; (b) `pytest` (doit rester
-  vert) ; (c) **un vrai appel** sur une offre dont l'entreprise est peu connue (ex. Ponera)
-  pour vérifier que le grounding **évite l'invention** (ne pas redire « ESN ») ; (d) commit
-  « Phase 2 ». ⚠️ La recherche DDG peut être bloquée/vide → `search_company_web` renvoie ''
-  et l'accroche retombe sur l'offre (pas de régression, mais pas de grounding non plus).
+- ✅ **Phase 2 — tool `company_research`** (commits `adf05b9` WIP + `2a56341` finalisation) :
+  graphe `analyze → research → accroche → validate`. `agent/tools.py`
+  (`search_company_web` DuckDuckGo HTML, tolérant → '' si bloqué), grounding injecté dans
+  `accroche_node`, `httpx` aux deps, recherche mockée dans les tests. **VALIDÉ le 2026-06-27** :
+  build `--network=host` OK, **pytest 5/5 vert**, **vrai appel DeepSeek** sur une offre Ponera
+  → DDG renvoie le vrai secteur (logistique/e-commerce, entrepôt Prouvy), accroche groundée,
+  **aucune invention d'« ESN »**, template `backend`, score 85. README service à jour.
+  ⚠️ DDG peut rester bloqué/vide selon le réseau → fallback propre (accroche sur l'offre).
 
 **FILE D'ATTENTE (demandé par l'utilisateur)** :
-1. **Finir Phase 2** (company_research, ci-dessus).
-2. **Intégration LangGraph** : ajouter le service au `docker-compose` + faire pointer le
-   `02` vers `POST http://agent-langgraph:8001/agent/run` (au lieu de DeepSeek direct) ;
-   **mesurer v1 vs v2** (5 lettres) ; merge dans `main` + tag `v0.2.0`.
+1. ✅ ~~Finir Phase 2~~ (fait le 2026-06-27).
+2. **Intégration LangGraph (EN COURS)** : ajouter le service au `docker-compose` + faire
+   pointer le `02` vers `POST http://agent-langgraph:8001/agent/run` (au lieu de DeepSeek
+   direct) ; **mesurer v1 vs v2** (5 lettres) ; merge dans `main` + tag `v0.2.0`.
 3. **CV ATS** (sur `main`, séparé de LangGraph) : l'utilisateur veut **remplacer le design**
    (actuel = `cv-design.astro` du portfolio porté dans `cv/template.astro`) **par la version
    ATS** du portfolio = **`astro-portfolio/src/pages/cv.astro`** (1 colonne, sans photo/
