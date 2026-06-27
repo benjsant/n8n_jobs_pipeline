@@ -1,0 +1,60 @@
+# services/agent-langgraph — agent de candidature (LangGraph)
+
+Extraction de l'agent du workflow n8n `02` vers un service Python **LangGraph**
+(plan : `docs/plan-langgraph.md`). n8n reste l'orchestrateur (collecte, Discord,
+rendu, livraison) ; ce service porte l'**intelligence** (scoring, accroche,
+personnalisation CV).
+
+## État : Phase 2 — graphe décomposé + tool `company_research`
+
+```
+START → analyze → research → accroche → validate → END
+```
+
+- **analyze** — LLM (temp 0.2) : le jugement. Score + sous-scores, matching/missing,
+  `personnalisation_cv`, `conseils`, `objet_email`… tout le §6 **sauf** la lettre.
+  Température basse = scoring stable et reproductible.
+- **research** — tool `company_research` ([`agent/tools.py`](agent/tools.py)) :
+  recherche web légère (DuckDuckGo HTML, sans clé) pour **grounder** l'accroche sur
+  des infos entreprise réelles → renforce le garde-fou anti-invention. Tolérant :
+  réseau coupé/bloqué → chaîne vide (l'accroche retombe sur l'offre, sans régression).
+- **accroche** — LLM (temp 0.7) : le créatif. Choix du template + accroche (2-3 phrases),
+  avec les extraits web injectés en grounding (utilisés **si** pertinents, jamais inventés).
+- **validate** — déterministe : retire les tirets cadratin (marqueur IA), normalise le
+  template, fusionne en objet §6 final. Aucun LLM → corps de lettre garanti hors LLM.
+
+La **sortie JSON reste IDENTIQUE au §6** (parité avec le monolithe / le workflow `02`).
+Chaque nœud est une fonction pure (state → patch de state), testable en isolation.
+
+## Endpoints
+
+| Méthode | Route | Entrée | Sortie |
+|---|---|---|---|
+| GET | `/health` | — | `{ status, prompt_loaded, cv_index_loaded }` |
+| POST | `/agent/run` | `{ title, company, description, company_info?, location?, spontaneous? }` | objet §6 (`agent/schema.py`) |
+
+## Variables d'env
+
+`DEEPSEEK_API_KEY`, `DEEPSEEK_BASE_URL` (défaut `https://api.deepseek.com`),
+`DEEPSEEK_MODEL` (défaut `deepseek-chat`). Contexte lu au démarrage :
+`PROMPT_PATH` (défaut `/prompts/agent-system-prompt.md`),
+`CV_INDEX_PATH` (défaut `/cv/cv-index.json`) — montés en lecture seule.
+
+## Dév (conteneur)
+
+```bash
+# build (--network=host si le DNS du builder coince)
+docker build --network=host -t agent-langgraph services/agent-langgraph
+
+# tests (sans clé : le LLM est mocké)
+docker run --rm -v "$PWD/services/agent-langgraph":/app -w /app python:3.12-slim \
+  sh -c 'pip install -q uv && uv pip install --system -q langgraph langchain-openai pydantic pytest && pytest -q'
+```
+
+## À venir (Phases suivantes)
+- **Intégration** : ajouter le service au `docker-compose` et faire pointer le `02`
+  vers `POST http://agent-langgraph:8001/agent/run` au lieu de DeepSeek direct ;
+  mesurer v1 (monolithe) vs v2 (graphe) sur 5 lettres avant de tagger `v0.2.0`.
+- Retry granulaire par nœud (backoff sur les nœuds LLM).
+- Bascule `MemorySaver` → `PostgresSaver` (même Postgres que n8n).
+- `interrupt` / streaming pour la démo (Phase 3).

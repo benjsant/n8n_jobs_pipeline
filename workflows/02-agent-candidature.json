@@ -121,14 +121,10 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ $env.DEEPSEEK_BASE_URL }}/chat/completions",
+        "url": "={{ $env.AGENT_API_URL }}/agent/run",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            {
-              "name": "Authorization",
-              "value": "=Bearer {{ $env.DEEPSEEK_API_KEY }}"
-            },
             {
               "name": "Content-Type",
               "value": "application/json"
@@ -137,11 +133,11 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"model\": \"{{ $env.DEEPSEEK_MODEL }}\",\n  \"messages\": [\n    { \"role\": \"system\", \"content\": {{ JSON.stringify($json.data) }} },\n    { \"role\": \"user\", \"content\": {{ JSON.stringify('Offre: ' + $('Normaliser entrée').first().json.title + ' chez ' + $('Normaliser entrée').first().json.company + '\\n\\nDescription:\\n' + $('Normaliser entrée').first().json.description + '\\n\\nInfos entreprise:\\n' + ($('Normaliser entrée').first().json.company_info || 'Non fournies') + '\\n\\nVALEURS DISPONIBLES POUR personnalisation_cv (choisis EXCLUSIVEMENT parmi elles, ids/noms exacts):\\n' + $('Extraire index CV').first().json.data) }} }\n  ],\n  \"response_format\": { \"type\": \"json_object\" },\n  \"temperature\": 0.7\n}",
+        "jsonBody": "={\n  \"title\": {{ JSON.stringify($('Normaliser entrée').first().json.title) }},\n  \"company\": {{ JSON.stringify($('Normaliser entrée').first().json.company) }},\n  \"location\": {{ JSON.stringify($('Normaliser entrée').first().json.location || '') }},\n  \"description\": {{ JSON.stringify($('Normaliser entrée').first().json.description) }},\n  \"company_info\": {{ JSON.stringify($('Normaliser entrée').first().json.company_info || '') }},\n  \"spontaneous\": {{ $('Normaliser entrée').first().json.spontaneous === true }}\n}",
         "options": {}
       },
       "id": "call-deepseek",
-      "name": "Appel DeepSeek",
+      "name": "Appel agent LangGraph",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
@@ -151,7 +147,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Parse la sortie de l'agent et la valide a minima (cf. system prompt §6).\nconst raw = $input.first().json.choices?.[0]?.message?.content ?? '';\nlet p;\ntry { p = JSON.parse(raw); } catch (e) { p = { erreur: 'JSON invalide', brut: raw }; }\nif (typeof p.score !== 'number') p.score = 0;\nif (!p.lettre || typeof p.lettre !== 'object') p.lettre = { template: '', accroche: '' };\nif (!p.personnalisation_cv || typeof p.personnalisation_cv !== 'object') {\n  p.personnalisation_cv = { summary: '', highlight_skills: [], highlight_projects: [], highlight_experiences: [], hidden_sections: [] };\n}\nreturn [{ json: p }];"
+        "jsCode": "// La réponse du service agent-langgraph EST déjà l'objet §6 (cf. agent/schema.py).\n// On garde des défauts défensifs (parité avec l'ancien parser DeepSeek).\nconst p = { ...$input.first().json };\nif (typeof p.score !== 'number') p.score = 0;\nif (!p.lettre || typeof p.lettre !== 'object') p.lettre = { template: '', accroche: '' };\nif (!p.personnalisation_cv || typeof p.personnalisation_cv !== 'object') {\n  p.personnalisation_cv = { summary: '', highlight_skills: [], highlight_projects: [], highlight_experiences: [], hidden_sections: [] };\n}\nreturn [{ json: p }];"
       },
       "id": "parse-output",
       "name": "Parser sortie agent",
@@ -537,18 +533,7 @@
       "main": [
         [
           {
-            "node": "Appel DeepSeek",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Appel DeepSeek": {
-      "main": [
-        [
-          {
-            "node": "Parser sortie agent",
+            "node": "Appel agent LangGraph",
             "type": "main",
             "index": 0
           }
@@ -693,6 +678,17 @@
         [
           {
             "node": "Lancer finalisation (04)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Appel agent LangGraph": {
+      "main": [
+        [
+          {
+            "node": "Parser sortie agent",
             "type": "main",
             "index": 0
           }

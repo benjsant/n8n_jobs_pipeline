@@ -10,6 +10,50 @@
 
 ---
 
+## 🔄 REPRISE DE SESSION — handoff (2026-06-27)
+
+> À lire en premier pour reprendre. Résume l'état exact et le travail en cours.
+
+**MVP n8n = TERMINÉ et déployé sur `main`** (11 commits poussés). Chaîne complète
+**sans Google** : `01` (cron 8h, sources **France Travail réparé + JobSpy**) → Discord
+→ clic Générer → `03 → 02` (agent DeepSeek → **CV au design portfolio** + **lettre
+assemblage déterministe**) → `04` = **livraison Discord** (CV + lettre en PJ, garde-fou
+humain). Maillon spontané `05` OK (manque `LBA_API_KEY` pour de vraies entreprises).
+Service de rendu, purge auto (`cleanup`, 21 j), guides `docs/oauth-google.md` +
+`docs/cles-sources.md`. Préférences candidat : **pas de tiret cadratin (—)**, pas
+d'exagération de distance (encodées §5 du system prompt + mémoire).
+
+**EN COURS — branche `feat/agent-langgraph` (poussée sur `origin`)** : extraction de
+l'agent du `02` vers un service **LangGraph** (`services/agent-langgraph/`, plan
+`docs/plan-langgraph.md`).
+- ✅ Phase 1.1 (commit `ecfe064`) : squelette strangler, 1 nœud, parité §6 prouvée.
+- ✅ Phase 1.2 (commit `2444013`) : 3 nœuds `analyze`(0.2) → `accroche`(0.7) → `validate`
+  (déterministe, anti tiret cadratin). 5 tests verts, parité réelle OK.
+- ✅ **Phase 2 — tool `company_research`** (commits `adf05b9` WIP + `2a56341` finalisation) :
+  graphe `analyze → research → accroche → validate`. `agent/tools.py`
+  (`search_company_web` DuckDuckGo HTML, tolérant → '' si bloqué), grounding injecté dans
+  `accroche_node`, `httpx` aux deps, recherche mockée dans les tests. **VALIDÉ le 2026-06-27** :
+  build `--network=host` OK, **pytest 5/5 vert**, **vrai appel DeepSeek** sur une offre Ponera
+  → DDG renvoie le vrai secteur (logistique/e-commerce, entrepôt Prouvy), accroche groundée,
+  **aucune invention d'« ESN »**, template `backend`, score 85. README service à jour.
+  ⚠️ DDG peut rester bloqué/vide selon le réseau → fallback propre (accroche sur l'offre).
+
+**FILE D'ATTENTE (demandé par l'utilisateur)** :
+1. ✅ ~~Finir Phase 2~~ (fait le 2026-06-27).
+2. **Intégration LangGraph (EN COURS)** : ajouter le service au `docker-compose` + faire
+   pointer le `02` vers `POST http://agent-langgraph:8001/agent/run` (au lieu de DeepSeek
+   direct) ; **mesurer v1 vs v2** (5 lettres) ; merge dans `main` + tag `v0.2.0`.
+3. **CV ATS** (sur `main`, séparé de LangGraph) : l'utilisateur veut **remplacer le design**
+   (actuel = `cv-design.astro` du portfolio porté dans `cv/template.astro`) **par la version
+   ATS** du portfolio = **`astro-portfolio/src/pages/cv.astro`** (1 colonne, sans photo/
+   badges, meilleur pour les filtres ATS recruteurs). Re-porter `cv.astro` dans
+   `cv/template.astro` avec la même technique : **`<style is:inline>`** (sinon Astro
+   externalise le CSS → cassé en `file://` au rendu PDF), données `cv/*.json` + perso
+   (highlight/masquage), photo optionnelle. Garder l'archi « DeepSeek = données, Astro = rendu ».
+
+**Rappels** : `main` = prod stable, ne pas y mettre le WIP LangGraph. Builds Docker avec
+**`--network=host`** (DNS du builder capricieux). `.env` jamais commité.
+
 ## 👤 Profil utilisateur
 
 - **Benjamin Santrisse** — Développeur Backend Python (API, IA appliquée),
