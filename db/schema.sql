@@ -10,6 +10,12 @@
 --        psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" < db/schema.sql
 -- =====================================================================
 
+-- Déduplication sémantique : l'extension pgvector stocke les embeddings des
+-- offres (cf. table offers). ⚠️ Requiert l'image Postgres `pgvector/pgvector:pg16`
+-- (l'extension `vector` n'est PAS incluse dans `postgres:alpine`). Sans elle,
+-- ce CREATE EXTENSION échoue ; le reste du pipeline (hash exact) marche quand même.
+CREATE EXTENSION IF NOT EXISTS vector;
+
 -- ---------------------------------------------------------------------
 -- search_profiles : configs de recherche (multi-profils). Chaque profil pilote
 -- une collecte (mots-clés, zone, contrat) et le scoring (must_have/exclusions).
@@ -68,9 +74,15 @@ CREATE TABLE IF NOT EXISTS offers (
 -- Pour les bases déjà créées avant ces colonnes (idempotent).
 ALTER TABLE offers ADD COLUMN IF NOT EXISTS score_reason TEXT;
 ALTER TABLE offers ADD COLUMN IF NOT EXISTS profile_id INTEGER REFERENCES search_profiles (id) ON DELETE SET NULL;
+-- Embedding pour la dédup sémantique (384 dims = modèle
+-- paraphrase-multilingual-MiniLM-L12-v2 du service `embeddings`).
+ALTER TABLE offers ADD COLUMN IF NOT EXISTS embedding vector(384);
 
 CREATE INDEX IF NOT EXISTS idx_offers_status ON offers (status);
 CREATE INDEX IF NOT EXISTS idx_offers_created_at ON offers (created_at DESC);
+-- Index ANN cosinus (HNSW) : recherche du plus proche voisin pour la dédup
+-- sémantique (ORDER BY embedding <=> $1). Ne couvre que les lignes embedded.
+CREATE INDEX IF NOT EXISTS idx_offers_embedding ON offers USING hnsw (embedding vector_cosine_ops);
 
 -- ---------------------------------------------------------------------
 -- companies : infos enrichies sur les entreprises

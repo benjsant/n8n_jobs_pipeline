@@ -1,7 +1,8 @@
 // Tests de offer-utils — exécuter : node workflows/lib/offer-utils.test.mjs
 import assert from "node:assert/strict";
 import { computeHash, scoreOffer, annotate, norm,
-  prefsFromProfile, matchesExclusions, canonTitle } from "./offer-utils.mjs";
+  prefsFromProfile, matchesExclusions, canonTitle,
+  cosineSim, embeddingText, semanticDupDecision, SEMANTIC_DUP_THRESHOLD } from "./offer-utils.mjs";
 
 let passed = 0;
 const t = (name, fn) => { fn(); passed++; console.log(`  ✓ ${name}`); };
@@ -106,6 +107,54 @@ t("offre hors profil (Lille, Python) ne dépend plus de 'Lyon' en dur", () => {
   const prefs = prefsFromProfile({ keywords: "python, fastapi, ia", contract_types: "CDI", seniority: "" });
   const o = { title: "Développeur Python / IA", description: "FastAPI, RAG, télétravail", contract_type: "CDI", location: "Lille", salary: "40k" };
   assert.ok(scoreOffer(o, prefs) >= 80, "offre alignée profil à Lille doit bien scorer");
+});
+
+// ── Déduplication sémantique (cosineSim + semanticDupDecision) ────────────────
+t("cosineSim : vecteurs identiques -> 1, orthogonaux -> 0, opposés -> -1", () => {
+  assert.ok(Math.abs(cosineSim([1, 2, 3], [1, 2, 3]) - 1) < 1e-9);
+  assert.ok(Math.abs(cosineSim([1, 0], [0, 1])) < 1e-9);
+  assert.ok(Math.abs(cosineSim([1, 1], [-1, -1]) + 1) < 1e-9);
+});
+
+t("cosineSim : dimensions incompatibles ou vecteur nul -> 0", () => {
+  assert.equal(cosineSim([1, 2], [1, 2, 3]), 0);
+  assert.equal(cosineSim([0, 0], [1, 2]), 0);
+  assert.equal(cosineSim("x", [1]), 0);
+});
+
+t("embeddingText : même texte pour des champs équivalents, borne la description", () => {
+  const a = embeddingText({ title: "Dev Python", company: "Acme", location: "Lille", description: "x".repeat(2000) });
+  assert.ok(a.startsWith("Dev Python \n Acme \n Lille"));
+  assert.ok(a.length < 600); // description tronquée à 500
+  // champs vides ignorés (pas de séparateurs orphelins)
+  assert.equal(embeddingText({ title: "T", company: "", location: "", description: "" }), "T");
+});
+
+t("semanticDupDecision : forte similarité + même entreprise -> doublon", () => {
+  const v1 = [1, 0.9, 0.2], v2 = [1, 0.92, 0.19];
+  const sim = cosineSim(v1, v2);
+  const d = semanticDupDecision(sim, { company: "NovaTech SAS" }, { company: "novatech" });
+  assert.ok(sim >= SEMANTIC_DUP_THRESHOLD);
+  assert.equal(d.isDup, true);
+  assert.equal(d.sameCompany, true);
+});
+
+t("semanticDupDecision : forte similarité mais entreprise différente -> PAS doublon", () => {
+  const d = semanticDupDecision(0.99, { company: "NovaTech" }, { company: "Capgemini" });
+  assert.equal(d.isDup, false);
+  assert.match(d.reason, /entreprise différente/);
+});
+
+t("semanticDupDecision : similarité sous le seuil -> distinct", () => {
+  const d = semanticDupDecision(0.5, { company: "Acme" }, { company: "Acme" });
+  assert.equal(d.isDup, false);
+  assert.match(d.reason, /distinct/);
+});
+
+t("semanticDupDecision : entreprise manquante d'un côté -> ne bloque pas", () => {
+  const d = semanticDupDecision(0.95, { company: "" }, { company: "Acme" });
+  assert.equal(d.sameCompany, true);
+  assert.equal(d.isDup, true);
 });
 
 console.log(`\n${passed} tests offer-utils OK`);

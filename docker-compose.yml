@@ -1,6 +1,9 @@
 services:
   postgres:
-    image: postgres:16-alpine
+    # Image pgvector (= postgres:16 + extension vector) requise par la dédup
+    # sémantique (db/schema.sql : CREATE EXTENSION vector). Même PG 16 que l'alpine
+    # d'origine -> volume de données compatible.
+    image: pgvector/pgvector:pg16
     container_name: job-hunter-db
     restart: unless-stopped
     environment:
@@ -59,6 +62,7 @@ services:
       JOBSPY_API_URL: ${JOBSPY_API_URL:-http://jobspy:8000}
       RENDER_API_URL: ${RENDER_API_URL:-http://render:8000}
       AGENT_API_URL: ${AGENT_API_URL:-http://agent-langgraph:8001}
+      EMBEDDINGS_API_URL: ${EMBEDDINGS_API_URL:-http://embeddings:8002}
       WTTJ_RSS_URL: ${WTTJ_RSS_URL:-}
       SERPAPI_KEY: ${SERPAPI_KEY:-}
       RAPIDAPI_KEY: ${RAPIDAPI_KEY:-}
@@ -118,6 +122,21 @@ services:
       - ./cv:/cv:ro
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import urllib.request;urllib.request.urlopen('http://localhost:8001/health')\""]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # Embeddings (fastembed) : vectorise les offres pour la dédup SÉMANTIQUE. Le 01
+  # poste le texte d'une offre -> vecteur stocké dans offers.embedding (pgvector).
+  embeddings:
+    build: ./services/embeddings
+    container_name: job-hunter-embeddings
+    restart: unless-stopped
+    # Pas de port exposé vers l'hôte : seul n8n l'appelle, via http://embeddings:8002
+    expose:
+      - "8002"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request;urllib.request.urlopen('http://localhost:8002/health')\""]
       interval: 30s
       timeout: 5s
       retries: 3

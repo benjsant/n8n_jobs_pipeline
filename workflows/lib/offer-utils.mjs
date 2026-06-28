@@ -47,6 +47,55 @@ export function computeHash(offer) {
   return createHash("sha256").update(key).digest("hex");
 }
 
+// --- Déduplication SÉMANTIQUE (pgvector) : attrape les quasi-doublons inter-
+// sources que le hash exact rate (titre reformulé, intitulé d'entreprise variable).
+// L'embedding est calculé par le micro-service `embeddings` (fastembed) sur ce texte.
+
+/**
+ * Seuil de similarité cosinus au-delà duquel deux offres (même entreprise) sont
+ * des doublons. Calibré sur des mesures réelles (modèle multilingual-MiniLM) :
+ * même offre reformulée entre sources ≈ 0.82-0.85 ; postes différents ≈ 0.12 ;
+ * sans rapport ≈ 0.04. 0.80 attrape les vrais doublons avec une large marge.
+ */
+export const SEMANTIC_DUP_THRESHOLD = 0.80;
+
+/** Texte canonique à embedder : MÊME construction pour candidat et offres stockées. */
+export function embeddingText(offer) {
+  const desc = String(offer.description ?? "").replace(/\s+/g, " ").trim().slice(0, 500);
+  return [offer.title, offer.company, offer.location, desc]
+    .map((x) => String(x ?? "").trim())
+    .filter(Boolean)
+    .join(" \n ");
+}
+
+/** Similarité cosinus de deux vecteurs (0 si dimensions incompatibles ou nul). */
+export function cosineSim(a, b) {
+  if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length || a.length === 0) return 0;
+  let dot = 0, na = 0, nb = 0;
+  for (let i = 0; i < a.length; i++) { dot += a[i] * b[i]; na += a[i] * a[i]; nb += b[i] * b[i]; }
+  if (na === 0 || nb === 0) return 0;
+  return dot / (Math.sqrt(na) * Math.sqrt(nb));
+}
+
+/**
+ * Décide si `candidate` est un doublon sémantique d'une `existing` offre, à partir
+ * de leur similarité cosinus. Garde-fou : on n'écarte que si l'entreprise concorde
+ * (canonicalisée) — si l'une manque, on ne bloque pas. Renvoie {isDup, reason, ...}.
+ */
+export function semanticDupDecision(similarity, candidate, existing, opts = {}) {
+  const threshold = opts.threshold ?? SEMANTIC_DUP_THRESHOLD;
+  const cA = canonCompany(candidate?.company);
+  const cB = canonCompany(existing?.company);
+  const sameCompany = cA && cB ? cA === cB : true;
+  const isDup = similarity >= threshold && sameCompany;
+  const reason = isDup
+    ? `doublon sémantique (similarité ${similarity.toFixed(3)} ≥ ${threshold}, même entreprise)`
+    : similarity < threshold
+      ? `distinct (similarité ${similarity.toFixed(3)} < ${threshold})`
+      : `similaire mais entreprise différente (« ${cA} » ≠ « ${cB} »)`;
+  return { isDup, similarity, sameCompany, threshold, reason };
+}
+
 // Préférences par défaut (repli quand le profil ne fournit pas un champ).
 export const DEFAULT_PREFS = {
   keywords: ["ia", "intelligence artificielle", "ml", "machine learning",
