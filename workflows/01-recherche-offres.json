@@ -354,6 +354,19 @@
     },
     {
       "parameters": {
+        "jsCode": "// Dédup SÉMANTIQUE intra-collecte : embeddings (service fastembed) + cosinus.\n// Attrape les quasi-doublons inter-sources d'un même lot que le hash exact rate\n// (même offre FT + JobSpy reformulée). Parité avec workflows/lib/offer-utils.mjs.\n// Tolérant : service indispo / réponse incohérente -> on n'écarte rien.\nconst items = $input.all().map(i => i.json);\nif (!items.length) return [];\nconst norm = (s) => String(s ?? '').toLowerCase().normalize('NFKD').replace(/\\s+/g, ' ').trim();\nconst cC = (c) => norm(c).replace(/\\b(sas|sasu|sarl|sa|eurl|inc|ltd|llc|gmbh|group|groupe)\\b/g, ' ').replace(/[^a-z0-9àâäéèêëîïôöùûüç ]/g, ' ').replace(/\\s+/g, ' ').trim();\nconst embText = (o) => [o.title, o.company, o.location, String(o.description || '').replace(/\\s+/g, ' ').trim().slice(0, 500)].map(x => String(x ?? '').trim()).filter(Boolean).join(' \\n ');\nconst cos = (a, b) => { let d = 0, na = 0, nb = 0; for (let i = 0; i < a.length; i++) { d += a[i]*b[i]; na += a[i]*a[i]; nb += b[i]*b[i]; } return na && nb ? d/(Math.sqrt(na)*Math.sqrt(nb)) : 0; };\nconst THRESH = 0.80;\nconst url = ($env.EMBEDDINGS_API_URL || 'http://embeddings:8002') + '/embed';\nlet vecs;\ntry {\n  const resp = await this.helpers.httpRequest({ method: 'POST', url, body: { texts: items.map(embText) }, json: true });\n  vecs = resp.embeddings;\n} catch (e) {\n  return items.map(json => ({ json }));\n}\nif (!Array.isArray(vecs) || vecs.length !== items.length) return items.map(json => ({ json }));\nconst kept = [], keptVecs = [];\nlet dropped = 0;\nfor (let i = 0; i < items.length; i++) {\n  const v = vecs[i];\n  let dup = false;\n  for (let k = 0; k < kept.length; k++) {\n    const a = cC(items[i].company), b = cC(kept[k].company);\n    const sameCompany = a && b ? a === b : true;\n    if (sameCompany && cos(v, keptVecs[k]) >= THRESH) { dup = true; break; }\n  }\n  if (dup) { dropped++; continue; }\n  kept.push(items[i]); keptVecs.push(v);\n}\nconsole.log(`Dedup semantique : ${dropped} quasi-doublon(s) ecarte(s) sur ${items.length}.`);\nreturn kept.map(json => ({ json }));\n"
+      },
+      "id": "a1000000-0000-4000-8000-000000000065",
+      "name": "Dédup sémantique",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1450,
+        200
+      ]
+    },
+    {
+      "parameters": {
         "operation": "insert",
         "schema": {
           "__rl": true,
@@ -705,7 +718,7 @@
       "main": [
         [
           {
-            "node": "Insert offers (dédup)",
+            "node": "Dédup sémantique",
             "type": "main",
             "index": 0
           }
@@ -784,6 +797,17 @@
         [
           {
             "node": "Boucle profils",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dédup sémantique": {
+      "main": [
+        [
+          {
+            "node": "Insert offers (dédup)",
             "type": "main",
             "index": 0
           }

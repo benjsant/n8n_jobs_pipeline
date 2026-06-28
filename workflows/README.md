@@ -10,7 +10,10 @@ elle, testée hors stack — voir `lib/` et `scripts/run-tests.sh`.
 ```
 01 Recherche d'offres (cron 8h)
    7 sources (FT, Adzuna, JobSpy, Google Jobs/SerpApi, WTTJ, JSearch/RapidAPI,
-   La Bonne Alternance) → merge → score déterministe → hash
+   La Bonne Alternance) → merge → score déterministe → hash exact (SHA256)
+   → dédup SÉMANTIQUE (service embeddings : écarte les quasi-doublons inter-
+     sources d'un même lot, cosinus ≥ 0.80, même entreprise ; tolérant si le
+     service est indisponible)
    La Bonne Alternance fan-out : offres → merge ; entreprises sans offre →
    upsert companies → Discord « candidature spontanée » (branche terminale)
    → INSERT offers (status new, dédup) → scoring hybride : DeepSeek affine le
