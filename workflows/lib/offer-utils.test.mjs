@@ -2,7 +2,8 @@
 import assert from "node:assert/strict";
 import { computeHash, scoreOffer, annotate, norm,
   prefsFromProfile, matchesExclusions, canonTitle,
-  cosineSim, embeddingText, semanticDupDecision, SEMANTIC_DUP_THRESHOLD } from "./offer-utils.mjs";
+  cosineSim, embeddingText, semanticDupDecision, SEMANTIC_DUP_THRESHOLD,
+  isOutOfZone } from "./offer-utils.mjs";
 
 let passed = 0;
 const t = (name, fn) => { fn(); passed++; console.log(`  ✓ ${name}`); };
@@ -155,6 +156,25 @@ t("semanticDupDecision : entreprise manquante d'un côté -> ne bloque pas", () 
   const d = semanticDupDecision(0.95, { company: "" }, { company: "Acme" });
   assert.equal(d.sameCompany, true);
   assert.equal(d.isDup, true);
+});
+
+// ── Filtre géographique (isOutOfZone) — cas réels vus en base ─────────────────
+t("isOutOfZone : offres belges non frontalières écartées", () => {
+  assert.equal(isOutOfZone({ location: "Brussels, Brussels Region, Belgium" }), true);
+  assert.equal(isOutOfZone({ location: "Ghent, Flemish Region, Belgium" }), true);
+  assert.equal(isOutOfZone({ location: "Waterloo, Walloon Region, Belgium" }), true);
+});
+
+t("isOutOfZone : Hauts-de-France et France générique gardées", () => {
+  assert.equal(isOutOfZone({ location: "Lille, Hauts-de-France, France" }), false);
+  assert.equal(isOutOfZone({ location: "Lambersart, HDF, FR" }), false);
+  assert.equal(isOutOfZone({ location: "59 - Lille" }), false);
+  assert.equal(isOutOfZone({ location: "" }), false); // inconnu -> gardé
+});
+
+t("isOutOfZone : villes frontalières tolérées malgré la Belgique", () => {
+  assert.equal(isOutOfZone({ location: "Mouscron, Wallonie, Belgique" }), false);
+  assert.equal(isOutOfZone({ location: "Tournai, Belgium" }), false);
 });
 
 console.log(`\n${passed} tests offer-utils OK`);

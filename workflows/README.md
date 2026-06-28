@@ -10,7 +10,9 @@ elle, testée hors stack — voir `lib/` et `scripts/run-tests.sh`.
 ```
 01 Recherche d'offres (cron 8h)
    7 sources (FT, Adzuna, JobSpy, Google Jobs/SerpApi, WTTJ, JSearch/RapidAPI,
-   La Bonne Alternance) → merge → score déterministe → hash exact (SHA256)
+   La Bonne Alternance) → merge → filtre exclusions + GÉO (écarte l'étranger non
+     frontalier : Belgique hors Mouscron/Tournai/Mons… que JobSpy fait déborder)
+   → score déterministe → hash exact (SHA256)
    → dédup SÉMANTIQUE (service embeddings : écarte les quasi-doublons inter-
      sources d'un même lot, cosinus ≥ 0.80, même entreprise ; tolérant si le
      service est indisponible)

@@ -137,6 +137,36 @@ export function matchesExclusions(offer, exclusions = []) {
   return exclusions.some((x) => x && hay.includes(norm(x)));
 }
 
+// --- Filtre géographique : écarte les offres hors zone (étranger / Belgique non
+// frontalière). Les sources texte (JobSpy LinkedIn/Indeed) cherchent par nom de
+// ville sans contrainte de rayon -> elles débordent sur la Belgique (Bruxelles,
+// Gand…). France Travail (INSEE + rayon) reste propre, donc non concerné. ---
+
+// Villes frontalières tolérées (< ~30 km de Lille/Valenciennes) malgré le pays.
+export const BORDER_ALLOW = [
+  "mouscron", "tournai", "comines", "menen", "menin", "mons", "quievrain",
+  "quiévrain", "estaimpuis", "kortrijk", "courtrai", "dottignies", "herseaux",
+];
+
+// Marqueurs de localisation étrangère (pays/régions/villes hors zone).
+const FOREIGN_MARKERS = [
+  /\bbelgi(?:um|que|e)\b/, /brussels|bruxelles/, /flemish|vlaams|flandre|flandres/,
+  /walloon|wallon(?:ie|ne)?/, /\bghent\b|\bgent\b|\bgand\b/,
+  /anderlecht|uccle|ixelles|schaerbeek|waterloo|merelbeke|erpe|aalst|leuven|louvain|antwerp|anvers/,
+  /\bluxembourg\b/, /\bnetherlands\b|\bpays-bas\b/, /\bdeutschland\b|\ballemagne\b|\bgermany\b/,
+];
+
+/**
+ * `true` si l'offre est clairement hors zone (étranger non frontalier). Location
+ * vide -> gardée (FT/text génériques « France »). Ville frontalière -> gardée.
+ */
+export function isOutOfZone(offer) {
+  const loc = norm(offer?.location);
+  if (!loc) return false;
+  if (BORDER_ALLOW.some((c) => loc.includes(c))) return false;
+  return FOREIGN_MARKERS.some((re) => re.test(loc));
+}
+
 function seniorityScore(hay, prefs) {
   const isJunior = (prefs.juniorTerms ?? DEFAULT_PREFS.juniorTerms).some((t) => hay.includes(norm(t)));
   const isSenior = (prefs.seniorTerms ?? DEFAULT_PREFS.seniorTerms).some((t) => hay.includes(norm(t)));
