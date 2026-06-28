@@ -10,22 +10,22 @@
 
 ---
 
-## 🔄 REPRISE DE SESSION — handoff (2026-06-27)
+## 🔄 REPRISE DE SESSION — handoff (2026-06-28)
 
 > À lire en premier pour reprendre. Résume l'état exact et le travail en cours.
 
-**MVP n8n = TERMINÉ et déployé sur `main`** (11 commits poussés). Chaîne complète
+**MVP n8n = TERMINÉ et déployé sur `main`**. Chaîne complète
 **sans Google** : `01` (cron 8h, sources **France Travail réparé + JobSpy**) → Discord
-→ clic Générer → `03 → 02` (agent DeepSeek → **CV au design portfolio** + **lettre
+→ clic Générer → `03 → 02` (agent → **CV ATS par défaut** + **lettre
 assemblage déterministe**) → `04` = **livraison Discord** (CV + lettre en PJ, garde-fou
 humain). Maillon spontané `05` OK (manque `LBA_API_KEY` pour de vraies entreprises).
 Service de rendu, purge auto (`cleanup`, 21 j), guides `docs/oauth-google.md` +
 `docs/cles-sources.md`. Préférences candidat : **pas de tiret cadratin (—)**, pas
 d'exagération de distance (encodées §5 du system prompt + mémoire).
 
-**EN COURS — branche `feat/agent-langgraph` (poussée sur `origin`)** : extraction de
-l'agent du `02` vers un service **LangGraph** (`services/agent-langgraph/`, plan
-`docs/plan-langgraph.md`).
+**v0.2.0 = MERGÉ sur `main` et tagué (2026-06-28)** : l'agent du `02` est extrait dans un
+service **LangGraph** (`services/agent-langgraph/`, plan `docs/plan-langgraph.md`).
+`main` et `feat/agent-langgraph` sont synchro avec `origin`.
 - ✅ Phase 1.1 (commit `ecfe064`) : squelette strangler, 1 nœud, parité §6 prouvée.
 - ✅ Phase 1.2 (commit `2444013`) : 3 nœuds `analyze`(0.2) → `accroche`(0.7) → `validate`
   (déterministe, anti tiret cadratin). 5 tests verts, parité réelle OK.
@@ -38,20 +38,27 @@ l'agent du `02` vers un service **LangGraph** (`services/agent-langgraph/`, plan
   **aucune invention d'« ESN »**, template `backend`, score 85. README service à jour.
   ⚠️ DDG peut rester bloqué/vide selon le réseau → fallback propre (accroche sur l'offre).
 
-**FILE D'ATTENTE (demandé par l'utilisateur)** :
-1. ✅ ~~Finir Phase 2~~ (fait le 2026-06-27).
-2. **Intégration LangGraph (EN COURS)** : ajouter le service au `docker-compose` + faire
-   pointer le `02` vers `POST http://agent-langgraph:8001/agent/run` (au lieu de DeepSeek
-   direct) ; **mesurer v1 vs v2** (5 lettres) ; merge dans `main` + tag `v0.2.0`.
-3. **CV ATS** (sur `main`, séparé de LangGraph) : l'utilisateur veut **remplacer le design**
-   (actuel = `cv-design.astro` du portfolio porté dans `cv/template.astro`) **par la version
-   ATS** du portfolio = **`astro-portfolio/src/pages/cv.astro`** (1 colonne, sans photo/
-   badges, meilleur pour les filtres ATS recruteurs). Re-porter `cv.astro` dans
-   `cv/template.astro` avec la même technique : **`<style is:inline>`** (sinon Astro
-   externalise le CSS → cassé en `file://` au rendu PDF), données `cv/*.json` + perso
-   (highlight/masquage), photo optionnelle. Garder l'archi « DeepSeek = données, Astro = rendu ».
+**FILE D'ATTENTE — toute traitée le 2026-06-28** :
+1. ✅ ~~Finir Phase 2~~ (company_research, validé le 2026-06-27).
+2. ✅ ~~Intégration LangGraph~~ : service au `docker-compose`, le `02` poste sur
+   `AGENT_API_URL` (`http://agent-langgraph:8001/agent/run`). **Mesure v1 vs v2** (5 offres)
+   faite : v2 plus spécifique, plus honnête sur les manques, meilleur choix de template,
+   pour ~2x la latence → merge `--no-ff` + tag `v0.2.0`.
+3. ✅ ~~CV ATS~~ : choix retenu = **garder les DEUX styles**, ATS prioritaire par défaut
+   (pas de remplacement). `cv/template-ats.astro` (porté de `astro-portfolio/src/pages/cv.astro`,
+   1 colonne, **sans photo**, `<style is:inline>`, couleurs hex, mêmes `cv/*.json` + perso) ;
+   switch `CV_STYLE` dans `cv/src/pages/index.astro` (`ats` défaut / `design` = ancien
+   `cv/template.astro`) ; `CV_STYLE` câblé dans le service `render` + `.env.example` ;
+   `cv/README.md` documente les deux. Rendu PDF vérifié (ATS 1 page sans photo, design intact).
+   Commit `cb479cc`.
 
-**Rappels** : `main` = prod stable, ne pas y mettre le WIP LangGraph. Builds Docker avec
+**PROCHAINE ÉTAPE (vérif terrain, hors code)** : ré-importer le `02` dans n8n lancé et le
+**réactiver** (un réimport repasse le workflow inactif → `03`/`05` échouent sinon), vérifier
+la chaîne réelle avec le service `agent-langgraph`. Bloqué surtout par les clés (DeepSeek +
+≥1 source + webhook Discord). Idée notée : variante ATS strictement noir/blanc si un parser
+très ancien le justifie (trivial à ajouter).
+
+**Rappels** : Benjamin travaille directement sur `main`. Builds Docker avec
 **`--network=host`** (DNS du builder capricieux). `.env` jamais commité.
 
 ## 👤 Profil utilisateur
@@ -189,6 +196,20 @@ l'agent du `02` vers un service **LangGraph** (`services/agent-langgraph/`, plan
     injecté dans l'en-tête + la date « Marly, le … » par `cv/server.mjs`) ; email
     des lettres = **santrissebenjamin@gmail.com** (principal, = CV). Garde-fou
     inchangé : la voix guide le ton, jamais les faits.
+24. **Agent en service LangGraph** (2026-06-28, `v0.2.0`). L'agent du `02` (appel
+    DeepSeek monolithique) est extrait dans `services/agent-langgraph/` : graphe
+    `analyze`(0.2) → `research` → `accroche`(0.7) → `validate` (déterministe), tool
+    `company_research` (DuckDuckGo, grounding anti-invention de l'accroche), sortie
+    **identique au §6**. n8n reste l'orchestrateur ; le `02` poste sur `AGENT_API_URL`.
+    Mesuré meilleur que le monolithe (spécificité, honnêteté sur les manques, template)
+    pour ~2x la latence. Service au `docker-compose`, mergé sur `main` + tag `v0.2.0`.
+25. **CV : deux styles, ATS par défaut** (2026-06-28). Décision de **garder les deux**
+    rendus (pas de remplacement) : `cv/template-ats.astro` (1 colonne, **sans photo**,
+    pensé filtres ATS, porté de `astro-portfolio/src/pages/cv.astro`) et `cv/template.astro`
+    (design hero/timeline, photo optionnelle). `cv/src/pages/index.astro` choisit via
+    `CV_STYLE` (`ats` défaut / `design`). Mêmes données `cv/*.json` + personnalisation pour
+    les deux ; `<style is:inline>` + couleurs hex (rendu PDF en `file://`). Archi inchangée :
+    DeepSeek = données, Astro = rendu.
 
 ## ⏳ En attente de l'utilisateur
 
