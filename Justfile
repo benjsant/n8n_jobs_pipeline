@@ -37,10 +37,15 @@ seed:
     docker compose exec -T postgres psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" < db/seed-profiles.sql
 
 # ────────────────────────── Qualité ──────────────────────────
-# Suites de tests JS (logique offres, sources, scoring, rendu…) en conteneur Node
+# Régénère le jsCode des nœuds Code du 01 depuis offer-utils.mjs (source unique).
+# À lancer après toute modif de offer-utils.mjs.
+build-nodes:
+    docker run --rm -v "$PWD":/app -w /app node:20-alpine node workflows/lib/build-nodes.mjs
+
+# Suites de tests JS + garde-fou de parité nœuds n8n <-> offer-utils, en conteneur Node
 test:
     docker run --rm -v "$PWD":/app -w /app node:20-alpine \
-      sh -c 'for f in workflows/lib/*.test.mjs cv/*.test.mjs cv/scripts/*.test.mjs; do echo "── $f"; node "$f" || exit 1; done'
+      sh -c 'node workflows/lib/build-nodes.mjs --check && for f in workflows/lib/*.test.mjs cv/*.test.mjs cv/scripts/*.test.mjs; do echo "── $f"; node "$f" || exit 1; done'
 
 # Test du schéma de sortie de l'agent DeepSeek (mock, sans clé) en conteneur Python
 test-py:

@@ -1,9 +1,11 @@
 // Logique partagée : déduplication (hash canonicalisé) + scoring des offres
 // (0-100) piloté par le PROFIL de recherche + filtre d'exclusions.
 //
-// Source de vérité de cette logique. Le workflow n8n 01 colle le contenu de ces
-// fonctions dans un nœud Code (n8n n'importe pas de fichier externe). Garder
-// synchronisé. Testé par offer-utils.test.mjs.
+// SOURCE UNIQUE de cette logique. n8n n'importe pas de fichier dans un nœud Code,
+// donc le jsCode des nœuds « Scorer + hashSource » et « Dédup sémantique » du 01
+// est GÉNÉRÉ d'ici par build-nodes.mjs (`just build-nodes`). Après toute modif,
+// relancer le build ; `just test` vérifie la parité (build-nodes.mjs --check).
+// Testé par offer-utils.test.mjs.
 import { createHash } from "node:crypto";
 
 /** Normalise une chaîne : minuscules, accents REPLIÉS (é->e), espaces compactés.
