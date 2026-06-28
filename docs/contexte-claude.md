@@ -52,11 +52,14 @@ service **LangGraph** (`services/agent-langgraph/`, plan `docs/plan-langgraph.md
    `cv/README.md` documente les deux. Rendu PDF vérifié (ATS 1 page sans photo, design intact).
    Commit `cb479cc`.
 
-**PROCHAINE ÉTAPE (vérif terrain, hors code)** : ré-importer le `02` dans n8n lancé et le
-**réactiver** (un réimport repasse le workflow inactif → `03`/`05` échouent sinon), vérifier
-la chaîne réelle avec le service `agent-langgraph`. Bloqué surtout par les clés (DeepSeek +
-≥1 source + webhook Discord). Idée notée : variante ATS strictement noir/blanc si un parser
-très ancien le justifie (trivial à ajouter).
+**PROCHAINE ÉTAPE (opérationnel, hors code) — PLUS BLOQUÉ PAR LES CLÉS** : le `.env` a déjà
+le trio minimum (`DEEPSEEK_API_KEY`, `FRANCE_TRAVAIL_CLIENT_ID/_SECRET`, `DISCORD_WEBHOOK_ALERTS`
++ `_LOG`) — vérifié le 2026-06-28. Vides = optionnel seulement (Adzuna, SERPAPI, RAPIDAPI, LBA,
+WTTJ, OAuth Google inutile car livraison Discord). Le service `agent-langgraph` est câblé
+(reçoit `DEEPSEEK_API_KEY`, monte `/prompts`+`/cv`). Reste à : `just up`, puis dans l'UI n8n
+importer `01`–`05`, associer la credential Postgres, **activer** (un réimport repasse inactif →
+`03`/`05` échouent sinon), déclencher le `01` et vérifier la chaîne réelle. Idée notée :
+variante ATS strictement noir/blanc si un parser très ancien le justifie (trivial à ajouter).
 
 **Rappels** : Benjamin travaille directement sur `main`. Builds Docker avec
 **`--network=host`** (DNS du builder capricieux). `.env` jamais commité.
