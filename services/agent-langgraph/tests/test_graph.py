@@ -11,10 +11,11 @@ CTX = {"system_prompt": "system", "cv_index": "Python, FastAPI"}
 
 @pytest.fixture(autouse=True)
 def _no_web(monkeypatch):
-    """Neutralise la recherche web (le nœud research) — pas de réseau en test."""
+    """Neutralise la recherche web + registre (le nœud research) — pas de réseau en test."""
     import agent.tools as tools
 
     monkeypatch.setattr(tools, "search_company_web", lambda *a, **k: "")
+    monkeypatch.setattr(tools, "lookup_company_registry", lambda *a, **k: {})
 
 
 class _Resp:

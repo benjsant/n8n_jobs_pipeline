@@ -57,3 +57,85 @@ def search_company_web(company: str, location: str = "", max_snippets: int = 3, 
         if len(lines) >= max_snippets:
             break
     return "\n".join(lines)
+
+
+# ── Enrichissement OFFICIEL (registre des entreprises) ───────────────────────
+# API publique sans clé (DINUM/Etalab) : faits AUTORITATIFS (raison sociale, NAF,
+# effectif, création, adresse) -> grounding bien plus fiable que le web. À
+# privilégier sur les extraits DuckDuckGo (qui peuvent inventer un statut).
+_REGISTRY_URL = "https://recherche-entreprises.api.gouv.fr/search"
+
+# Tranches d'effectif salarié INSEE (code -> libellé lisible).
+_TRANCHE_EFFECTIF = {
+    "NN": "non employeur", "00": "0 salarié", "01": "1 à 2 salariés",
+    "02": "3 à 5 salariés", "03": "6 à 9 salariés", "11": "10 à 19 salariés",
+    "12": "20 à 49 salariés", "21": "50 à 99 salariés", "22": "100 à 199 salariés",
+    "31": "200 à 249 salariés", "32": "250 à 499 salariés", "41": "500 à 999 salariés",
+    "42": "1000 à 1999 salariés", "51": "2000 à 4999 salariés",
+    "52": "5000 à 9999 salariés", "53": "10000 salariés et plus",
+}
+
+
+def lookup_company_registry(company: str, timeout: float = 8.0) -> dict:
+    """Cherche l'entreprise dans le registre officiel (nom ou SIRET/SIREN).
+
+    Renvoie un dict de faits VÉRIFIÉS (ou {} si rien/échec) : denomination, siren,
+    naf, effectif, date_creation, adresse, commune.
+    """
+    company = (company or "").strip()
+    if not company:
+        return {}
+    import httpx
+
+    try:
+        resp = httpx.get(_REGISTRY_URL, params={"q": company, "per_page": 5},
+                         timeout=timeout, follow_redirects=True)
+        resp.raise_for_status()
+        results = resp.json().get("results") or []
+    except Exception:
+        return {}
+    if not results:
+        return {}
+
+    # Préfère une entité ACTIVE avec un effectif renseigné (évite les coquilles
+    # récentes sans salariés qui sortent parfois en tête du classement par nom).
+    def _score(r: dict) -> tuple:
+        active = (r.get("etat_administratif") or r.get("siege", {}).get("etat_administratif")) == "A"
+        has_eff = bool(r.get("tranche_effectif_salarie") or r.get("siege", {}).get("tranche_effectif_salarie"))
+        return (active, has_eff)
+
+    r = max(results, key=_score)
+    siege = r.get("siege") or {}
+    tranche = r.get("tranche_effectif_salarie") or siege.get("tranche_effectif_salarie")
+    annee = r.get("annee_tranche_effectif_salarie") or siege.get("annee_tranche_effectif_salarie")
+    effectif = _TRANCHE_EFFECTIF.get(tranche or "", "")
+    if effectif and annee:
+        effectif = f"{effectif} (en {annee})"
+    return {
+        "denomination": r.get("nom_raison_sociale") or r.get("nom_complet") or "",
+        "siren": r.get("siren") or "",
+        "naf": r.get("activite_principale") or siege.get("activite_principale") or "",
+        "effectif": effectif,
+        "date_creation": r.get("date_creation") or siege.get("date_creation") or "",
+        "adresse": siege.get("adresse") or "",
+        "commune": siege.get("libelle_commune") or "",
+    }
+
+
+def registry_grounding_text(data: dict) -> str:
+    """Formate les faits officiels en bloc de grounding (ou '' si vide)."""
+    if not data or not data.get("denomination"):
+        return ""
+    bits = [f"Raison sociale : {data['denomination']}"]
+    if data.get("siren"):
+        bits.append(f"SIREN {data['siren']}")
+    if data.get("effectif"):
+        bits.append(f"effectif : {data['effectif']}")
+    if data.get("naf"):
+        bits.append(f"activité NAF {data['naf']}")
+    if data.get("date_creation"):
+        bits.append(f"créée le {data['date_creation']}")
+    loc = data.get("adresse") or data.get("commune")
+    if loc:
+        bits.append(f"siège : {loc}")
+    return " ; ".join(bits) + "."

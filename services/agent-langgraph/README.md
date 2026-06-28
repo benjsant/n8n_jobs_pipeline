@@ -42,6 +42,17 @@ match sur le **profil réel**, écarts à anticiper honnêtes, questions probabl
 angles de réponse, questions à poser) → nettoyage déterministe (anti tiret
 cadratin partout). Mêmes garde-fous anti-invention que l'accroche.
 
+## Grounding entreprise (anti-invention)
+
+Deux sources, injectées dans l'accroche **et** la prépa d'entretien :
+- **Registre officiel** (`lookup_company_registry`, `tools.py`) : API publique
+  `recherche-entreprises.api.gouv.fr` (DINUM, **sans clé**) → faits AUTORITATIFS
+  (raison sociale, SIREN, effectif, NAF, création, siège), présentés comme
+  **prioritaires**. Excellent sur les PME (ex. Ponera exact) ; sur les grands
+  groupes la recherche par nom peut tomber sur la holding (le chemin LBA, avec
+  SIRET exact, lève l'ambiguïté).
+- **Web léger** (`search_company_web`, DuckDuckGo) : complément, jamais une vérité.
+
 ## Variables d'env
 
 `DEEPSEEK_API_KEY`, `DEEPSEEK_BASE_URL` (défaut `https://api.deepseek.com`),

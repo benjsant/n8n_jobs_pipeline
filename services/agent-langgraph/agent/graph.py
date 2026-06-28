@@ -89,23 +89,34 @@ def analyze_node(state: AgentState) -> dict:
 
 
 def research_node(state: AgentState) -> dict:
-    """Tool de grounding : extraits web réels sur l'entreprise (ou '' si rien)."""
-    from .tools import search_company_web
+    """Tool de grounding : faits officiels (registre) + extraits web (ou '' si rien)."""
+    from .tools import lookup_company_registry, registry_grounding_text, search_company_web
 
     offer = state.get("offer", {})
-    return {"company_web": search_company_web(offer.get("company", ""), offer.get("location", ""))}
+    company = offer.get("company", "")
+    return {
+        "company_web": search_company_web(company, offer.get("location", "")),
+        "company_registry": registry_grounding_text(lookup_company_registry(company)),
+    }
 
 
 def accroche_node(state: AgentState) -> dict:
     web = state.get("company_web") or ""
+    registry = state.get("company_registry") or ""
+    official = (
+        "\n\nFAITS OFFICIELS sur l'entreprise (registre INSEE — AUTORITATIFS, prioritaires "
+        f"sur le web ; ne les contredis pas) :\n{registry}\n"
+        if registry
+        else ""
+    )
     grounding = (
-        "\n\nINFOS WEB RÉELLES sur l'entreprise (résultats de recherche — utilise-les "
+        "\n\nINFOS WEB sur l'entreprise (résultats de recherche — utilise-les "
         "SI pertinents et fiables, sinon IGNORE ; n'invente JAMAIS un fait absent de "
         f"ces extraits ou de l'offre) :\n{web}\n"
         if web
         else ""
     )
-    user = build_user_message(state.get("offer", {}), state.get("cv_index", "")) + grounding + "\n\n" + ACCROCHE_TASK
+    user = build_user_message(state.get("offer", {}), state.get("cv_index", "")) + official + grounding + "\n\n" + ACCROCHE_TASK
     data, err = _llm_json(state.get("system_prompt", ""), user, 0.7)
     if isinstance(data.get("lettre"), dict):
         lettre = data["lettre"]

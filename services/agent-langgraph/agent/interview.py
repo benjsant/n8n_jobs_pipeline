@@ -41,30 +41,40 @@ PREP_TASK = (
 )
 
 
-def _build_user(offer: dict, web: str) -> str:
+def _build_user(offer: dict, web: str, registry: str = "") -> str:
     desc = offer.get("description", "")
+    official = (
+        "\n\nFAITS OFFICIELS sur l'entreprise (registre public INSEE/recherche-entreprises "
+        "— AUTORITATIFS, PRIORITAIRES sur le web ; ne les contredis pas) :\n"
+        f"{registry}\n" if registry else ""
+    )
     grounding = (
-        "\n\nINFOS WEB RÉELLES sur l'entreprise (utilise-les SI pertinentes et fiables, "
-        f"sinon ignore ; n'invente jamais un fait absent) :\n{web}\n" if web else ""
+        "\n\nINFOS WEB sur l'entreprise (extraits de recherche — utilise-les SI pertinents "
+        "et fiables, sinon ignore ; n'invente jamais un fait absent) :\n"
+        f"{web}\n" if web else ""
     )
     return (
         f"Offre: {offer.get('title', '')} chez {offer.get('company', '')}\n"
         f"Lieu: {offer.get('location', '')}\n\n"
         f"Description de l'offre:\n{desc}\n\n"
         f"Infos entreprise (fournies):\n{offer.get('company_info') or 'Non fournies'}\n"
-        f"{grounding}\n{PREP_TASK}"
+        f"{official}{grounding}\n{PREP_TASK}"
     )
 
 
 def research_node(state: InterviewState) -> dict:
-    from .tools import search_company_web
+    from .tools import lookup_company_registry, registry_grounding_text, search_company_web
 
     offer = state.get("offer", {})
-    return {"company_web": search_company_web(offer.get("company", ""), offer.get("location", ""))}
+    company = offer.get("company", "")
+    return {
+        "company_web": search_company_web(company, offer.get("location", "")),
+        "company_registry": registry_grounding_text(lookup_company_registry(company)),
+    }
 
 
 def prep_node(state: InterviewState) -> dict:
-    user = _build_user(state.get("offer", {}), state.get("company_web") or "")
+    user = _build_user(state.get("offer", {}), state.get("company_web") or "", state.get("company_registry") or "")
     data, err = _llm_json(state.get("system_prompt", ""), user, 0.4)
     patch = {"prep": data}
     if err:

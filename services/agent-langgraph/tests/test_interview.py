@@ -14,6 +14,7 @@ def _no_web(monkeypatch):
     import agent.tools as tools
 
     monkeypatch.setattr(tools, "search_company_web", lambda *a, **k: "")
+    monkeypatch.setattr(tools, "lookup_company_registry", lambda *a, **k: {})
 
 
 class _Resp:
