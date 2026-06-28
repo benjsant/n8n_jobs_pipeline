@@ -1,0 +1,196 @@
+{
+  "name": "06 - Préparation entretien",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "interview-prep",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "d6000000-0000-4000-8000-000000000001",
+      "name": "Webhook prep entretien",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -300,
+        300
+      ],
+      "webhookId": "interview-prep"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Hash de l'offre depuis la query string (lien Discord « Préparer l'entretien »).\nconst q = $input.first().json.query || {};\nconst hash = String(q.hash || '').trim();\nif (!hash) throw new Error('paramètre hash manquant');\nreturn [{ json: { hash } }];"
+      },
+      "id": "d6000000-0000-4000-8000-000000000002",
+      "name": "Valider offre",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -80,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT title, company, location, description FROM offers WHERE hash = $1 LIMIT 1;",
+        "options": {
+          "queryReplacement": "={{ $('Valider offre').first().json.hash }}"
+        }
+      },
+      "id": "d6000000-0000-4000-8000-000000000003",
+      "name": "Charger offre",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        140,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "REMPLACER",
+          "name": "Postgres job-hunter"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.AGENT_API_URL }}/interview/prep",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { title: $json.title, company: $json.company, description: $json.description, location: $json.location, company_info: '' } }}",
+        "options": {}
+      },
+      "id": "d6000000-0000-4000-8000-000000000004",
+      "name": "Appel /interview/prep",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        360,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Met en forme le dossier InterviewPrep (sortie du service) en embed Discord.\nconst p = $input.first().json || {};\nconst company = ($('Charger offre').first().json.company) || 'Entreprise';\nconst e = p.entreprise || {}, m = p.match || {};\nconst li = (arr) => (arr || []).map(x => '• ' + x).join('\\n');\nconst qs = (p.questions_probables || []).map(q => `• ${q.question}\\n   ↳ ${q.angle_reponse}`).join('\\n');\nlet txt = '';\nif (e.resume) txt += `**🏢 Entreprise**\\n${e.resume}\\n`;\nif ((e.points_cles || []).length) txt += li(e.points_cles) + '\\n';\nif ((m.atouts || []).length) txt += `\\n**🎯 Tes atouts**\\n${li(m.atouts)}\\n`;\nif ((m.a_anticiper || []).length) txt += `\\n**⚠️ À anticiper**\\n${li(m.a_anticiper)}\\n`;\nif (qs) txt += `\\n**❓ Questions probables**\\n${qs}\\n`;\nif ((p.questions_a_poser || []).length) txt += `\\n**🙋 Questions à poser**\\n${li(p.questions_a_poser)}\\n`;\ntxt = (txt || 'Dossier vide.').slice(0, 4000);\nreturn [{ json: { embedTitle: `🎤 Préparation entretien — ${company}`, embedDesc: txt } }];"
+      },
+      "id": "d6000000-0000-4000-8000-000000000005",
+      "name": "Formater dossier",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        580,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.DISCORD_WEBHOOK_ALERTS }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { embeds: [ { title: $json.embedTitle, description: $json.embedDesc, color: 3447003 } ] } }}",
+        "options": {}
+      },
+      "id": "d6000000-0000-4000-8000-000000000006",
+      "name": "Poster Discord",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        800,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ '🎤 Dossier de préparation envoyé sur Discord pour ' + ($('Charger offre').first().json.company || 'cette entreprise') + '.' }}",
+        "options": {}
+      },
+      "id": "d6000000-0000-4000-8000-000000000007",
+      "name": "Répondre",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1020,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook prep entretien": {
+      "main": [
+        [
+          {
+            "node": "Valider offre",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Valider offre": {
+      "main": [
+        [
+          {
+            "node": "Charger offre",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Charger offre": {
+      "main": [
+        [
+          {
+            "node": "Appel /interview/prep",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Appel /interview/prep": {
+      "main": [
+        [
+          {
+            "node": "Formater dossier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Formater dossier": {
+      "main": [
+        [
+          {
+            "node": "Poster Discord",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Poster Discord": {
+      "main": [
+        [
+          {
+            "node": "Répondre",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "id": "wf06prepaentre",
+  "tags": []
+}

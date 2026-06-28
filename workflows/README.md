@@ -39,6 +39,14 @@ elle, testée hors stack — voir `lib/` et `scripts/run-tests.sh`.
    lit CV+lettre depuis ./output → fusionne les 2 binaires sur 1 item
    → Google Drive (dossier <entreprise> : cv.pdf + lettre.pdf)
    → Gmail BROUILLON (2 pièces jointes, jamais d'envoi auto) → relecture humaine
+
+        │ plus tard, si l'entreprise te convoque en entretien
+        ▼
+06 Préparation entretien (webhook interview-prep?hash=<hash>)
+   charge l'offre → POST agent /interview/prep (grounding officiel + web)
+   → dossier (entreprise, atouts, à anticiper, questions probables + réponses,
+     questions à poser) → Discord (embed). Le hash est celui de l'alerte d'origine
+     (présent dans le lien « ✅ Générer »).
 ```
 
 ## Workflows
@@ -50,6 +58,7 @@ elle, testée hors stack — voir `lib/` et `scripts/run-tests.sh`.
 | `03-statut-offre.json` | actions Discord → statut + lance 02 | Webhook |
 | `04-candidature-finalisation.json` | Drive + brouillon Gmail | Execute Workflow |
 | `05-candidature-spontanee.json` | entreprise LBA (sans offre) → `02` mode spontané | Webhook |
+| `06-prepa-entretien.json` | offre → agent `/interview/prep` → dossier Discord | Webhook (`interview-prep?hash=`) |
 
 > **Candidature spontanée** : l'alerte Discord « candidature spontanée » du `01`
 > (entreprises LBA à contacter) porte un lien `…/webhook/spontaneous-apply?company=<nom>`.
