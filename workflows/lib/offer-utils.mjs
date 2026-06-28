@@ -6,11 +6,15 @@
 // synchronisé. Testé par offer-utils.test.mjs.
 import { createHash } from "node:crypto";
 
-/** Normalise une chaîne : minuscules, accents décomposés, espaces compactés. */
+/** Normalise une chaîne : minuscules, accents REPLIÉS (é->e), espaces compactés.
+ * Le NFKD décompose les accents ; on retire ensuite les diacritiques combinants
+ * pour que « Développeur » et « Developpeur » se canonicalisent pareil (dédup
+ * accent-insensible). Sans ce retrait, l'accent combinant devenait un espace. */
 export function norm(s) {
   return String(s ?? "")
     .toLowerCase()
     .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
     .replace(/\s+/g, " ")
     .trim();
 }

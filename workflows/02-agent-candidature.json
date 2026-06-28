@@ -62,64 +62,6 @@
     },
     {
       "parameters": {
-        "fileSelector": "/cv/cv-index.json",
-        "options": {}
-      },
-      "id": "read-cvindex",
-      "name": "Lire index CV",
-      "type": "n8n-nodes-base.readWriteFile",
-      "typeVersion": 1,
-      "position": [
-        180,
-        460
-      ]
-    },
-    {
-      "parameters": {
-        "operation": "text",
-        "sourceProperty": "data",
-        "options": {}
-      },
-      "id": "extract-cvindex",
-      "name": "Extraire index CV",
-      "type": "n8n-nodes-base.extractFromFile",
-      "typeVersion": 1,
-      "position": [
-        360,
-        460
-      ]
-    },
-    {
-      "parameters": {
-        "fileSelector": "/prompts/agent-system-prompt.md",
-        "options": {}
-      },
-      "id": "read-prompt",
-      "name": "Lire system prompt",
-      "type": "n8n-nodes-base.readWriteFile",
-      "typeVersion": 1,
-      "position": [
-        540,
-        300
-      ]
-    },
-    {
-      "parameters": {
-        "operation": "text",
-        "sourceProperty": "data",
-        "options": {}
-      },
-      "id": "extract-prompt",
-      "name": "Extraire texte prompt",
-      "type": "n8n-nodes-base.extractFromFile",
-      "typeVersion": 1,
-      "position": [
-        460,
-        300
-      ]
-    },
-    {
-      "parameters": {
         "method": "POST",
         "url": "={{ $env.AGENT_API_URL }}/agent/run",
         "sendHeaders": true,
@@ -486,50 +428,6 @@
       ]
     },
     "Normaliser entrée": {
-      "main": [
-        [
-          {
-            "node": "Lire index CV",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Lire index CV": {
-      "main": [
-        [
-          {
-            "node": "Extraire index CV",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Extraire index CV": {
-      "main": [
-        [
-          {
-            "node": "Lire system prompt",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Lire system prompt": {
-      "main": [
-        [
-          {
-            "node": "Extraire texte prompt",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Extraire texte prompt": {
       "main": [
         [
           {

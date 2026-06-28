@@ -14,6 +14,14 @@ t("hash identique pour title/company/location équivalents (casse/espaces)", () 
   assert.equal(computeHash(a), computeHash(b));
 });
 
+t("accents repliés : 'Développeur' et 'Developpeur' -> même canon + même hash", () => {
+  assert.equal(canonTitle("Développeur Python"), "developpeur python");
+  assert.equal(canonTitle("Ingénieur Données"), canonTitle("Ingenieur Donnees"));
+  const a = { title: "Développeur IA", company: "NovaTech", location: "Lille" };
+  const b = { title: "Developpeur IA", company: "NovaTech", location: "Lille" };
+  assert.equal(computeHash(a), computeHash(b)); // accent-insensible
+});
+
 t("hash différent si l'entreprise change", () => {
   const a = { title: "Dev IA", company: "NovaTech", location: "Lyon" };
   const b = { title: "Dev IA", company: "Autre", location: "Lyon" };
