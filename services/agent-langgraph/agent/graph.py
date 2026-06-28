@@ -10,6 +10,10 @@ PHASE 1.2 — décomposition en nœuds testables :
 - accroche  : LLM (temp 0.7) — le CRÉATIF : choix du template + accroche (2-3 phrases).
               Température plus haute = accroche vivante. Nœud séparé = on pourra y
               brancher le tool `company_research` (grounding) en Phase 2.
+- judge     : AUTO-ÉVALUATION déterministe (sans LLM) de l'accroche selon §5
+              (formules creuses, superlatifs gratuits, tiret cadratin, longueur).
+              Si rejet, edge conditionnel -> régénère l'accroche (max 3 tentatives)
+              en injectant les défauts comme feedback ; sinon -> validate.
 - validate  : DÉTERMINISTE — retire les tirets cadratin de l'accroche (marqueur IA),
               normalise les énumérations, fusionne en objet §6 final. Aucun LLM.
 
@@ -21,6 +25,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import uuid
 
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
@@ -100,6 +105,39 @@ def research_node(state: AgentState) -> dict:
     }
 
 
+MAX_ACCROCHE_ATTEMPTS = 3
+
+# Motifs rejetés dans l'accroche (cf. §5 : formules creuses, superlatifs gratuits,
+# ouverture banale, exagération géo). Le tiret cadratin et la longueur sont gérés à part.
+_ACCROCHE_CLICHES = [
+    (r"dynamique et motiv", "formule creuse « dynamique et motivé »"),
+    (r"depuis (mon plus jeune âge|toujours)", "cliché « depuis toujours »"),
+    (r"passionn[ée]", "cliché « passionné »"),
+    (r"candidat id[ée]al", "formule « candidat idéal »"),
+    (r"n'h[ée]sitez pas", "formule « n'hésitez pas »"),
+    (r"je vous [ée]cris pour le poste", "ouverture banale « je vous écris pour le poste »"),
+    (r"\b(leader|n°\s?1|num[ée]ro 1|meilleur[e]?)\b", "superlatif non vérifié (leader/n°1/meilleur)"),
+    (r"à quelques minutes", "exagération de la proximité géographique"),
+]
+
+
+def check_accroche(text: str) -> list[str]:
+    """Garde-fous déterministes (§5). Renvoie la liste des problèmes (vide = OK)."""
+    t = (text or "").strip()
+    if not t:
+        return ["accroche vide"]
+    low = t.lower()
+    problems = [label for pat, label in _ACCROCHE_CLICHES if re.search(pat, low)]
+    if "—" in t or "–" in t:
+        problems.append("tiret cadratin (marqueur IA)")
+    n_sent = len([s for s in re.split(r"[.!?]+", t) if s.strip()])
+    if n_sent > 4:
+        problems.append(f"trop long ({n_sent} phrases, vise 2-3)")
+    if len(t) > 700:
+        problems.append("accroche trop longue (> 700 caractères)")
+    return problems
+
+
 def accroche_node(state: AgentState) -> dict:
     web = state.get("company_web") or ""
     registry = state.get("company_registry") or ""
@@ -116,7 +154,15 @@ def accroche_node(state: AgentState) -> dict:
         if web
         else ""
     )
-    user = build_user_message(state.get("offer", {}), state.get("cv_index", "")) + official + grounding + "\n\n" + ACCROCHE_TASK
+    # Feedback du juge sur la tentative précédente (boucle d'auto-correction).
+    problems = state.get("accroche_problems") or []
+    feedback = (
+        "\n\n⚠️ Ta tentative précédente a été REJETÉE pour : " + " ; ".join(problems) +
+        ". Réécris une accroche concise (2-3 phrases), spécifique, sans ces défauts.\n"
+        if problems
+        else ""
+    )
+    user = build_user_message(state.get("offer", {}), state.get("cv_index", "")) + official + grounding + feedback + "\n\n" + ACCROCHE_TASK
     data, err = _llm_json(state.get("system_prompt", ""), user, 0.7)
     if isinstance(data.get("lettre"), dict):
         lettre = data["lettre"]
@@ -124,10 +170,24 @@ def accroche_node(state: AgentState) -> dict:
         lettre = {"template": data.get("template", ""), "accroche": data.get("accroche", "")}
     else:
         lettre = {}
-    patch = {"lettre": lettre}
+    patch = {"lettre": lettre, "accroche_attempts": state.get("accroche_attempts", 0) + 1}
     if err:
         patch["error"] = err
     return patch
+
+
+def judge_node(state: AgentState) -> dict:
+    """Auto-évaluation déterministe de l'accroche (LLM-judge léger, sans appel)."""
+    lettre = state.get("lettre") or {}
+    return {"accroche_problems": check_accroche(lettre.get("accroche", ""))}
+
+
+def route_after_judge(state: AgentState) -> str:
+    """Régénère si l'accroche est mauvaise et qu'il reste des tentatives, sinon continue."""
+    problems = state.get("accroche_problems") or []
+    if problems and state.get("accroche_attempts", 0) < MAX_ACCROCHE_ATTEMPTS:
+        return "retry"
+    return "ok"
 
 
 def validate_node(state: AgentState) -> dict:
@@ -169,11 +229,14 @@ def build_graph():
     g.add_node("analyze", analyze_node)
     g.add_node("research", research_node)
     g.add_node("accroche", accroche_node)
+    g.add_node("judge", judge_node)
     g.add_node("validate", validate_node)
     g.add_edge(START, "analyze")
     g.add_edge("analyze", "research")
     g.add_edge("research", "accroche")
-    g.add_edge("accroche", "validate")
+    g.add_edge("accroche", "judge")
+    # Auto-correction : si le juge rejette l'accroche, on régénère (max 3), sinon on valide.
+    g.add_conditional_edges("judge", route_after_judge, {"retry": "accroche", "ok": "validate"})
     g.add_edge("validate", END)
     return g.compile(checkpointer=MemorySaver())
 
@@ -190,6 +253,8 @@ def load_context() -> dict:
 
 def run_agent(offer: dict, ctx: dict) -> dict:
     state = {"offer": offer, "system_prompt": ctx["system_prompt"], "cv_index": ctx["cv_index"]}
-    config = {"configurable": {"thread_id": offer.get("title", "run") or "run"}}
+    # Endpoint stateless : un thread_id UNIQUE par appel (sinon deux offres de même
+    # titre partageraient leur état via le checkpointer -> bleed entre runs).
+    config = {"configurable": {"thread_id": uuid.uuid4().hex}}
     result = GRAPH.invoke(state, config)
     return result.get("output", AgentOutput().model_dump())

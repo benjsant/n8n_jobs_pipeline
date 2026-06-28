@@ -5,10 +5,10 @@ Extraction de l'agent du workflow n8n `02` vers un service Python **LangGraph**
 rendu, livraison) ; ce service porte l'**intelligence** (scoring, accroche,
 personnalisation CV).
 
-## État : Phase 2 — graphe décomposé + tool `company_research`
+## État : Phase 2 — graphe décomposé + tool `company_research` + auto-correction
 
 ```
-START → analyze → research → accroche → validate → END
+START → analyze → research → accroche → judge ⇄ (retry) → validate → END
 ```
 
 - **analyze** — LLM (temp 0.2) : le jugement. Score + sous-scores, matching/missing,

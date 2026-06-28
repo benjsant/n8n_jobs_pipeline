@@ -82,6 +82,55 @@ def test_validate_retire_tiret_cadratin(monkeypatch):
     assert "me parle, un vrai défi" in out["lettre"]["accroche"]
 
 
+def test_judge_check_accroche():
+    ok = "Votre plateforme logistique à Prouvy m'attire : ma stack Python/FastAPI colle à vos besoins."
+    assert G.check_accroche(ok) == []
+    assert "accroche vide" in G.check_accroche("")
+    assert any("passionné" in p for p in G.check_accroche("Je suis passionné par votre entreprise."))
+    assert any("dynamique" in p for p in G.check_accroche("Candidat dynamique et motivé, je postule."))
+    assert any("superlatif" in p for p in G.check_accroche("Vous êtes le leader européen du secteur."))
+    assert any("tiret" in p for p in G.check_accroche("Votre mission m'attire — vraiment."))
+    long = "Phrase une. Phrase deux. Phrase trois. Phrase quatre. Phrase cinq."
+    assert any("trop long" in p for p in G.check_accroche(long))
+
+
+def test_route_after_judge():
+    assert G.route_after_judge({"accroche_problems": ["x"], "accroche_attempts": 1}) == "retry"
+    assert G.route_after_judge({"accroche_problems": ["x"], "accroche_attempts": 3}) == "ok"  # plafond atteint
+    assert G.route_after_judge({"accroche_problems": [], "accroche_attempts": 1}) == "ok"
+
+
+def test_accroche_propre_passe_sans_retry(monkeypatch):
+    # Une accroche correcte ne déclenche pas de régénération : 1 seule tentative.
+    _patch(monkeypatch, VALID)
+    out = G.run_agent({"title": "Dev Backend", "company": "X", "description": "python"}, CTX)
+    assert out["lettre"]["accroche"].startswith("Votre plateforme")
+
+
+class _SeqLLM:
+    """LLM mock qui renvoie des contenus différents à chaque appel (analyze, accroches…)."""
+    def __init__(self, contents):
+        self.contents = list(contents)
+        self.calls = 0
+
+    def invoke(self, _messages):
+        c = self.contents[min(self.calls, len(self.contents) - 1)]
+        self.calls += 1
+        return _Resp(c)
+
+
+def test_accroche_cliche_est_regeneree(monkeypatch):
+    analyze = json.dumps({"score": 70, "recommandation": "postuler", "langue": "fr"})
+    bad = json.dumps({"lettre": {"template": "backend", "accroche": "Je suis passionné, dynamique et motivé."}})
+    good = json.dumps({"lettre": {"template": "backend", "accroche": "Votre stack Python me parle, vos outils logistiques aussi."}})
+    seq = _SeqLLM([analyze, bad, good])
+    monkeypatch.setattr(G, "get_llm", lambda *a, **k: seq)
+    out = G.run_agent({"title": "X", "company": "Y", "description": "z"}, CTX)
+    assert "passionné" not in out["lettre"]["accroche"].lower()  # la mauvaise a été rejetée
+    assert "Python me parle" in out["lettre"]["accroche"]        # la régénérée est gardée
+    assert seq.calls >= 3                                        # analyze + >=2 accroches
+
+
 def test_message_spontane(monkeypatch):
     msg = G.build_user_message({"title": "Candidature spontanée", "company": "Acme",
                                 "description": "", "spontaneous": True}, "idx")

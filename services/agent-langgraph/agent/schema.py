@@ -95,6 +95,8 @@ class AgentState(TypedDict, total=False):
     company_registry: str  # faits officiels (registre INSEE) — prioritaires sur le web
     analysis: dict       # sortie du nœud analyze (§6 sans la lettre)
     lettre: dict         # sortie du nœud accroche ({template, accroche})
+    accroche_attempts: int     # nb de tentatives de l'accroche (boucle auto-correction)
+    accroche_problems: list    # défauts détectés par le juge (vide = OK)
     output: dict         # AgentOutput.model_dump() — sortie finale (validate)
     error: str
 
