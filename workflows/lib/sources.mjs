@@ -149,9 +149,10 @@ export function normalizeJSearch(payload) {
  *  - `recruiters` : entreprises à fort potentiel d'embauche, SANS offre publiée,
  *                   à contacter en CANDIDATURE SPONTANÉE (cf. normalizeLBARecruiters).
  *
- * ⚠️ Forme à confirmer sur la doc officielle (api.apprentissage.beta.gouv.fr) :
- * les normaliseurs sont défensifs (optional chaining + fallbacks) mais NON
- * vérifiés sur un workflow réel, contrairement à FT/JSearch.
+ * Forme VÉRIFIÉE sur un vrai appel (2026-06-28, auth `Bearer`, zone Valenciennes/
+ * Lille, rome M1805) et verrouillée par des fixtures réelles dans sources.test.mjs.
+ * Note : les jobs partenaires (France Travail) ont `workplace.{brand,name,
+ * legal_name}` à null -> `company` vide (dégradation propre, jamais d'invention).
  */
 export function normalizeLaBonneAlternanceJobs(payload) {
   const jobs = payload?.jobs ?? [];

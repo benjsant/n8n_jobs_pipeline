@@ -18,7 +18,8 @@
 **sans Google** : `01` (cron 8h, sources **France Travail réparé + JobSpy**) → Discord
 → clic Générer → `03 → 02` (agent → **CV ATS par défaut** + **lettre
 assemblage déterministe**) → `04` = **livraison Discord** (CV + lettre en PJ, garde-fou
-humain). Maillon spontané `05` OK (manque `LBA_API_KEY` pour de vraies entreprises).
+humain). Maillon spontané `05` OK et **LBA branché sur de vraies entreprises** (clé
+`LBA_API_KEY` en place, forme API vérifiée le 2026-06-28).
 Service de rendu, purge auto (`cleanup`, 21 j), guides `docs/oauth-google.md` +
 `docs/cles-sources.md`. Préférences candidat : **pas de tiret cadratin (—)**, pas
 d'exagération de distance (encodées §5 du system prompt + mémoire).
@@ -155,10 +156,12 @@ variante ATS strictement noir/blanc si un parser très ancien le justifie (trivi
     ajoutées à `search_profiles`. Le `01` fan-out la réponse : `jobs[]` → pipeline
     offres ; `recruiters[]` → `normalizeLBARecruiters` → upsert `companies` +
     Discord « candidature spontanée ». Clé `LBA_API_KEY`
-    (api.apprentissage.beta.gouv.fr). ⚠️ **Forme de réponse non vérifiée** sur un
-    workflow réel (normaliseurs défensifs, testés). **Reste à faire** : maillon de
-    génération de lettre spontanée (réutiliser `02`/`04` avec `offer_id` NULL +
-    template `candidature-spontanee.md`).
+    (api.apprentissage.beta.gouv.fr). ✅ **Forme VÉRIFIÉE le 2026-06-28** : vrai appel
+    HTTP 200 (auth `Bearer`), réponse `{ jobs, recruiters, warnings }`, 14 recruiters
+    réels (zone Valenciennes/Lille, rome M1805). Les deux normaliseurs sont **verrouillés
+    par des fixtures réelles** (`sources.test.mjs`). Réserve : jobs partenaires (FT) →
+    `company` vide (workplace null, pas d'invention). Le maillon lettre spontanée (`05`)
+    était déjà fait (décision 23) ; LBA est donc **opérationnel de bout en bout**.
 20. **Runner = `Justfile`** (2026-06-22, remplace le `Makefile`). Mêmes noms de
     cibles (`just up`, `just test`, `just cv-sync`…). Adapté **full Docker** : les
     tâches Node/Python tournent dans un conteneur jetable (`node:20-alpine` /

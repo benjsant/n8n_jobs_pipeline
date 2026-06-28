@@ -197,6 +197,66 @@ t("La Bonne Alternance : payloads vides -> tableaux vides", () => {
   assert.deepEqual(normalizeLBARecruiters(undefined), []);
 });
 
+// ── Échantillons RÉELS de l'API (capturés le 2026-06-28, auth Bearer, zone
+//    Valenciennes/Lille, rome M1805). Verrouillent la forme vérifiée contre
+//    une régression du normaliseur (comme FT/JSearch). ────────────────────────
+t("La Bonne Alternance (recruteurs) : forme réelle de l'API verrouillée", () => {
+  const real = {
+    jobs: [], warnings: [],
+    recruiters: [{
+      identifier: { id: "6a003c7c9a6be614e48e332b" },
+      workplace: {
+        siret: "52171530000054", brand: "BUSINESS APTITUDE",
+        legal_name: "BUSINESS APTITUDE", website: null, name: "BUSINESS APTITUDE",
+        description: null, size: "6-9",
+        location: { address: "133 rue de Lille 59300 VALENCIENNES",
+          geopoint: { coordinates: [3.5215, 50.3619], type: "Point" } },
+        domain: { idcc: 1486, opco: "ATLAS",
+          naf: { code: "6201Z", label: "Programmation informatique" } },
+      },
+      apply: { url: "https://labonnealternance.apprentissage.beta.gouv.fr/emploi/recruteurs_lba/52171530000054/business-aptitude",
+        phone: "0366597000", recipient_id: "partners_6a003c7c9a6be614e48e332b" },
+    }],
+  };
+  const out = normalizeLBARecruiters(real);
+  assert.equal(out.length, 1);
+  assert.equal(out[0].source_id, "6a003c7c9a6be614e48e332b");
+  assert.equal(out[0].name, "BUSINESS APTITUDE");
+  assert.equal(out[0].siret, "52171530000054");
+  assert.equal(out[0].sector, "Programmation informatique"); // domain.naf.label
+  assert.equal(out[0].website, ""); // null -> chaîne vide (défensif)
+  assert.equal(out[0].location, "133 rue de Lille 59300 VALENCIENNES");
+  assert.ok(out[0].apply_url.includes("recruteurs_lba"));
+  assert.equal(out[0].phone, "0366597000");
+});
+
+t("La Bonne Alternance (jobs) : forme réelle (job partenaire FT) verrouillée", () => {
+  const real = {
+    recruiters: [], warnings: [],
+    jobs: [{
+      identifier: { id: "6a40507d1f2518e8d1c3bded", partner_label: "France Travail", partner_job_id: "4307479" },
+      workplace: { siret: null, brand: null, legal_name: null, website: null, name: null,
+        description: "ONE EDUCATION, école…", size: null,
+        location: { address: "59100 Roubaix" }, domain: { idcc: null, opco: null, naf: null } },
+      apply: { url: "https://www.meteojob.com/jobs/51409157", phone: null, recipient_id: null },
+      contract: { start: null, duration: 12, type: ["Apprentissage"], remote: null },
+      offer: { title: "Développeur / Développeuse informatique (H/F)", rome_codes: ["M1805"],
+        description: "Description du poste : …", status: "Active" },
+    }],
+  };
+  const out = normalizeLaBonneAlternanceJobs(real);
+  assert.equal(out.length, 1);
+  assert.ok(shapeOk(out[0]));
+  assert.equal(out[0].source_id, "6a40507d1f2518e8d1c3bded");
+  assert.equal(out[0].title, "Développeur / Développeuse informatique (H/F)");
+  assert.equal(out[0].contract_type, "Apprentissage");
+  assert.equal(out[0].location, "59100 Roubaix");
+  assert.ok(out[0].url.includes("meteojob"));
+  // ⚠️ Jobs partenaires (FT) : brand/name/legal_name null -> company vide.
+  // Dégradation propre (pas de crash) ; pas d'invention de nom d'entreprise.
+  assert.equal(out[0].company, "");
+});
+
 t("sorties normalisées sont annotables (hash + score)", () => {
   const out = normalizeAdzuna({
     results: [{ id: "1", title: "Dev IA junior", description: "python remote",

@@ -78,7 +78,8 @@ Après correction, mets à jour `.env` et relance le test.
    une **clé API**.
 2. `.env` : `LBA_API_KEY=...`
    > Débloque le maillon **candidature spontanée** (`05`) avec de vraies entreprises
-   > + des offres d'alternance. ⚠️ Forme de réponse à confirmer (cf. `reference.md §3d`).
+   > + des offres d'alternance. ✅ Auth `Bearer` + forme de réponse **vérifiées** le
+   > 2026-06-28 (cf. `reference.md §3d`).
 
 ## 6. Welcome to the Jungle (RSS, pas de compte)
 

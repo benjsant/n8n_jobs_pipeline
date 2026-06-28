@@ -262,7 +262,7 @@ France Travail, qui vise la candidature spontanée tous contrats, pas l'alternan
   clé API (variable `LBA_API_KEY`).
 - **Recherche** (API emploi unifiée v3) :
   - `GET https://api.apprentissage.beta.gouv.fr/api/job/v1/search`
-  - Header : `Authorization: Bearer $LBA_API_KEY` (ou `ApiKey` selon la doc — à vérifier).
+  - Header : `Authorization: Bearer $LBA_API_KEY` (**confirmé** : HTTP 200, 2026-06-28).
   - Paramètres : `romes` (codes ROME séparés par virgule, ex. `M1805`),
     `latitude`, `longitude`, `radius` (km, défaut 30). **Pas** d'INSEE ni de
     ville en texte → on passe par lat/long (colonnes `search_profiles.latitude`,
@@ -278,9 +278,11 @@ France Travail, qui vise la candidature spontanée tous contrats, pas l'alternan
     `assets/letters/candidature-spontanee.md`), pas le scoring d'offre classique.
 - ROME utiles (dév) : `M1805` (Études et développement informatique) couvre
   dev / IA / backend ; éventuellement `M1810` (production/exploitation).
-- ⚠️ **Forme de réponse à confirmer** sur la doc officielle avant de fier le
-  pipeline dessus (API gouvernementale en évolution). Les normaliseurs sont
-  défensifs mais **non vérifiés sur un workflow réel** (≠ FT/JSearch).
+- ✅ **Forme VÉRIFIÉE sur un vrai appel** (2026-06-28, zone Valenciennes/Lille,
+  rome `M1805`) : réponse `{ jobs, recruiters, warnings }`, 14 recruiters réels.
+  Les deux normaliseurs sont **verrouillés par des fixtures réelles** dans
+  `sources.test.mjs`. Réserve mineure : les `jobs[]` partenaires (France Travail)
+  ont `workplace.{brand,name,legal_name}` à null → `company` vide (pas d'invention).
 
 ---
 
