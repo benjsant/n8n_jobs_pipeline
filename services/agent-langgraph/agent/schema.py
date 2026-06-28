@@ -62,6 +62,30 @@ class AgentOutput(BaseModel):
     langue: Literal["fr", "en"] = "fr"
 
 
+# ── Préparation d'entretien (capacité distincte de l'agent) ──────────────────
+class PrepQuestion(BaseModel):
+    question: str = ""
+    angle_reponse: str = ""  # comment y répondre, appuyé sur le profil réel
+
+
+class CompanyBrief(BaseModel):
+    resume: str = ""                                      # grounded (offre + web), sans invention
+    points_cles: list[str] = Field(default_factory=list)
+
+
+class MatchBrief(BaseModel):
+    atouts: list[str] = Field(default_factory=list)       # forces du candidat vs cette offre
+    a_anticiper: list[str] = Field(default_factory=list)  # écarts à préparer, honnêtement
+
+
+class InterviewPrep(BaseModel):
+    entreprise: CompanyBrief = Field(default_factory=CompanyBrief)
+    match: MatchBrief = Field(default_factory=MatchBrief)
+    questions_probables: list[PrepQuestion] = Field(default_factory=list)
+    questions_a_poser: list[str] = Field(default_factory=list)
+    langue: Literal["fr", "en"] = "fr"
+
+
 # ── État du graphe LangGraph ─────────────────────────────────────────────────
 class AgentState(TypedDict, total=False):
     offer: dict          # Offer.model_dump()
@@ -71,4 +95,13 @@ class AgentState(TypedDict, total=False):
     analysis: dict       # sortie du nœud analyze (§6 sans la lettre)
     lettre: dict         # sortie du nœud accroche ({template, accroche})
     output: dict         # AgentOutput.model_dump() — sortie finale (validate)
+    error: str
+
+
+class InterviewState(TypedDict, total=False):
+    offer: dict          # Offer.model_dump()
+    system_prompt: str   # prompts/agent-system-prompt.md (contient le profil §3)
+    company_web: str     # extraits web réels sur l'entreprise (nœud research)
+    prep: dict           # sortie LLM brute du nœud prep
+    output: dict         # InterviewPrep.model_dump() — sortie finale (validate)
     error: str

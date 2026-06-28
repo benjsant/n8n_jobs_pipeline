@@ -32,6 +32,15 @@ Chaque nœud est une fonction pure (state → patch de state), testable en isola
 |---|---|---|---|
 | GET | `/health` | — | `{ status, prompt_loaded, cv_index_loaded }` |
 | POST | `/agent/run` | `{ title, company, description, company_info?, location?, spontaneous? }` | objet §6 (`agent/schema.py`) |
+| POST | `/interview/prep` | `{ title, company, description, company_info?, location? }` | dossier de prépa entretien (`InterviewPrep`) |
+
+## Préparation d'entretien (`/interview/prep`)
+
+Graphe dédié `research → prepare → validate` (`agent/interview.py`) : recherche
+web (`company_research`) → dossier LLM (résumé entreprise grounded, points de
+match sur le **profil réel**, écarts à anticiper honnêtes, questions probables +
+angles de réponse, questions à poser) → nettoyage déterministe (anti tiret
+cadratin partout). Mêmes garde-fous anti-invention que l'accroche.
 
 ## Variables d'env
 
