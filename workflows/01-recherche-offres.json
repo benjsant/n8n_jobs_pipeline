@@ -25,7 +25,7 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "SELECT id, name, keywords, location_insee, location_label, radius_km, contract_types, seniority, must_have, exclusions, score_threshold FROM search_profiles WHERE active = true ORDER BY id;",
+        "query": "SELECT id, name, keywords, location_insee, location_label, latitude, longitude, rome_codes, radius_km, contract_types, seniority, must_have, exclusions, score_threshold FROM search_profiles WHERE active = true ORDER BY id;",
         "options": {}
       },
       "id": "a1000000-0000-4000-8000-000000000002",

@@ -40,7 +40,7 @@ seed:
 # Régénère le jsCode des nœuds Code du 01 depuis offer-utils.mjs (source unique).
 # À lancer après toute modif de offer-utils.mjs.
 build-nodes:
-    docker run --rm -v "$PWD":/app -w /app node:20-alpine node workflows/lib/build-nodes.mjs
+    docker run --rm --user "$(id -u):$(id -g)" -v "$PWD":/app -w /app node:20-alpine node workflows/lib/build-nodes.mjs
 
 # Suites de tests JS + garde-fou de parité nœuds n8n <-> offer-utils, en conteneur Node
 test:
