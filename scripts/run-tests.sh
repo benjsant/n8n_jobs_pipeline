@@ -16,6 +16,7 @@ run() {
 
 run "Logique offres (dédup + scoring)" node workflows/lib/offer-utils.test.mjs
 run "Parité nœuds n8n <-> offer-utils" node workflows/lib/build-nodes.mjs --check
+run "Câblage des workflows (contrats SQL/expressions)" node workflows/lib/workflow-wiring.test.mjs
 run "Normaliseurs de sources" node workflows/lib/sources.test.mjs
 run "Scoring hybride (LLM)" node workflows/lib/llm-scoring.test.mjs
 run "Enrichissement entreprise" node workflows/lib/company-enrichment.test.mjs
