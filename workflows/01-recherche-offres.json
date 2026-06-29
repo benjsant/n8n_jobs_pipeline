@@ -271,7 +271,7 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "INSERT INTO companies (name, website, sector, last_updated) VALUES ($1, $2, $3, now()) ON CONFLICT (name) DO UPDATE SET website = COALESCE(NULLIF(EXCLUDED.website, ''), companies.website), sector = COALESCE(NULLIF(EXCLUDED.sector, ''), companies.sector), last_updated = now();",
+        "query": "INSERT INTO companies (name, website, sector, last_updated) VALUES ($1, $2, $3, now()) ON CONFLICT (name) DO UPDATE SET website = COALESCE(NULLIF(EXCLUDED.website, ''), companies.website), sector = COALESCE(NULLIF(EXCLUDED.sector, ''), companies.sector), last_updated = now() RETURNING name, sector, website;",
         "options": {
           "queryReplacement": "={{ [$json.name, $json.website || '', $json.sector || ''] }}"
         }
@@ -297,7 +297,7 @@
         "url": "={{ $env.DISCORD_WEBHOOK_ALERTS }}",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ { \"content\": `🏢 **Candidature spontanée (alternance)** — ${$json.name}${$json.sector ? ' · ' + $json.sector : ''}\\n[${$('Boucle profils').first().json.name}] ${$json.location || ''}\\n${$json.website || ''}${$json.apply_url ? '\\n➡️ Contact: ' + $json.apply_url : ''}\\n✅ Postuler: ${$env.WEBHOOK_URL}webhook/spontaneous-apply?company=${encodeURIComponent($json.name)}` } }}",
+        "jsonBody": "={{ { \"content\": `🏢 **Candidature spontanée (alternance)** — ${$json.name}${$json.sector ? ' · ' + $json.sector : ''}\\n[${$('Boucle profils').first().json.name}]${$json.website ? '\\n' + $json.website : ''}\\n✅ Postuler: ${$env.WEBHOOK_URL}webhook/spontaneous-apply?company=${encodeURIComponent($json.name)}` } }}",
         "options": {}
       },
       "id": "a1000000-0000-4000-8000-000000000064",
