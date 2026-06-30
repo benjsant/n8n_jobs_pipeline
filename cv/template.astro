@@ -31,8 +31,10 @@ const {
   hidden_sections = [],
 } = personalization;
 const isHidden = (key) => hidden_sections.includes(key);
-const summary = customSummary || profile.summary;
-const title = customTitle || profile.title;
+// Anti-IA : retire tiret cadratin/demi-cadratin (— –) -> '-' et point médian (·) -> ', '.
+const clean = (s) => String(s ?? "").replace(/[—–]/g, "-").replace(/\s*·\s*/g, ", ");
+const summary = clean(customSummary || profile.summary);
+const title = clean(customTitle || profile.title);
 
 function reorder(items, highlights, keyFn) {
   const hi = items.filter((i) => highlights.includes(keyFn(i)));
@@ -40,7 +42,13 @@ function reorder(items, highlights, keyFn) {
   return [...hi, ...rest];
 }
 
-const projects = reorder(projectsData.projects.filter((p) => p.name), highlight_projects, (p) => p.id);
+const projects = reorder(projectsData.projects.filter((p) => p.name), highlight_projects, (p) => p.id).map((p) => ({
+  ...p,
+  name: clean(p.name),
+  period: clean(p.period),
+  description: clean(p.description),
+  tech: (p.tech || []).map(clean),
+}));
 const experiences = reorder(
   experiencesData.experiences.filter((e) => e.role || e.company),
   highlight_experiences,
@@ -50,25 +58,31 @@ const experiences = reorder(
   const stackB = bullets.find((b) => /^stack\s*:/i.test(b));
   return {
     ...e,
-    tasks: bullets.filter((b) => b !== stackB),
-    tags: stackB ? stackB.replace(/^stack\s*:\s*/i, "").split(/\s*[·,]\s*/).filter(Boolean) : [],
+    company: clean(e.company),
+    role: clean(e.role),
+    date: clean(e.date),
+    location: clean(e.location),
+    tasks: bullets.filter((b) => b !== stackB).map(clean),
+    tags: stackB ? stackB.replace(/^stack\s*:\s*/i, "").split(/\s*[·,]\s*/).filter(Boolean).map(clean) : [],
   };
 });
-const education = educationData.education.filter((e) => e.degree || e.school);
-const certifications = (certificationsData.certifications || []).filter((c) => c.name);
+const education = educationData.education.filter((e) => e.degree || e.school)
+  .map((e) => ({ ...e, degree: clean(e.degree), school: clean(e.school), location: clean(e.location), date: clean(e.date) }));
+const certifications = (certificationsData.certifications || []).filter((c) => c.name)
+  .map((c) => ({ ...c, name: clean(c.name), issuer: clean(c.issuer), year: clean(c.year) }));
 const languages = (languagesData.languages || []).filter((l) => l.name);
 
 const skillRows = skillsData.categories
   .map((cat) => ({
-    name: cat.name,
+    name: clean(cat.name),
     items: reorder(cat.items.filter((s) => s.name), highlight_skills, (s) => s.name)
-      .map((s) => ({ label: s.level ? `${s.name} (${s.level})` : s.name, hl: highlight_skills.includes(s.name) })),
+      .map((s) => ({ label: clean(s.level ? `${s.name} (${s.level})` : s.name), hl: highlight_skills.includes(s.name) })),
   }))
   .filter((c) => c.items.length > 0);
 if (!isHidden("languages") && languages.length) {
   skillRows.push({
     name: "Langues",
-    items: languages.map((l) => ({ label: l.level ? `${l.name} (${l.level})` : l.name, hl: false })),
+    items: languages.map((l) => ({ label: clean(l.level ? `${l.name} (${l.level})` : l.name), hl: false })),
   });
 }
 
@@ -107,7 +121,7 @@ const icons = {
         <!-- ════ HERO (indigo clair) ════ -->
         <header class="cvd-hero">
           <div class="cvd-hero-text">
-            <div class="cvd-status"><span class="cvd-status-dot"></span>Disponible · démarrage immédiat</div>
+            <div class="cvd-status"><span class="cvd-status-dot"></span>Disponible, démarrage immédiat</div>
             <h1 class="cvd-name">{profile.name || "[Nom]"}</h1>
             {title && <p class="cvd-role">{title}</p>}
             {!isHidden("summary") && summary && <p class="cvd-summary">{summary}</p>}
@@ -163,7 +177,7 @@ const icons = {
                     <span class="cvd-proj-name">{p.url ? <a href={p.url}>{p.name}</a> : p.name}</span>
                     {p.period && <span class="cvd-proj-period">{p.period}</span>}
                   </div>
-                  {p.tech?.length > 0 && <p class="cvd-proj-stack">{p.tech.join(" · ")}</p>}
+                  {p.tech?.length > 0 && <p class="cvd-proj-stack">{p.tech.join(", ")}</p>}
                   {p.description && <p class="cvd-proj-desc">{p.description}</p>}
                 </div>
               ))}
