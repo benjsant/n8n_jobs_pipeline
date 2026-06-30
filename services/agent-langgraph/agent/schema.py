@@ -36,6 +36,7 @@ class CompetenceAAmeliorer(BaseModel):
 
 
 class PersonnalisationCv(BaseModel):
+    cv_title: str = ""  # intitulé du CV adapté à l'offre (ATS), honnête
     summary: str = ""
     highlight_skills: list[str] = Field(default_factory=list)
     highlight_projects: list[str] = Field(default_factory=list)

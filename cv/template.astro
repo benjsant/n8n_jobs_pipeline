@@ -23,6 +23,7 @@ const photoSrc = existsSync(photoPath)
 // ── Personnalisation (sortie de l'agent) ───────────────────────────────
 const { personalization = {} } = Astro.props;
 const {
+  cv_title: customTitle = "",
   summary: customSummary = "",
   highlight_skills = [],
   highlight_projects = [],
@@ -31,6 +32,7 @@ const {
 } = personalization;
 const isHidden = (key) => hidden_sections.includes(key);
 const summary = customSummary || profile.summary;
+const title = customTitle || profile.title;
 
 function reorder(items, highlights, keyFn) {
   const hi = items.filter((i) => highlights.includes(keyFn(i)));
@@ -107,7 +109,7 @@ const icons = {
           <div class="cvd-hero-text">
             <div class="cvd-status"><span class="cvd-status-dot"></span>Disponible · démarrage immédiat</div>
             <h1 class="cvd-name">{profile.name || "[Nom]"}</h1>
-            {profile.title && <p class="cvd-role">{profile.title}</p>}
+            {title && <p class="cvd-role">{title}</p>}
             {!isHidden("summary") && summary && <p class="cvd-summary">{summary}</p>}
 
             <div class="cvd-pills">

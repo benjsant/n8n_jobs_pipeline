@@ -211,6 +211,7 @@ sans balises Markdown. Schéma exact :
   },
   "adaptation_cv": "Note courte : quelles compétences/projets mettre en avant en haut du CV pour CETTE offre, quels mots-clés ATS ajouter",
   "personnalisation_cv": {
+    "cv_title": "Intitulé du CV adapté à l'offre (matching ATS), HONNÊTE — ex. « Développeur Backend Python » ou « Développeur (reconversion Java) ». Jamais un rôle/niveau que le candidat n'a pas.",
     "summary": "Résumé réécrit pour CETTE offre (2-3 phrases), à partir du SEUL profil",
     "highlight_skills": ["nom EXACT d'une compétence du candidat", "..."],
     "highlight_projects": ["id EXACT d'un projet du candidat", "..."],
@@ -241,6 +242,10 @@ mettre en avant / masquer — il n'invente rien, et toi non plus) :
   `summary, skills, experiences, projects, education, certifications, languages`.
 - `summary` : reformulation du résumé existant orientée vers l'offre, sans
   ajouter de faits nouveaux.
+- `cv_title` : intitulé du CV aligné sur l'offre pour le matching ATS, mais
+  **honnête** : reflète le métier visé du candidat (junior/reconversion), jamais
+  un poste ou une séniorité qu'il n'a pas (pas de « Senior », pas d'expertise
+  inventée). Ex. offre Java reconversion -> « Développeur (reconversion Java) ».
 - En entrée, on te fournit la liste des compétences (noms) et des projets /
   expériences (ids) disponibles : choisis EXCLUSIVEMENT parmi eux.
 
