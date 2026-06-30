@@ -1,9 +1,10 @@
 ---
 // CV maître — version ATS STRICTE (1 colonne, texte à plat, aucune grille ni
-// tableau, titres de sections standard, police système, puces standard). Pensée
-// pour un parsing ATS maximal. DeepSeek ne touche JAMAIS ce fichier ni le CSS :
-// il fournit seulement `personalization` (cv_title, summary, réordonner / mettre
-// en avant / masquer), jamais d'invention. Même contrat de données que template.astro.
+// tableau, titres standard, police système, puces standard). Parsing ATS maximal.
+// Anti-IA : aucun tiret cadratin/demi-cadratin (— –) dans le rendu (nettoyés ci-
+// dessous), dates entre parenthèses, séparateurs sobres. DeepSeek ne touche JAMAIS
+// ce fichier : il fournit seulement `personalization` (cv_title, summary, mise en
+// avant / masquage), jamais d'invention. Même contrat de données que template.astro.
 import profile from "./profile.json";
 import skillsData from "./skills.json";
 import projectsData from "./projects.json";
@@ -11,6 +12,10 @@ import experiencesData from "./experiences.json";
 import educationData from "./education.json";
 import certificationsData from "./certifications.json";
 import languagesData from "./languages.json";
+
+// Anti-IA : remplace tiret cadratin/demi-cadratin (— –) par un trait d'union
+// simple, et le point médian (·) par une virgule.
+const clean = (s) => String(s ?? "").replace(/[—–]/g, "-").replace(/\s*·\s*/g, ", ");
 
 // ── Personnalisation (sortie de l'agent) ───────────────────────────────
 const { personalization = {} } = Astro.props;
@@ -23,8 +28,8 @@ const {
   hidden_sections = [],
 } = personalization;
 const isHidden = (key) => hidden_sections.includes(key);
-const summary = customSummary || profile.summary;
-const title = customTitle || profile.title;
+const summary = clean(customSummary || profile.summary);
+const title = clean(customTitle || profile.title);
 
 function reorder(items, highlights, keyFn) {
   const hi = items.filter((i) => highlights.includes(keyFn(i)));
@@ -32,7 +37,13 @@ function reorder(items, highlights, keyFn) {
   return [...hi, ...rest];
 }
 
-const projects = reorder(projectsData.projects.filter((p) => p.name), highlight_projects, (p) => p.id);
+const projects = reorder(projectsData.projects.filter((p) => p.name), highlight_projects, (p) => p.id).map((p) => ({
+  ...p,
+  name: clean(p.name),
+  period: clean(p.period),
+  description: clean(p.description),
+  tech: (p.tech || []).map(clean),
+}));
 const experiences = reorder(
   experiencesData.experiences.filter((e) => e.role || e.company),
   highlight_experiences,
@@ -41,9 +52,12 @@ const experiences = reorder(
   const bullets = e.bullets || [];
   const stackB = bullets.find((b) => /^stack\s*:/i.test(b));
   return {
-    ...e,
-    tasks: bullets.filter((b) => b !== stackB),
-    stack: stackB ? stackB.replace(/^stack\s*:\s*/i, "").split(/\s*[·,]\s*/).filter(Boolean).join(", ") : "",
+    company: clean(e.company),
+    role: clean(e.role),
+    date: clean(e.date),
+    location: clean(e.location),
+    tasks: bullets.filter((b) => b !== stackB).map(clean),
+    stack: stackB ? clean(stackB.replace(/^stack\s*:\s*/i, "").split(/\s*[·,]\s*/).filter(Boolean).join(", ")) : "",
   };
 });
 const education = educationData.education.filter((e) => e.degree || e.school);
@@ -52,19 +66,19 @@ const languages = (languagesData.languages || []).filter((l) => l.name);
 
 const skillRows = skillsData.categories
   .map((cat) => ({
-    name: cat.name,
+    name: clean(cat.name),
     items: reorder(cat.items.filter((s) => s.name), highlight_skills, (s) => s.name)
-      .map((s) => ({ label: s.level ? `${s.name} (${s.level})` : s.name, hl: highlight_skills.includes(s.name) })),
+      .map((s) => ({ label: clean(s.level ? `${s.name} (${s.level})` : s.name), hl: highlight_skills.includes(s.name) })),
   }))
   .filter((c) => c.items.length > 0);
 if (!isHidden("languages") && languages.length) {
   skillRows.push({
     name: "Langues",
-    items: languages.map((l) => ({ label: l.level ? `${l.name} (${l.level})` : l.name, hl: false })),
+    items: languages.map((l) => ({ label: clean(l.level ? `${l.name} (${l.level})` : l.name), hl: false })),
   });
 }
 
-// ── Contact (texte à plat, ATS-friendly) ───────────────────────────────
+// ── Contact (texte à plat, séparateur sobre " | ") ─────────────────────
 const strip = (u) => String(u || "").replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "");
 const contacts = [
   { label: "Email", value: profile.email },
@@ -74,8 +88,8 @@ const contacts = [
 ].filter((c) => c.value);
 
 const meta = [];
-if (profile.permis) meta.push({ label: "Permis", value: profile.permis });
-if (profile.location || profile.mobility_label) meta.push({ label: "Mobilité", value: profile.location || profile.mobility_label });
+if (profile.permis) meta.push({ label: "Permis", value: clean(profile.permis) });
+if (profile.location || profile.mobility_label) meta.push({ label: "Mobilité", value: clean(profile.location || profile.mobility_label) });
 ---
 
 <!doctype html>
@@ -83,7 +97,7 @@ if (profile.location || profile.mobility_label) meta.push({ label: "Mobilité", 
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>CV — {profile.name}{title ? ` (${title})` : ""}</title>
+    <title>CV - {profile.name}{title ? ` (${title})` : ""}</title>
   </head>
   <body>
     <article class="cv">
@@ -94,13 +108,13 @@ if (profile.location || profile.mobility_label) meta.push({ label: "Mobilité", 
         {!isHidden("summary") && summary && <p class="summary">{summary}</p>}
         <p class="contact">
           {contacts.map((c, i) => (
-            <Fragment>{i > 0 ? " · " : ""}{c.label} : {c.value}</Fragment>
+            <Fragment>{i > 0 ? " | " : ""}{c.label} : {c.value}</Fragment>
           ))}
         </p>
         {meta.length > 0 && (
           <p class="contact">
             {meta.map((d, i) => (
-              <Fragment>{i > 0 ? " · " : ""}{d.label} : {d.value}</Fragment>
+              <Fragment>{i > 0 ? " | " : ""}{d.label} : {d.value}</Fragment>
             ))}
           </p>
         )}
@@ -125,9 +139,8 @@ if (profile.location || profile.mobility_label) meta.push({ label: "Mobilité", 
           <h2>Projets réalisés</h2>
           {projects.map((p) => (
             <div class="item">
-              <p class="item-head">
-                <strong>{p.name}</strong>{p.tech?.length > 0 ? ` — ${p.tech.join(", ")}` : ""}{p.period ? ` · ${p.period}` : ""}
-              </p>
+              <p class="item-head"><strong>{p.name}</strong>{p.period ? ` (${p.period})` : ""}</p>
+              {p.tech?.length > 0 && <p class="item-tech">{p.tech.join(", ")}</p>}
               {p.description && <p class="item-desc">{p.description}</p>}
             </div>
           ))}
@@ -139,11 +152,9 @@ if (profile.location || profile.mobility_label) meta.push({ label: "Mobilité", 
           <h2>Expérience professionnelle</h2>
           {experiences.map((e) => (
             <div class="item">
-              <p class="item-head">
-                <strong>{e.company || e.role}</strong>{e.company && e.role ? ` — ${e.role}` : ""}{e.date ? ` · ${e.date}` : ""}
-              </p>
+              <p class="item-head"><strong>{e.company || e.role}</strong>{e.company && e.role ? `, ${e.role}` : ""}{e.date ? `, ${e.date}` : ""}</p>
               {e.tasks.length > 0 && <ul>{e.tasks.map((t) => <li>{t}</li>)}</ul>}
-              {e.stack && <p class="env">Environnement : {e.stack}</p>}
+              {e.stack && <p class="item-tech">Environnement : {e.stack}</p>}
             </div>
           ))}
         </section>
@@ -153,9 +164,7 @@ if (profile.location || profile.mobility_label) meta.push({ label: "Mobilité", 
         <section>
           <h2>Formation</h2>
           {education.map((ed) => (
-            <p class="line">
-              <strong>{ed.degree}</strong>, {ed.school}{ed.location ? `, ${ed.location}` : ""}{ed.date ? ` · ${ed.date}` : ""}
-            </p>
+            <p class="line"><strong>{clean(ed.degree)}</strong>, {clean(ed.school)}{ed.location ? `, ${clean(ed.location)}` : ""}{ed.date ? ` (${clean(ed.date)})` : ""}</p>
           ))}
         </section>
       )}
@@ -164,7 +173,7 @@ if (profile.location || profile.mobility_label) meta.push({ label: "Mobilité", 
         <section>
           <h2>Certifications</h2>
           {certifications.map((c) => (
-            <p class="line"><strong>{c.name}</strong>{c.issuer ? `, ${c.issuer}` : ""}{c.year ? ` · ${c.year}` : ""}</p>
+            <p class="line"><strong>{clean(c.name)}</strong>{c.issuer ? `, ${clean(c.issuer)}` : ""}{c.year ? ` (${clean(c.year)})` : ""}</p>
           ))}
         </section>
       )}
@@ -172,20 +181,20 @@ if (profile.location || profile.mobility_label) meta.push({ label: "Mobilité", 
 
     <style is:inline>
       /* CV ATS strict : 1 colonne, texte à plat, police système, couleurs sobres.
-         Le texte est entièrement sélectionnable et linéaire pour un parsing maximal. */
+         Texte entièrement sélectionnable et linéaire pour un parsing maximal. */
       * { box-sizing: border-box; }
       html, body { margin: 0; padding: 0; background: #fff; }
       .cv {
         font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-        color: #111827; font-size: 12px; line-height: 1.46;
+        color: #111827; font-size: 12px; line-height: 1.47;
         padding: 10mm 14mm; background: #fff; -webkit-font-smoothing: antialiased;
       }
 
-      .head h1 { font-size: 27px; font-weight: 800; letter-spacing: -0.01em; margin: 0; color: #111827; }
+      .head h1 { font-size: 28px; font-weight: 800; letter-spacing: -0.01em; margin: 0; color: #111827; }
       .role { font-size: 15px; font-weight: 700; color: #3730a3; margin: 3px 0 0; }
       .avail { font-size: 11.5px; color: #374151; margin: 4px 0 0; }
-      .summary { font-size: 12px; color: #374151; margin: 6px 0 0; line-height: 1.46; }
-      .contact { font-size: 11.5px; color: #374151; margin: 6px 0 0; }
+      .summary { font-size: 12px; color: #374151; margin: 6px 0 0; line-height: 1.47; }
+      .contact { font-size: 11.5px; color: #374151; margin: 5px 0 0; }
 
       section { margin-top: 11px; }
       h2 {
@@ -193,15 +202,15 @@ if (profile.location || profile.mobility_label) meta.push({ label: "Mobilité", 
         color: #3730a3; border-bottom: 1.5px solid #c7d2fe; padding-bottom: 2px; margin: 0 0 6px;
       }
 
-      .skills { font-size: 12px; margin: 3px 0; color: #374151; line-height: 1.46; }
+      .skills { font-size: 12px; margin: 3px 0; color: #374151; line-height: 1.47; }
       .skills strong { color: #111827; }
 
-      .item { margin-bottom: 7px; }
+      .item { margin-bottom: 6px; }
       .item-head { font-size: 12.5px; margin: 0; color: #111827; }
-      .item-desc { font-size: 11.5px; color: #374151; margin: 1px 0 0; line-height: 1.46; }
-      .env { font-size: 11px; color: #4b5563; margin: 1px 0 0; }
+      .item-tech { font-size: 11px; color: #4b5563; margin: 1px 0 0; }
+      .item-desc { font-size: 11.5px; color: #374151; margin: 1px 0 0; line-height: 1.47; }
       ul { margin: 3px 0; padding-left: 18px; }
-      li { font-size: 11.5px; color: #374151; line-height: 1.46; margin: 0; }
+      li { font-size: 11.5px; color: #374151; line-height: 1.47; margin: 0; }
       .line { font-size: 12px; color: #374151; margin: 3px 0; }
       .line strong { color: #111827; }
 
