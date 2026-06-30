@@ -2,6 +2,22 @@
   "_note": "Compétences RÉELLES absentes du portfolio, ajoutées à la main et PRÉSERVÉES au `just cv-sync` (fusionnées par sync-from-portfolio.mjs : items ajoutés à la catégorie existante de même nom, ou nouvelle catégorie). Mets ici tout ce que tu maîtrises mais qui n'est pas dans cv.ts.",
   "categories": [
     {
+      "name": "IA & Données",
+      "items": [
+        { "name": "Deep Learning (CNN)", "level": "" },
+        { "name": "ETL / Data Engineering", "level": "" },
+        { "name": "Prefect", "level": "" },
+        { "name": "Scrapy", "level": "" },
+        { "name": "Jupyter", "level": "" }
+      ]
+    },
+    {
+      "name": "IA générative",
+      "items": [
+        { "name": "MCP (Model Context Protocol)", "level": "" }
+      ]
+    },
+    {
       "name": "Langages",
       "items": [
         { "name": "Java", "level": "notions" }
@@ -18,6 +34,13 @@
       "name": "Bases de données",
       "items": [
         { "name": "HBase", "level": "notions" }
+      ]
+    },
+    {
+      "name": "Dev & DevOps",
+      "items": [
+        { "name": "Bash / Shell", "level": "" },
+        { "name": "n8n", "level": "" }
       ]
     },
     {

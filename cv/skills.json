@@ -30,6 +30,26 @@
         {
           "name": "XGBoost",
           "level": ""
+        },
+        {
+          "name": "Deep Learning (CNN)",
+          "level": ""
+        },
+        {
+          "name": "ETL / Data Engineering",
+          "level": ""
+        },
+        {
+          "name": "Prefect",
+          "level": ""
+        },
+        {
+          "name": "Scrapy",
+          "level": ""
+        },
+        {
+          "name": "Jupyter",
+          "level": ""
         }
       ]
     },
@@ -54,6 +74,10 @@
         },
         {
           "name": "Prompt engineering",
+          "level": ""
+        },
+        {
+          "name": "MCP (Model Context Protocol)",
           "level": ""
         }
       ]
@@ -162,6 +186,14 @@
         },
         {
           "name": "CI/CD GitHub Actions",
+          "level": ""
+        },
+        {
+          "name": "Bash / Shell",
+          "level": ""
+        },
+        {
+          "name": "n8n",
           "level": ""
         }
       ]
