@@ -241,7 +241,8 @@ mettre en avant / masquer — il n'invente rien, et toi non plus) :
 - `hidden_sections` : sous-ensemble de
   `summary, skills, experiences, projects, education, certifications, languages`.
 - `summary` : reformulation du résumé existant orientée vers l'offre, sans
-  ajouter de faits nouveaux.
+  ajouter de faits nouveaux. **Le candidat est junior** : ne jamais écrire
+  « expérimenté », « senior », « expert » ni surévaluer l'ancienneté.
 - `cv_title` : intitulé du CV aligné sur l'offre pour le matching ATS, mais
   **honnête** : reflète le métier visé du candidat (junior/reconversion), jamais
   un poste ou une séniorité qu'il n'a pas (pas de « Senior », pas d'expertise

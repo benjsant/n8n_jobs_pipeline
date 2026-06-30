@@ -1,10 +1,9 @@
 ---
-// CV maître — version ATS, portée de astro-portfolio/src/pages/cv.astro
-// (1 colonne, sans photo, bandeau contact texte, sections à plat). Pensée pour
-// les filtres ATS des recruteurs : pas d'image, pas de mise en page multi-colonnes,
-// libellés clairs. DeepSeek ne touche JAMAIS ce fichier ni le CSS : il fournit
-// seulement `personalization` (réordonner / mettre en avant / masquer), jamais
-// d'invention. Même contrat de données que template.astro (le design).
+// CV maître — version ATS STRICTE (1 colonne, texte à plat, aucune grille ni
+// tableau, titres de sections standard, police système, puces standard). Pensée
+// pour un parsing ATS maximal. DeepSeek ne touche JAMAIS ce fichier ni le CSS :
+// il fournit seulement `personalization` (cv_title, summary, réordonner / mettre
+// en avant / masquer), jamais d'invention. Même contrat de données que template.astro.
 import profile from "./profile.json";
 import skillsData from "./skills.json";
 import projectsData from "./projects.json";
@@ -44,7 +43,7 @@ const experiences = reorder(
   return {
     ...e,
     tasks: bullets.filter((b) => b !== stackB),
-    stack: stackB ? stackB.replace(/^stack\s*:\s*/i, "").split(/\s*[·,]\s*/).filter(Boolean).join(" · ") : "",
+    stack: stackB ? stackB.replace(/^stack\s*:\s*/i, "").split(/\s*[·,]\s*/).filter(Boolean).join(", ") : "",
   };
 });
 const education = educationData.education.filter((e) => e.degree || e.school);
@@ -65,13 +64,13 @@ if (!isHidden("languages") && languages.length) {
   });
 }
 
-// ── Bandeau contact (texte, ATS-friendly : libellé + valeur) ───────────
+// ── Contact (texte à plat, ATS-friendly) ───────────────────────────────
 const strip = (u) => String(u || "").replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "");
 const contacts = [
-  { label: "Mail", value: profile.email, href: profile.email ? `mailto:${profile.email}` : "" },
-  { label: "Portfolio", value: strip(profile.links?.portfolio), href: profile.links?.portfolio },
-  { label: "LinkedIn", value: strip(profile.links?.linkedin).replace(/^linkedin\.com\/in\//, ""), href: profile.links?.linkedin },
-  { label: "GitHub", value: strip(profile.links?.github).replace(/^github\.com\//, ""), href: profile.links?.github },
+  { label: "Email", value: profile.email },
+  { label: "Portfolio", value: strip(profile.links?.portfolio) },
+  { label: "LinkedIn", value: strip(profile.links?.linkedin).replace(/^linkedin\.com\/in\//, "") },
+  { label: "GitHub", value: strip(profile.links?.github).replace(/^github\.com\//, "") },
 ].filter((c) => c.value);
 
 const meta = [];
@@ -84,191 +83,132 @@ if (profile.location || profile.mobility_label) meta.push({ label: "Mobilité", 
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>CV — {profile.name}{profile.title ? ` (${profile.title})` : ""}</title>
+    <title>CV — {profile.name}{title ? ` (${title})` : ""}</title>
   </head>
   <body>
-    <article class="cv-sheet">
-      <!-- HEADER -->
-      <header class="cv-header">
-        <h1 class="cv-name">{profile.name || "[Nom]"}</h1>
-        {title && <p class="cv-role">{title}</p>}
-        <p class="cv-avail">Disponible · démarrage immédiat</p>
-        {!isHidden("summary") && summary && <p class="cv-summary">{summary}</p>}
+    <article class="cv">
+      <header class="head">
+        <h1>{profile.name || "[Nom]"}</h1>
+        {title && <p class="role">{title}</p>}
+        <p class="avail">Disponible, démarrage immédiat</p>
+        {!isHidden("summary") && summary && <p class="summary">{summary}</p>}
+        <p class="contact">
+          {contacts.map((c, i) => (
+            <Fragment>{i > 0 ? " · " : ""}{c.label} : {c.value}</Fragment>
+          ))}
+        </p>
+        {meta.length > 0 && (
+          <p class="contact">
+            {meta.map((d, i) => (
+              <Fragment>{i > 0 ? " · " : ""}{d.label} : {d.value}</Fragment>
+            ))}
+          </p>
+        )}
       </header>
 
-      <!-- CONTACT -->
-      <div class="cv-contact">
-        {contacts.map((c) => (
-          <span class="cv-ci"><span class="cv-label">{c.label} :</span> {c.href ? <a href={c.href}>{c.value}</a> : c.value}</span>
-        ))}
-      </div>
-      {meta.length > 0 && (
-        <div class="cv-meta">
-          {meta.map((d) => (
-            <span class="cv-ci"><span class="cv-label">{d.label} :</span> {d.value}</span>
-          ))}
-        </div>
-      )}
-
-      <!-- COMPÉTENCES -->
       {!isHidden("skills") && skillRows.length > 0 && (
-        <section class="cv-section">
+        <section>
           <h2>Compétences</h2>
           {skillRows.map((cat) => (
-            <div class="cv-skill-row">
-              <div class="cv-skill-cat">{cat.name}</div>
-              <div class="cv-skill-val">
-                {cat.items.map((s, i) => (
-                  <span class={s.hl ? "cv-hl" : ""}>{s.label}{i < cat.items.length - 1 ? ", " : ""}</span>
-                ))}
-              </div>
-            </div>
+            <p class="skills">
+              <strong>{cat.name} :</strong>{" "}
+              {cat.items.map((s, i) => (
+                <Fragment>{i > 0 ? ", " : ""}{s.hl ? <strong>{s.label}</strong> : s.label}</Fragment>
+              ))}
+            </p>
           ))}
         </section>
       )}
 
-      <!-- PROJETS -->
       {!isHidden("projects") && projects.length > 0 && (
-        <section class="cv-section">
+        <section>
           <h2>Projets réalisés</h2>
           {projects.map((p) => (
-            <div class="cv-project">
-              <div class="cv-project-head">
-                <div class="cv-project-title">{p.url ? <a href={p.url}>{p.name}</a> : p.name}</div>
-                {p.tech?.length > 0 && <div class="cv-stack">{p.tech.join(" · ")}</div>}
-              </div>
-              {p.period && <div class="cv-project-period">{p.period}</div>}
-              {p.description && <p class="cv-project-desc">{p.description}</p>}
+            <div class="item">
+              <p class="item-head">
+                <strong>{p.name}</strong>{p.tech?.length > 0 ? ` — ${p.tech.join(", ")}` : ""}{p.period ? ` · ${p.period}` : ""}
+              </p>
+              {p.description && <p class="item-desc">{p.description}</p>}
             </div>
           ))}
         </section>
       )}
 
-      <!-- EXPÉRIENCES -->
       {!isHidden("experiences") && experiences.length > 0 && (
-        <section class="cv-section">
-          <h2>Expériences professionnelles</h2>
+        <section>
+          <h2>Expérience professionnelle</h2>
           {experiences.map((e) => (
-            <div class="cv-experience">
-              <div class="cv-job-head">
-                <div>
-                  <div class="cv-job-org">{e.company || e.role}</div>
-                  <div class="cv-job-role">{e.company ? e.role : e.location}</div>
-                </div>
-                {e.date && <div class="cv-job-date">{e.date}</div>}
-              </div>
-              {e.tasks.length > 0 && <ul class="cv-tasks">{e.tasks.map((t) => <li>{t}</li>)}</ul>}
-              {e.stack && <span class="cv-env">{e.stack}</span>}
+            <div class="item">
+              <p class="item-head">
+                <strong>{e.company || e.role}</strong>{e.company && e.role ? ` — ${e.role}` : ""}{e.date ? ` · ${e.date}` : ""}
+              </p>
+              {e.tasks.length > 0 && <ul>{e.tasks.map((t) => <li>{t}</li>)}</ul>}
+              {e.stack && <p class="env">Environnement : {e.stack}</p>}
             </div>
           ))}
         </section>
       )}
 
-      <!-- FORMATIONS -->
       {!isHidden("education") && education.length > 0 && (
-        <section class="cv-section">
-          <h2>Formations</h2>
+        <section>
+          <h2>Formation</h2>
           {education.map((ed) => (
-            <div class="cv-entry">
-              <div class="cv-entry-date">{ed.date}</div>
-              <div class="cv-entry-body">
-                <strong>{ed.degree}</strong>
-                <span>{ed.school}{ed.location ? `, ${ed.location}` : ""}</span>
-              </div>
-            </div>
+            <p class="line">
+              <strong>{ed.degree}</strong>, {ed.school}{ed.location ? `, ${ed.location}` : ""}{ed.date ? ` · ${ed.date}` : ""}
+            </p>
           ))}
         </section>
       )}
 
-      <!-- CERTIFICATIONS -->
       {!isHidden("certifications") && certifications.length > 0 && (
-        <section class="cv-section">
+        <section>
           <h2>Certifications</h2>
           {certifications.map((c) => (
-            <div class="cv-entry">
-              <div class="cv-entry-date">{c.year}</div>
-              <div class="cv-entry-body"><strong>{c.name}</strong>{c.issuer ? `, ${c.issuer}` : ""}</div>
-            </div>
+            <p class="line"><strong>{c.name}</strong>{c.issuer ? `, ${c.issuer}` : ""}{c.year ? ` · ${c.year}` : ""}</p>
           ))}
         </section>
       )}
     </article>
 
     <style is:inline>
-      /* CV ATS — 1 colonne, indigo signature en hex (oklch rendu mal en PDF).
-         Proportions reprises de astro-portfolio/src/pages/cv.astro. */
-      .cv-sheet {
-        --fg: #111619; --fg-muted: #333b42; --fg-sub: #4a535b; --border: #e3e8eb; --border-strong: #d8dee2;
-        --b50: #eef2ff; --b100: #e0e7ff; --b500: #4f46e5; --b600: #4338ca; --b700: #3730a3;
-        background: #fff; color: var(--fg);
-        font-family: 'Manrope Variable', Manrope, system-ui, -apple-system, sans-serif;
-        font-size: 11.5px; line-height: 1.4; -webkit-font-smoothing: antialiased;
-        padding: 9mm 12mm 8mm;
-      }
+      /* CV ATS strict : 1 colonne, texte à plat, police système, couleurs sobres.
+         Le texte est entièrement sélectionnable et linéaire pour un parsing maximal. */
       * { box-sizing: border-box; }
       html, body { margin: 0; padding: 0; background: #fff; }
+      .cv {
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+        color: #111827; font-size: 11px; line-height: 1.42;
+        padding: 12mm 14mm; background: #fff; -webkit-font-smoothing: antialiased;
+      }
 
-      /* Header */
-      .cv-header { padding-bottom: 12px; border-bottom: 1px solid var(--border); }
-      .cv-name { font-family: 'Outfit Variable', Outfit, system-ui, -apple-system, sans-serif; font-size: 26px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.05; color: var(--fg); margin: 0; }
-      .cv-role { font-size: 13px; font-weight: 600; color: var(--b600); margin: 5px 0 0; }
-      .cv-avail { font-size: 11.5px; font-weight: 600; color: var(--fg); margin: 6px 0 0; }
-      .cv-avail::before { content: "●"; color: #16a34a; margin-right: 6px; font-size: 9px; vertical-align: middle; }
-      .cv-summary { font-size: 11.5px; color: var(--fg-muted); margin: 7px 0 0; max-width: 64ch; line-height: 1.45; }
+      .head h1 { font-size: 24px; font-weight: 800; letter-spacing: -0.01em; margin: 0; color: #111827; }
+      .role { font-size: 13px; font-weight: 700; color: #3730a3; margin: 3px 0 0; }
+      .avail { font-size: 10.5px; color: #374151; margin: 4px 0 0; }
+      .summary { font-size: 11px; color: #374151; margin: 6px 0 0; line-height: 1.45; }
+      .contact { font-size: 10.5px; color: #374151; margin: 6px 0 0; }
 
-      /* Contact / meta */
-      .cv-contact, .cv-meta { display: flex; flex-wrap: wrap; gap: 4px 32px; font-family: 'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, monospace; font-size: 10.5px; color: var(--fg-muted); }
-      .cv-contact { padding: 10px 0 3px; }
-      .cv-meta { padding-top: 5px; }
-      .cv-contact > span, .cv-meta > span { flex: 0 0 calc(50% - 16px); }
-      .cv-ci { white-space: nowrap; }
-      .cv-contact a { color: var(--fg); text-decoration: none; border-bottom: 1px solid var(--b100); }
-      .cv-label { color: var(--fg); font-weight: 700; }
+      section { margin-top: 11px; }
+      h2 {
+        font-size: 11.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em;
+        color: #3730a3; border-bottom: 1.5px solid #c7d2fe; padding-bottom: 2px; margin: 0 0 5px;
+      }
 
-      /* Sections */
-      .cv-section { margin-top: 8px; padding-top: 6px; border-top: 1px solid var(--border-strong); }
-      .cv-section h2 { font-family: 'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.13em; color: var(--b700); display: flex; align-items: center; gap: 10px; margin: 0 0 5px; }
-      .cv-section h2::before { content: "■"; color: var(--b500); font-size: 11px; line-height: 1; flex-shrink: 0; }
+      .skills { font-size: 11px; margin: 2.5px 0; color: #374151; }
+      .skills strong { color: #111827; }
 
-      /* Compétences */
-      .cv-skill-row { display: grid; grid-template-columns: 160px 1fr; gap: 4px 16px; font-size: 11.5px; padding: 2px 0; }
-      .cv-skill-row + .cv-skill-row { border-top: 1px solid var(--border); }
-      .cv-skill-cat { font-family: 'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, monospace; font-size: 10px; font-weight: 700; color: var(--b600); padding-top: 1px; }
-      .cv-skill-val { color: var(--fg); }
-      .cv-skill-val .cv-hl { font-weight: 700; color: var(--b700); }
-
-      /* Projets */
-      .cv-project { margin-bottom: 7px; }
-      .cv-project:last-child { margin-bottom: 0; }
-      .cv-project-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
-      .cv-project-title { font-size: 12.5px; font-weight: 700; color: var(--b700); }
-      .cv-project-title a { color: inherit; text-decoration: none; border-bottom: 1.5px solid var(--b500); }
-      .cv-stack { font-family: 'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, monospace; font-size: 9.5px; color: var(--fg-muted); }
-      .cv-project-period { font-family: 'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, monospace; font-size: 10px; color: var(--b600); font-weight: 600; margin-top: 2px; letter-spacing: 0.02em; }
-      .cv-project-desc { font-size: 11px; color: var(--fg-muted); margin: 2px 0 0; line-height: 1.45; }
-
-      /* Expériences */
-      .cv-experience { margin-bottom: 4px; }
-      .cv-job-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
-      .cv-job-org { font-size: 12.5px; font-weight: 700; color: var(--fg); }
-      .cv-job-role { font-size: 11.5px; color: var(--b600); font-weight: 500; }
-      .cv-job-date { font-family: 'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, monospace; font-size: 9.5px; color: var(--fg-muted); text-align: right; max-width: 60%; line-height: 1.4; }
-      ul.cv-tasks { list-style: none; margin: 4px 0; padding: 0; }
-      ul.cv-tasks li { position: relative; padding-left: 14px; font-size: 11px; color: var(--fg-muted); line-height: 1.35; }
-      ul.cv-tasks li::before { content: "•"; position: absolute; left: 0; color: var(--b500); font-size: 10px; }
-      .cv-env { font-family: 'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, monospace; font-size: 9.5px; color: var(--b700); background: var(--b50); display: inline-block; padding: 2px 7px; border-radius: 4px; border: 1px solid var(--b100); }
-
-      /* Formations / certifications */
-      .cv-entry { display: grid; grid-template-columns: 80px 1fr; gap: 10px; font-size: 11.5px; padding: 2px 0; }
-      .cv-entry + .cv-entry { border-top: 1px solid var(--border); }
-      .cv-entry-date { font-family: 'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, monospace; font-size: 10px; color: var(--b600); font-weight: 600; }
-      .cv-entry-body strong { color: var(--fg); font-weight: 700; }
-      .cv-entry-body span { color: var(--fg-muted); display: block; font-size: 10.5px; }
+      .item { margin-bottom: 6px; }
+      .item-head { font-size: 11.5px; margin: 0; color: #111827; }
+      .item-desc { font-size: 10.5px; color: #374151; margin: 1px 0 0; line-height: 1.42; }
+      .env { font-size: 10px; color: #4b5563; margin: 1px 0 0; }
+      ul { margin: 2px 0; padding-left: 16px; }
+      li { font-size: 10.5px; color: #374151; line-height: 1.38; margin: 0; }
+      .line { font-size: 11px; color: #374151; margin: 2.5px 0; }
+      .line strong { color: #111827; }
 
       @page { size: A4; margin: 0; }
       @media print {
         *, *::before, *::after { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-        .cv-section, .cv-project, .cv-job-head, .cv-entry, ul.cv-tasks li { page-break-inside: avoid; }
+        section, .item, .line, li { page-break-inside: avoid; }
       }
     </style>
   </body>
