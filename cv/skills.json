@@ -149,6 +149,18 @@
           "level": ""
         }
       ]
+    },
+    {
+      "name": "Réseaux",
+      "items": [
+        { "name": "TCP/IP", "level": "notions" },
+        { "name": "DNS", "level": "notions" },
+        { "name": "HTTP/HTTPS & REST", "level": "" },
+        { "name": "SSH (durcissement)", "level": "" },
+        { "name": "Pare-feu (ufw / iptables)", "level": "" },
+        { "name": "Réseaux Docker", "level": "" },
+        { "name": "VPN / WireGuard", "level": "notions" }
+      ]
     }
   ]
 }

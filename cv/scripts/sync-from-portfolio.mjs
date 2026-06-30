@@ -64,21 +64,23 @@ const findContactHref = (cv, re) =>
   (cv.contact ?? []).find((c) => re.test(c.label))?.href ?? "";
 
 /** Mappe l'objet `cv` du portfolio vers les fichiers cv/*.json (objets JS). */
-export function mapCv(cv, existingProfile = {}) {
+export function mapCv(cv, existingProfile = {}, manualSkills = { categories: [] }) {
   const langRow = (cv.skills ?? []).find((s) => /langue/i.test(s.category));
   const languages = splitSkills(langRow?.value).map((entry) => {
     const [name, ...rest] = entry.split(/\s+/);
     return { name, level: cap(rest.join(" ")) };
   });
 
-  const skills = {
-    categories: (cv.skills ?? [])
-      .filter((s) => !/langue/i.test(s.category))
-      .map((s) => ({
-        name: s.category,
-        items: splitSkills(s.value).map((name) => ({ name, level: "" })),
-      })),
-  };
+  // Catégories du portfolio + catégories MANUELLES (cv/skills-manual.json) :
+  // compétences réelles absentes du portfolio (ex. Réseaux), préservées au sync.
+  const manual = (manualSkills?.categories ?? []).filter((c) => c?.name && (c.items ?? []).length);
+  const fromPortfolio = (cv.skills ?? [])
+    .filter((s) => !/langue/i.test(s.category))
+    .map((s) => ({
+      name: s.category,
+      items: splitSkills(s.value).map((name) => ({ name, level: "" })),
+    }));
+  const skills = { categories: [...fromPortfolio, ...manual] };
 
   const projects = {
     projects: (cv.projects ?? []).map((p) => ({
@@ -187,7 +189,10 @@ async function main() {
   const existingProfile = existsSync(resolve(CV_DIR, "profile.json"))
     ? JSON.parse(await readFile(resolve(CV_DIR, "profile.json"), "utf-8"))
     : {};
-  const out = mapCv(cv, existingProfile);
+  const manualSkills = existsSync(resolve(CV_DIR, "skills-manual.json"))
+    ? JSON.parse(await readFile(resolve(CV_DIR, "skills-manual.json"), "utf-8"))
+    : { categories: [] };
+  const out = mapCv(cv, existingProfile, manualSkills);
 
   await writeJson("profile.json", out.profile);
   await writeJson("skills.json", out.skills);

@@ -88,4 +88,15 @@ await t("préserve les champs optionnels saisis à la main", async () => {
   assert.deepEqual(out.profile.soft_skills, ["Autonomie"]);
 });
 
+await t("fusionne les compétences manuelles (préservées au sync)", async () => {
+  const manual = { categories: [{ name: "Réseaux", items: [{ name: "DNS", level: "notions" }] }] };
+  const out = mapCv(await extractCvObject(FIXTURE), {}, manual);
+  const reseaux = out.skills.categories.find((c) => c.name === "Réseaux");
+  assert.ok(reseaux, "la catégorie manuelle Réseaux doit être présente");
+  assert.deepEqual(reseaux.items, [{ name: "DNS", level: "notions" }]);
+  // catégories vides ignorées
+  const out2 = mapCv(await extractCvObject(FIXTURE), {}, { categories: [{ name: "Vide", items: [] }] });
+  assert.ok(!out2.skills.categories.some((c) => c.name === "Vide"));
+});
+
 console.log(`\n${passed} tests OK (sync portfolio)`);

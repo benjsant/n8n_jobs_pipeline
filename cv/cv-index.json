@@ -29,7 +29,14 @@
     "Git",
     "Linux",
     "Node.js",
-    "CI/CD GitHub Actions"
+    "CI/CD GitHub Actions",
+    "TCP/IP",
+    "DNS",
+    "HTTP/HTTPS & REST",
+    "SSH (durcissement)",
+    "Pare-feu (ufw / iptables)",
+    "Réseaux Docker",
+    "VPN / WireGuard"
   ],
   "projects": [
     {
