@@ -1,6 +1,25 @@
 {
-  "_note": "Compétences RÉELLES absentes du portfolio, ajoutées à la main et PRÉSERVÉES au `just cv-sync` (fusionnées par sync-from-portfolio.mjs). Mets ici tout ce que tu maîtrises mais qui n'est pas dans cv.ts.",
+  "_note": "Compétences RÉELLES absentes du portfolio, ajoutées à la main et PRÉSERVÉES au `just cv-sync` (fusionnées par sync-from-portfolio.mjs : items ajoutés à la catégorie existante de même nom, ou nouvelle catégorie). Mets ici tout ce que tu maîtrises mais qui n'est pas dans cv.ts.",
   "categories": [
+    {
+      "name": "Langages",
+      "items": [
+        { "name": "Java", "level": "notions" }
+      ]
+    },
+    {
+      "name": "Frameworks",
+      "items": [
+        { "name": "JEE", "level": "notions" },
+        { "name": "Hibernate", "level": "notions" }
+      ]
+    },
+    {
+      "name": "Bases de données",
+      "items": [
+        { "name": "HBase", "level": "notions" }
+      ]
+    },
     {
       "name": "Réseaux",
       "items": [

@@ -74,13 +74,21 @@ export function mapCv(cv, existingProfile = {}, manualSkills = { categories: [] 
   // Catégories du portfolio + catégories MANUELLES (cv/skills-manual.json) :
   // compétences réelles absentes du portfolio (ex. Réseaux), préservées au sync.
   const manual = (manualSkills?.categories ?? []).filter((c) => c?.name && (c.items ?? []).length);
-  const fromPortfolio = (cv.skills ?? [])
-    .filter((s) => !/langue/i.test(s.category))
-    .map((s) => ({
-      name: s.category,
-      items: splitSkills(s.value).map((name) => ({ name, level: "" })),
-    }));
-  const skills = { categories: [...fromPortfolio, ...manual] };
+  const skills = {
+    categories: (cv.skills ?? [])
+      .filter((s) => !/langue/i.test(s.category))
+      .map((s) => ({
+        name: s.category,
+        items: splitSkills(s.value).map((name) => ({ name, level: "" })),
+      })),
+  };
+  // Fusion : items d'une catégorie manuelle déjà existante -> ajoutés à celle-ci
+  // (ex. Java dans « Langages ») ; catégorie manuelle nouvelle -> ajoutée (ex. Réseaux).
+  for (const mc of manual) {
+    const existing = skills.categories.find((c) => c.name === mc.name);
+    if (existing) existing.items = [...existing.items, ...mc.items];
+    else skills.categories.push(mc);
+  }
 
   const projects = {
     projects: (cv.projects ?? []).map((p) => ({
