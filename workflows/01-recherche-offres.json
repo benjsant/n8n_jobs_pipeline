@@ -199,43 +199,12 @@
     },
     {
       "parameters": {
-        "url": "https://api.apprentissage.beta.gouv.fr/api/job/v1/search",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Authorization",
-              "value": "=Bearer {{ $env.LBA_API_KEY }}"
-            }
-          ]
-        },
-        "sendQuery": true,
-        "queryParameters": {
-          "parameters": [
-            {
-              "name": "romes",
-              "value": "={{ $('Boucle profils').first().json.rome_codes }}"
-            },
-            {
-              "name": "latitude",
-              "value": "={{ $('Boucle profils').first().json.latitude }}"
-            },
-            {
-              "name": "longitude",
-              "value": "={{ $('Boucle profils').first().json.longitude }}"
-            },
-            {
-              "name": "radius",
-              "value": "={{ $('Boucle profils').first().json.radius_km }}"
-            }
-          ]
-        },
-        "options": {}
+        "jsCode": "// Dédup des appels LBA : LBA ne dépend que de (lat,long,ROME,rayon), pas des\n// mots-clés -> inutile de l'appeler pour chaque profil d'une même ville. Seul le\n// PREMIER profil de chaque géo appelle l'API ; les autres skippent (10 -> 2 appels).\nconst prof = $('Boucle profils').first().json;\nconst all = $('Profils actifs').all().map((i) => i.json);\nconst geoKey = (x) => `${x.latitude},${x.longitude},${x.rome_codes},${x.radius_km}`;\nif (!prof.latitude || !prof.rome_codes) return [];\nconst firstForGeo = all.find((x) => geoKey(x) === geoKey(prof));\nif (!firstForGeo || firstForGeo.id !== prof.id) return [];\nconst url = 'https://api.apprentissage.beta.gouv.fr/api/job/v1/search?' + new URLSearchParams({\n  romes: prof.rome_codes, latitude: prof.latitude, longitude: prof.longitude, radius: prof.radius_km || 30,\n});\ntry {\n  const resp = await this.helpers.httpRequest({ method: 'GET', url, headers: { Authorization: 'Bearer ' + $env.LBA_API_KEY }, json: true });\n  return [{ json: resp }];\n} catch (e) {\n  return [{ json: { jobs: [], recruiters: [] } }];\n}"
       },
       "id": "a1000000-0000-4000-8000-000000000060",
       "name": "LBA - search",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [
         240,
         1040
