@@ -1,0 +1,2032 @@
+
+<!doctype html>
+<html lang="fr" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Assistant de recherche d'emploi semi-automatique (collecte, scoring, CV + lettre par IA, garde-fous anti-invention).">
+      
+      
+        <meta name="author" content="Benjamin Santrisse">
+      
+      
+      
+        <link rel="prev" href="../oauth-google/">
+      
+      
+        <link rel="next" href="../donnees-et-deepseek/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>API & schéma SQL - Job Hunter</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#docsreferencemd-reference-technique" class="md-skip">
+          Aller au contenu
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="En-tête">
+    <a href=".." title="Job Hunter" class="md-header__button md-logo" aria-label="Job Hunter" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Job Hunter
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              API & schéma SQL
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Mode sombre"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Mode sombre" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Mode clair"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Mode clair" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Rechercher" placeholder="Rechercher" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Recherche">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Effacer" aria-label="Effacer" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initialisation de la recherche
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/benjsant/n8n_jobs_pipeline" title="Aller au dépôt" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    benjsant/n8n_jobs_pipeline
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Job Hunter" class="md-nav__button md-logo" aria-label="Job Hunter" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Job Hunter
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/benjsant/n8n_jobs_pipeline" title="Aller au dépôt" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    benjsant/n8n_jobs_pipeline
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Accueil
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Démarrage
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Démarrage
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../interface/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mini-interface (URL → CV + lettre)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cles-sources/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Clés & sources d'offres
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Déploiement
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Déploiement
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../deploiement-vps/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    VPS privé (WireGuard + SSH)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../oauth-google/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    OAuth Google (Gmail + Drive)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Référence
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Référence
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API & schéma SQL
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API & schéma SQL
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table des matières">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table des matières
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#0-postgresql-source-de-verite" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0. PostgreSQL — source de vérité
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="0. PostgreSQL — source de vérité">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#table-search_profiles-multi-profils" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Table search_profiles (multi-profils)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#table-offers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Table offers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#table-companies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Table companies
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#table-applications" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Table applications
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#table-generated_documents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Table generated_documents
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#table-profile" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Table profile
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-deepseek-llm-de-lagent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. DeepSeek (LLM de l'agent)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-api-france-travail-offres-demploi-v2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. API France Travail (Offres d'emploi v2)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2b-adzuna-api-agregateur-source-complementaire" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2b. Adzuna (API agrégateur, source complémentaire)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-jobspy-source-complementaire-multi-boards" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. JobSpy (source complémentaire multi-boards)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3b-welcome-to-the-jungle-rss" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3b. Welcome to the Jungle (RSS)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3c-google-jobs-via-serpapi-source-principale-du-pipeline-reel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3c. Google Jobs via SerpApi (source principale du pipeline réel)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3d-la-bonne-alternance-alternance-entreprises-a-contacter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3d. La Bonne Alternance (alternance + entreprises à contacter)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-notion-optionnel-consultation-seule-hors-v1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Notion (OPTIONNEL — consultation seule, hors V1)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Notion (OPTIONNEL — consultation seule, hors V1)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#schema-propose-base-offres" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Schéma proposé — Base « Offres »
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schema-propose-base-entreprises" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Schéma proposé — Base « Entreprises »
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-discord-notifications-via-webhook" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Discord (notifications via webhook)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-variables-denvironnement-disponibles-dans-n8n" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Variables d'environnement disponibles dans n8n
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6b-google-gmail-brouillon-drive-archivage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6b. Google (Gmail brouillon + Drive archivage)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-liens-utiles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Liens utiles
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../donnees-et-deepseek/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Données & DeepSeek
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Projet
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Projet
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../plan-langgraph/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Évolution LangGraph
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table des matières">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table des matières
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#0-postgresql-source-de-verite" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0. PostgreSQL — source de vérité
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="0. PostgreSQL — source de vérité">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#table-search_profiles-multi-profils" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Table search_profiles (multi-profils)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#table-offers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Table offers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#table-companies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Table companies
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#table-applications" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Table applications
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#table-generated_documents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Table generated_documents
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#table-profile" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Table profile
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-deepseek-llm-de-lagent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. DeepSeek (LLM de l'agent)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-api-france-travail-offres-demploi-v2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. API France Travail (Offres d'emploi v2)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2b-adzuna-api-agregateur-source-complementaire" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2b. Adzuna (API agrégateur, source complémentaire)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-jobspy-source-complementaire-multi-boards" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. JobSpy (source complémentaire multi-boards)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3b-welcome-to-the-jungle-rss" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3b. Welcome to the Jungle (RSS)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3c-google-jobs-via-serpapi-source-principale-du-pipeline-reel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3c. Google Jobs via SerpApi (source principale du pipeline réel)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3d-la-bonne-alternance-alternance-entreprises-a-contacter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3d. La Bonne Alternance (alternance + entreprises à contacter)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-notion-optionnel-consultation-seule-hors-v1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Notion (OPTIONNEL — consultation seule, hors V1)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Notion (OPTIONNEL — consultation seule, hors V1)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#schema-propose-base-offres" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Schéma proposé — Base « Offres »
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schema-propose-base-entreprises" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Schéma proposé — Base « Entreprises »
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-discord-notifications-via-webhook" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Discord (notifications via webhook)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-variables-denvironnement-disponibles-dans-n8n" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Variables d'environnement disponibles dans n8n
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6b-google-gmail-brouillon-drive-archivage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6b. Google (Gmail brouillon + Drive archivage)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-liens-utiles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Liens utiles
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="docsreferencemd-reference-technique">docs/reference.md — Référence technique<a class="headerlink" href="#docsreferencemd-reference-technique" title="Permanent link">&para;</a></h1>
+<p>Toutes les infos factuelles dont Claude Code a besoin pour construire les
+workflows sans deviner. Vérifie toujours la doc officielle si un endpoint a
+changé.</p>
+<hr />
+<h2 id="0-postgresql-source-de-verite">0. PostgreSQL — source de vérité<a class="headerlink" href="#0-postgresql-source-de-verite" title="Permanent link">&para;</a></h2>
+<p>Le même conteneur Postgres sert la persistance interne de n8n ET les tables
+métier ci-dessous (à créer dans <code>db/schema.sql</code>, Tâche 2). C'est la <strong>seule</strong>
+source de vérité du projet.</p>
+<h3 id="table-search_profiles-multi-profils">Table <code>search_profiles</code> (multi-profils)<a class="headerlink" href="#table-search_profiles-multi-profils" title="Permanent link">&para;</a></h3>
+<p>Configs de recherche : chaque profil pilote une collecte et le scoring.
+| Colonne | Type | Notes |
+|---|---|---|
+| id | serial PK | |
+| name | text UNIQUE | nom du profil |
+| keywords | text | mots-clés de recherche |
+| location_insee | text | code INSEE commune |
+| radius_km | int | rayon |
+| contract_types | text | ex. <code>CDI,CDD,Alternance</code> |
+| seniority | text | ex. <code>Junior</code> |
+| must_have | text | critères indispensables (scoring) |
+| exclusions | text | critères d'exclusion (scoring) |
+| score_threshold | int | seuil (défaut 60) |
+| active | bool | profil actif (le workflow 01 boucle sur les actifs) |</p>
+<p>Le workflow <code>01</code> lit les profils actifs et collecte pour chacun ; chaque offre
+est liée au profil via <code>offers.profile_id</code>. Seed d'exemple : <code>db/seed-profiles.sql</code>.</p>
+<h3 id="table-offers">Table <code>offers</code><a class="headerlink" href="#table-offers" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Colonne</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>id</td>
+<td>serial PK</td>
+<td></td>
+</tr>
+<tr>
+<td>source</td>
+<td>text</td>
+<td><code>france_travail</code> / <code>adzuna</code> / <code>jobspy</code> / <code>wttj</code></td>
+</tr>
+<tr>
+<td>source_id</td>
+<td>text</td>
+<td>identifiant côté source</td>
+</tr>
+<tr>
+<td>hash</td>
+<td>text UNIQUE</td>
+<td><code>SHA256(title + company + location)</code> — dédup</td>
+</tr>
+<tr>
+<td>title</td>
+<td>text</td>
+<td></td>
+</tr>
+<tr>
+<td>company</td>
+<td>text</td>
+<td></td>
+</tr>
+<tr>
+<td>location</td>
+<td>text</td>
+<td></td>
+</tr>
+<tr>
+<td>contract_type</td>
+<td>text</td>
+<td></td>
+</tr>
+<tr>
+<td>salary</td>
+<td>text</td>
+<td></td>
+</tr>
+<tr>
+<td>description</td>
+<td>text</td>
+<td></td>
+</tr>
+<tr>
+<td>url</td>
+<td>text</td>
+<td></td>
+</tr>
+<tr>
+<td>score</td>
+<td>int</td>
+<td>0-100</td>
+</tr>
+<tr>
+<td>profile_id</td>
+<td>int FK → search_profiles.id</td>
+<td>profil ayant trouvé l'offre</td>
+</tr>
+<tr>
+<td>status</td>
+<td>text</td>
+<td><code>new</code> / <code>reviewed</code> / <code>selected</code> / <code>ignored</code> / <code>applied</code></td>
+</tr>
+<tr>
+<td>created_at</td>
+<td>timestamptz</td>
+<td>défaut <code>now()</code></td>
+</tr>
+</tbody>
+</table>
+<p>Index : unique sur <code>hash</code>, index sur <code>status</code>.</p>
+<h3 id="table-companies">Table <code>companies</code><a class="headerlink" href="#table-companies" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Colonne</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>id</td>
+<td>serial PK</td>
+<td></td>
+</tr>
+<tr>
+<td>name</td>
+<td>text</td>
+<td></td>
+</tr>
+<tr>
+<td>website</td>
+<td>text</td>
+<td></td>
+</tr>
+<tr>
+<td>sector</td>
+<td>text</td>
+<td></td>
+</tr>
+<tr>
+<td>description</td>
+<td>text</td>
+<td></td>
+</tr>
+<tr>
+<td>ai_summary</td>
+<td>text</td>
+<td>résumé généré (V2)</td>
+</tr>
+<tr>
+<td>last_updated</td>
+<td>timestamptz</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="table-applications">Table <code>applications</code><a class="headerlink" href="#table-applications" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Colonne</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>id</td>
+<td>serial PK</td>
+<td></td>
+</tr>
+<tr>
+<td>offer_id</td>
+<td>int FK → offers.id, <strong>nullable</strong></td>
+<td>NULL = candidature <strong>spontanée</strong></td>
+</tr>
+<tr>
+<td>company_id</td>
+<td>int FK → companies.id</td>
+<td></td>
+</tr>
+<tr>
+<td>kind</td>
+<td>text</td>
+<td><code>offer</code> (défaut) / <code>spontaneous</code></td>
+</tr>
+<tr>
+<td>status</td>
+<td>text</td>
+<td><code>draft</code> / <code>sent</code> / <code>interview</code> / <code>rejected</code> / <code>accepted</code></td>
+</tr>
+<tr>
+<td>applied_at</td>
+<td>timestamptz</td>
+<td></td>
+</tr>
+<tr>
+<td>response_at</td>
+<td>timestamptz</td>
+<td>null tant que pas de réponse (relances V2)</td>
+</tr>
+<tr>
+<td>notes</td>
+<td>text</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="table-generated_documents">Table <code>generated_documents</code><a class="headerlink" href="#table-generated_documents" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Colonne</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>id</td>
+<td>serial PK</td>
+<td></td>
+</tr>
+<tr>
+<td>application_id</td>
+<td>int FK → applications.id</td>
+<td></td>
+</tr>
+<tr>
+<td>cv_path</td>
+<td>text</td>
+<td>chemin du CV PDF (Drive)</td>
+</tr>
+<tr>
+<td>letter_path</td>
+<td>text</td>
+<td>chemin de la lettre</td>
+</tr>
+<tr>
+<td>generated_at</td>
+<td>timestamptz</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="table-profile">Table <code>profile</code><a class="headerlink" href="#table-profile" title="Permanent link">&para;</a></h3>
+<p>Profil candidat. Peut être une simple ligne JSON, OU vivre dans les fichiers
+<code>cv/*.json</code> (profile/skills/projects/experiences/education). Source unique et
+autorisée des compétences/expériences — aucune invention.</p>
+<p><strong>Dédup</strong> : avant insertion dans <code>offers</code>, calculer le <code>hash</code> ; si présent,
+ignorer. <strong>Scoring</strong> : 0-100 (technos, adéquation profil, niveau junior,
+télétravail, localisation, salaire, contrat).</p>
+<hr />
+<h2 id="1-deepseek-llm-de-lagent">1. DeepSeek (LLM de l'agent)<a class="headerlink" href="#1-deepseek-llm-de-lagent" title="Permanent link">&para;</a></h2>
+<p>API compatible OpenAI.</p>
+<ul>
+<li>Base URL : <code>https://api.deepseek.com</code></li>
+<li>Endpoint chat : <code>POST https://api.deepseek.com/chat/completions</code></li>
+<li>Auth : header <code>Authorization: Bearer $DEEPSEEK_API_KEY</code></li>
+<li>Modèles :</li>
+<li><code>deepseek-chat</code> — rapide, généraliste (rédaction des lettres).</li>
+<li><code>deepseek-reasoner</code> — raisonnement plus poussé (scoring d'adéquation).</li>
+<li>Sortie JSON forcée : ajouter <code>"response_format": {"type": "json_object"}</code>
+  dans le body. ⚠️ Le system prompt DOIT mentionner « JSON » pour que ça marche.</li>
+</ul>
+<p>Body type :
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="p">{</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">&quot;model&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;deepseek-chat&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="nt">&quot;messages&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="p">{</span><span class="nt">&quot;role&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;system&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;content&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;contenu de prompts/agent-system-prompt.md&gt;&quot;</span><span class="p">},</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="p">{</span><span class="nt">&quot;role&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;user&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;content&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;offre + infos entreprise&gt;&quot;</span><span class="p">}</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">  </span><span class="p">],</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">  </span><span class="nt">&quot;response_format&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;json_object&quot;</span><span class="p">},</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">  </span><span class="nt">&quot;temperature&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.7</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="p">}</span>
+</code></pre></div></p>
+<p>La réponse utile est dans <code>choices[0].message.content</code> (string JSON à parser).</p>
+<p>Test rapide en curl :
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>curl<span class="w"> </span>https://api.deepseek.com/chat/completions<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$DEEPSEEK_API_KEY</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;model&quot;:&quot;deepseek-chat&quot;,&quot;messages&quot;:[{&quot;role&quot;:&quot;user&quot;,&quot;content&quot;:&quot;dis bonjour en json {\&quot;msg\&quot;:...}&quot;}],&quot;response_format&quot;:{&quot;type&quot;:&quot;json_object&quot;}}&#39;</span>
+</code></pre></div></p>
+<hr />
+<h2 id="2-api-france-travail-offres-demploi-v2">2. API France Travail (Offres d'emploi v2)<a class="headerlink" href="#2-api-france-travail-offres-demploi-v2" title="Permanent link">&para;</a></h2>
+<p>Source principale d'offres, gratuite, officielle.</p>
+<ul>
+<li>Inscription : https://francetravail.io → créer une application pour obtenir
+  <code>client_id</code> et <code>client_secret</code>.</li>
+<li><strong>Auth OAuth2 (client credentials)</strong> :</li>
+<li>Token endpoint :
+    <code>https://entreprise.francetravail.fr/connexion/oauth2/access_token?realm=/partenaire</code></li>
+<li>Méthode : <code>POST</code>, <code>grant_type=client_credentials</code></li>
+<li>Scope typique : <code>api_offresdemploiv2 o2dsoffre</code></li>
+<li>Renvoie un <code>access_token</code> (valable ~25 min, à mettre en cache).</li>
+<li><strong>Recherche d'offres</strong> :</li>
+<li><code>GET https://api.francetravail.io/partenaire/offresdemploi/v2/offres/search</code></li>
+<li>Header : <code>Authorization: Bearer &lt;access_token&gt;</code></li>
+<li>Paramètres utiles :<ul>
+<li><code>motsCles</code> : mots-clés (ex. <code>développeur intelligence artificielle</code>)</li>
+<li><code>commune</code> : code INSEE (ex. <code>75056</code> Paris)</li>
+<li><code>distance</code> : rayon en km</li>
+<li><code>typeContrat</code> : <code>CDI</code>, <code>CDD</code>, etc.</li>
+<li><code>range</code> : pagination <code>0-149</code> (max 150 par requête, premier index ≤ 1000)</li>
+</ul>
+</li>
+<li><strong>Référentiels</strong> (codes métiers ROME, communes, etc.) :</li>
+<li><code>GET .../offresdemploi/v2/referentiel/{nom}</code></li>
+</ul>
+<p>Dans n8n : utiliser une credential <strong>OAuth2</strong> (grant client credentials) ou un
+nœud HTTP qui récupère d'abord le token puis appelle search.</p>
+<p>Champs intéressants par offre : <code>intitule</code>, <code>description</code>, <code>entreprise.nom</code>,
+<code>lieuTravail</code>, <code>typeContrat</code>, <code>origineOffre.urlOrigine</code>, <code>id</code>.</p>
+<hr />
+<h2 id="2b-adzuna-api-agregateur-source-complementaire">2b. Adzuna (API agrégateur, source complémentaire)<a class="headerlink" href="#2b-adzuna-api-agregateur-source-complementaire" title="Permanent link">&para;</a></h2>
+<p>API officielle gratuite qui agrège de nombreux jobboards, avec un pays <code>fr</code>.</p>
+<ul>
+<li>Inscription : https://developer.adzuna.com → créer une application →
+  récupérer <code>app_id</code> et <code>app_key</code> (variables <code>ADZUNA_APP_ID</code>, <code>ADZUNA_APP_KEY</code>).</li>
+<li><strong>Recherche d'offres</strong> :</li>
+<li><code>GET https://api.adzuna.com/v1/api/jobs/fr/search/{page}</code></li>
+<li>Paramètres (en query string) :<ul>
+<li><code>app_id</code> et <code>app_key</code> : les credentials</li>
+<li><code>what</code> : mots-clés (ex. <code>développeur intelligence artificielle</code>)</li>
+<li><code>where</code> : localisation (ex. <code>Paris</code>, <code>France</code>)</li>
+<li><code>results_per_page</code> : nb de résultats (ex. <code>50</code>)</li>
+<li><code>max_days_old</code> : ancienneté max en jours</li>
+<li><code>content-type=application/json</code></li>
+</ul>
+</li>
+<li>Exemple :
+    <code>https://api.adzuna.com/v1/api/jobs/fr/search/1?app_id=$ID&amp;app_key=$KEY&amp;what=développeur%20IA&amp;where=France&amp;results_per_page=50</code></li>
+<li>Champs utiles par offre (dans <code>results[]</code>) : <code>title</code>, <code>description</code>,
+  <code>company.display_name</code>, <code>location.display_name</code>, <code>redirect_url</code>, <code>created</code>, <code>id</code>.</li>
+<li>Pas d'OAuth : les clés passent en query string. Dans n8n, simple nœud
+  <strong>HTTP Request</strong> GET.</li>
+</ul>
+<hr />
+<h2 id="3-jobspy-source-complementaire-multi-boards">3. JobSpy (source complémentaire multi-boards)<a class="headerlink" href="#3-jobspy-source-complementaire-multi-boards" title="Permanent link">&para;</a></h2>
+<p>Librairie Python qui agrège LinkedIn, Indeed, Glassdoor, Google Jobs, etc.
+Utile pour élargir au-delà de France Travail (notamment jobs IA/startup).</p>
+<ul>
+<li>Installation : <code>pip install python-jobspy</code></li>
+<li>Usage minimal :
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">jobspy</span><span class="w"> </span><span class="kn">import</span> <span class="n">scrape_jobs</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="n">jobs</span> <span class="o">=</span> <span class="n">scrape_jobs</span><span class="p">(</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    <span class="n">site_name</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;indeed&quot;</span><span class="p">,</span> <span class="s2">&quot;linkedin&quot;</span><span class="p">,</span> <span class="s2">&quot;glassdoor&quot;</span><span class="p">],</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    <span class="n">search_term</span><span class="o">=</span><span class="s2">&quot;AI engineer&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>    <span class="n">location</span><span class="o">=</span><span class="s2">&quot;France&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>    <span class="n">results_wanted</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>    <span class="n">hours_old</span><span class="o">=</span><span class="mi">72</span><span class="p">,</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>    <span class="n">country_indeed</span><span class="o">=</span><span class="s2">&quot;France&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="p">)</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="n">jobs</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="s2">&quot;jobs.json&quot;</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="s2">&quot;records&quot;</span><span class="p">)</span>
+</code></pre></div></li>
+</ul>
+<p>Intégration dans n8n : deux options.
+1. Petit service Python (FastAPI) dans un conteneur séparé qui expose
+   <code>/search?term=...</code> et renvoie du JSON ; n8n l'appelle en HTTP.
+2. Nœud <strong>Execute Command</strong> qui lance un script Python (nécessite Python dans
+   l'image n8n — préférer l'option 1, plus propre).</p>
+<p>⚠️ LinkedIn via JobSpy peut être rate-limité / nécessiter des proxies. Indeed
+et Glassdoor sont plus fiables sans proxy.</p>
+<p>Choix retenu pour ce projet : <strong>option 1</strong> (micro-service FastAPI dans un
+conteneur séparé). n8n l'appelle via <code>{{ $env.JOBSPY_API_URL }}</code> (par défaut
+<code>http://jobspy:8000</code>). Le service est mis en place en Tâche 5.</p>
+<hr />
+<h2 id="3b-welcome-to-the-jungle-rss">3b. Welcome to the Jungle (RSS)<a class="headerlink" href="#3b-welcome-to-the-jungle-rss" title="Permanent link">&para;</a></h2>
+<p>Source orientée tech / startups / IA, via flux RSS (pas d'API officielle publique).</p>
+<ul>
+<li>Le flux RSS se construit à partir d'une recherche sur le site WTTJ. Récupère
+  l'URL du flux correspondant à tes mots-clés / filtres et mets-la dans le
+  workflow (ou dans <code>WTTJ_RSS_URL</code>).</li>
+<li>Dans n8n : nœud <strong>RSS Read</strong> (ou HTTP Request + parse XML) sur l'URL du flux.</li>
+<li>Champs typiques par item : <code>title</code>, <code>link</code>, <code>pubDate</code>, <code>content</code>/<code>description</code>.</li>
+<li>⚠️ La disponibilité et le format des flux RSS WTTJ peuvent évoluer : vérifier
+  l'URL réelle au moment de l'intégration (Tâche 5).</li>
+</ul>
+<hr />
+<h2 id="3c-google-jobs-via-serpapi-source-principale-du-pipeline-reel">3c. Google Jobs via SerpApi (source principale du pipeline réel)<a class="headerlink" href="#3c-google-jobs-via-serpapi-source-principale-du-pipeline-reel" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Inscription : https://serpapi.com → clé API (<code>SERPAPI_KEY</code>).</li>
+<li><code>GET https://serpapi.com/search</code> avec <code>engine=google_jobs</code>, <code>q=&lt;mots_cles&gt;</code>,
+  <code>location</code> (ex. <code>Lille, France</code>), <code>gl=fr</code>, <code>hl=fr</code>, <code>api_key=$SERPAPI_KEY</code>.</li>
+<li>Réponse : <code>jobs_results[]</code> → champs <code>title</code>, <code>company_name</code>, <code>location</code>,
+  <code>description</code>, <code>job_id</code>, <code>detected_extensions.{schedule_type,salary}</code>,
+  <code>apply_options[].link</code>. Normaliseur : <code>normalizeGoogleJobs</code> dans
+  <code>workflows/lib/sources.mjs</code>.</li>
+</ul>
+<hr />
+<h2 id="3d-la-bonne-alternance-alternance-entreprises-a-contacter">3d. La Bonne Alternance (alternance + entreprises à contacter)<a class="headerlink" href="#3d-la-bonne-alternance-alternance-entreprises-a-contacter" title="Permanent link">&para;</a></h2>
+<p>Service public (mission apprentissage / beta.gouv) <strong>spécifique alternance</strong>.
+Particularité : renvoie à la fois des <strong>offres</strong> d'alternance ET des
+<strong>entreprises à fort potentiel d'embauche</strong> sans offre publiée, à contacter en
+<strong>candidature spontanée</strong>. (À ne pas confondre avec <em>La Bonne Boîte</em> /
+France Travail, qui vise la candidature spontanée tous contrats, pas l'alternance.)</p>
+<ul>
+<li>Inscription : espace développeurs sur https://api.apprentissage.beta.gouv.fr →
+  clé API (variable <code>LBA_API_KEY</code>).</li>
+<li><strong>Recherche</strong> (API emploi unifiée v3) :</li>
+<li><code>GET https://api.apprentissage.beta.gouv.fr/api/job/v1/search</code></li>
+<li>Header : <code>Authorization: Bearer $LBA_API_KEY</code> (<strong>confirmé</strong> : HTTP 200, 2026-06-28).</li>
+<li>Paramètres : <code>romes</code> (codes ROME séparés par virgule, ex. <code>M1805</code>),
+    <code>latitude</code>, <code>longitude</code>, <code>radius</code> (km, défaut 30). <strong>Pas</strong> d'INSEE ni de
+    ville en texte → on passe par lat/long (colonnes <code>search_profiles.latitude</code>,
+    <code>longitude</code>, <code>rome_codes</code>).</li>
+<li><strong>Réponse</strong> : deux listes au schéma "offre" normalisé :</li>
+<li><code>jobs[]</code> : offres d'alternance → normaliseur <code>normalizeLaBonneAlternanceJobs</code>.
+    Champs utiles : <code>identifier.id</code>, <code>offer.title</code>, <code>offer.description</code>,
+    <code>workplace.{name,brand,siret,location.address}</code>, <code>contract.type[]</code>, <code>apply.url</code>.</li>
+<li><code>recruiters[]</code> : entreprises à contacter (candidature spontanée) →
+    normaliseur <code>normalizeLBARecruiters</code>. Champs : <code>workplace.{name,siret,website,
+    domain.naf.label,location.address}</code>, <code>apply.{url,phone}</code>. <strong>Pas de
+    description de poste</strong> → flux candidature spontanée (template
+    <code>assets/letters/candidature-spontanee.md</code>), pas le scoring d'offre classique.</li>
+<li>ROME utiles (dév) : <code>M1805</code> (Études et développement informatique) couvre
+  dev / IA / backend ; éventuellement <code>M1810</code> (production/exploitation).</li>
+<li>✅ <strong>Forme VÉRIFIÉE sur un vrai appel</strong> (2026-06-28, zone Valenciennes/Lille,
+  rome <code>M1805</code>) : réponse <code>{ jobs, recruiters, warnings }</code>, 14 recruiters réels.
+  Les deux normaliseurs sont <strong>verrouillés par des fixtures réelles</strong> dans
+  <code>sources.test.mjs</code>. Réserve mineure : les <code>jobs[]</code> partenaires (France Travail)
+  ont <code>workplace.{brand,name,legal_name}</code> à null → <code>company</code> vide (pas d'invention).</li>
+</ul>
+<hr />
+<h2 id="4-notion-optionnel-consultation-seule-hors-v1">4. Notion (OPTIONNEL — consultation seule, hors V1)<a class="headerlink" href="#4-notion-optionnel-consultation-seule-hors-v1" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p>⚠️ Notion <strong>n'est plus le stockage</strong> : la source de vérité est PostgreSQL
+(section 0). Cette section ne sert que si tu veux, plus tard, une interface de
+consultation en lecture seule par-dessus la base. Le schéma ci-dessous reflète
+alors les colonnes de <code>offers</code> / <code>companies</code>.</p>
+</blockquote>
+<ul>
+<li>Créer une intégration interne : https://www.notion.so/profile/integrations
+  → récupérer le token (<code>NOTION_API_KEY</code>).</li>
+<li><strong>Partager chaque base avec l'intégration</strong> (sinon l'API ne la voit pas) :
+  ouvrir la base → menu <code>...</code> → Connections → ajouter l'intégration.</li>
+<li>Récupérer l'ID d'une base : c'est la partie de l'URL entre le <code>/</code> et le <code>?</code>
+  (32 caractères hex).</li>
+<li>⚠️ Notion a une nouvelle API non rétrocompatible (data sources). Si le nœud
+  Notion de n8n renvoie des erreurs de relation/création, vérifier que le nœud
+  est à jour, sinon passer par le nœud HTTP Request vers l'API Notion.</li>
+</ul>
+<h3 id="schema-propose-base-offres">Schéma proposé — Base « Offres »<a class="headerlink" href="#schema-propose-base-offres" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Propriété</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Poste</td>
+<td>Title</td>
+<td>intitulé de l'offre</td>
+</tr>
+<tr>
+<td>Entreprise</td>
+<td>Relation</td>
+<td>→ base Entreprises (ou Text au début)</td>
+</tr>
+<tr>
+<td>Lien</td>
+<td>URL</td>
+<td>url de l'offre</td>
+</tr>
+<tr>
+<td>Source</td>
+<td>Select</td>
+<td>France Travail / JobSpy / WTTJ…</td>
+</tr>
+<tr>
+<td>Score</td>
+<td>Number</td>
+<td>score d'adéquation 0-100</td>
+</tr>
+<tr>
+<td>Statut</td>
+<td>Select</td>
+<td>À postuler / Postulée / Entretien / Refus / Offre</td>
+</tr>
+<tr>
+<td>Date trouvée</td>
+<td>Date</td>
+<td></td>
+</tr>
+<tr>
+<td>Lettre</td>
+<td>Text</td>
+<td>lettre générée par l'agent</td>
+</tr>
+<tr>
+<td>Note CV</td>
+<td>Text</td>
+<td>adaptation CV suggérée</td>
+</tr>
+<tr>
+<td>ID source</td>
+<td>Text</td>
+<td>identifiant unique pour dédupliquer</td>
+</tr>
+</tbody>
+</table>
+<h3 id="schema-propose-base-entreprises">Schéma proposé — Base « Entreprises »<a class="headerlink" href="#schema-propose-base-entreprises" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Propriété</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Nom</td>
+<td>Title</td>
+<td></td>
+</tr>
+<tr>
+<td>Site</td>
+<td>URL</td>
+<td></td>
+</tr>
+<tr>
+<td>Secteur</td>
+<td>Select</td>
+<td></td>
+</tr>
+<tr>
+<td>Stack</td>
+<td>Multi</td>
+<td>technos identifiées</td>
+</tr>
+<tr>
+<td>Notes</td>
+<td>Text</td>
+<td>infos scrapées / valeurs / actu</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="5-discord-notifications-via-webhook">5. Discord (notifications via webhook)<a class="headerlink" href="#5-discord-notifications-via-webhook" title="Permanent link">&para;</a></h2>
+<p>Deux canaux (donc deux webhooks possibles) :
+- <strong>jobs-alerts</strong> : offres pertinentes uniquement (score, titre, entreprise,
+  lien, actions « Générer candidature » / « Ignorer »).
+- <strong>jobs-log</strong> : logs techniques (« 200 offres récupérées », « 15 doublons
+  supprimés », « 12 offres retenues »).</p>
+<p>Canal de notification pour recevoir les offres dans un salon Discord.</p>
+<ul>
+<li><strong>Créer le webhook</strong> : sur ton serveur Discord, va dans le salon cible →
+  <code>Modifier le salon</code> (roue crantée) → <code>Intégrations</code> → <code>Webhooks</code> →
+  <code>Nouveau webhook</code> → donne-lui un nom (ex. « job-hunter ») → <code>Copier l'URL</code>.
+  L'URL ressemble à <code>https://discord.com/api/webhooks/&lt;id&gt;/&lt;token&gt;</code>.</li>
+<li><strong>Envoyer un message</strong> : <code>POST</code> sur l'URL du webhook, body JSON :
+  <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="p">{</span><span class="w"> </span><span class="nt">&quot;content&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;🆕 Nouvelle offre : Dév IA chez Acme — score 82\nhttps://...&quot;</span><span class="w"> </span><span class="p">}</span>
+</code></pre></div></li>
+<li><code>content</code> : texte simple (max 2000 caractères), supporte le Markdown Discord.</li>
+<li>Pour un rendu plus riche, utiliser <code>embeds</code> (titre, description, URL, couleur).</li>
+<li><strong>Deux webhooks distincts</strong> : <code>{{ $env.DISCORD_WEBHOOK_ALERTS }}</code> pour les
+  offres pertinentes, <code>{{ $env.DISCORD_WEBHOOK_LOG }}</code> pour les logs techniques.
+  <code>DISCORD_WEBHOOK_URL</code> reste un alias rétro-compatible d'ALERTS (compose le
+  recopie si ALERTS est vide).</li>
+<li><strong>Dans n8n</strong> : nœud <strong>HTTP Request</strong> (<code>POST</code> vers le webhook voulu,
+  body JSON <code>{ "content": "..." }</code>) — pas besoin de credential, le token est
+  dans l'URL. Un nœud Discord natif existe aussi mais le webhook HTTP est le
+  plus simple pour du push mono-salon.</li>
+<li>⚠️ Le webhook ne sert qu'à <strong>poster</strong> dans un salon ; il ne lit pas les
+  messages. Parfait pour recevoir des notifs d'offres.</li>
+<li><strong>Actions sur une offre</strong> : un webhook Discord ne peut pas porter de vrais
+  boutons (il faudrait une application/bot Discord). À la place, le message
+  d'alerte contient deux <strong>liens</strong> vers le webhook n8n du workflow <code>03</code> :
+  <code>…/webhook/offer-status?hash=&lt;hash&gt;&amp;action=selected|ignored</code>. Cliquer le lien
+  met à jour <code>offers.status</code>. Évolution possible (V2) : passer à une vraie
+  application Discord avec des boutons + endpoint d'interactions.</li>
+</ul>
+<hr />
+<h2 id="6-variables-denvironnement-disponibles-dans-n8n">6. Variables d'environnement disponibles dans n8n<a class="headerlink" href="#6-variables-denvironnement-disponibles-dans-n8n" title="Permanent link">&para;</a></h2>
+<p>Toutes lisibles via <code>{{ $env.NOM }}</code> dans les expressions (grâce à
+<code>N8N_BLOCK_ENV_ACCESS_IN_NODE=false</code> dans docker-compose) :</p>
+<p><code>DEEPSEEK_API_KEY</code>, <code>DEEPSEEK_BASE_URL</code>, <code>DEEPSEEK_MODEL</code>,
+<code>FRANCE_TRAVAIL_CLIENT_ID</code>, <code>FRANCE_TRAVAIL_CLIENT_SECRET</code>, <code>ADZUNA_APP_ID</code>,
+<code>ADZUNA_APP_KEY</code>, <code>JOBSPY_API_URL</code>, <code>WTTJ_RSS_URL</code>, <code>SERPAPI_KEY</code>, <code>RAPIDAPI_KEY</code>, <code>LBA_API_KEY</code>,
+<code>DISCORD_WEBHOOK_ALERTS</code>,
+<code>DISCORD_WEBHOOK_LOG</code>, <code>DISCORD_WEBHOOK_URL</code> (alias rétro-compat d'ALERTS),
+<code>GOOGLE_DRIVE_FOLDER</code>. Optionnels (hors V1) : <code>NOTION_API_KEY</code>,
+<code>NOTION_DB_OFFRES</code>, <code>NOTION_DB_ENTREPRISES</code>.</p>
+<blockquote>
+<p>Gmail/Drive : l'auth Google passe par les credentials OAuth du nœud Google de
+n8n, pas par une variable d'environnement.</p>
+</blockquote>
+<hr />
+<h2 id="6b-google-gmail-brouillon-drive-archivage">6b. Google (Gmail brouillon + Drive archivage)<a class="headerlink" href="#6b-google-gmail-brouillon-drive-archivage" title="Permanent link">&para;</a></h2>
+<p>Étapes finales de la candidature (Tâche 9, workflow <code>04</code>). <strong>Garde-fou : Gmail
+crée un BROUILLON, jamais d'envoi automatique.</strong></p>
+<ul>
+<li><strong>Auth = OAuth2 via n8n</strong> (pas une clé en clair) :</li>
+<li>Google Cloud Console → créer un projet → activer les API <strong>Gmail</strong> et
+     <strong>Google Drive</strong>.</li>
+<li>Créer des identifiants <strong>OAuth client ID</strong> (type « Web application »).</li>
+<li>Renseigner l'URL de redirection donnée par n8n (Credentials → Google →
+     « OAuth Redirect URL »).</li>
+<li>Dans n8n, créer deux credentials : <strong>Gmail OAuth2</strong> et <strong>Google Drive
+     OAuth2</strong>, coller client id/secret, puis « Connect » (consentement Google).</li>
+<li><strong>Drive</strong> : nœud <code>Google Drive</code> → créer le dossier <code>&lt;Entreprise&gt;</code> (sous le
+  dossier défini par <code>GOOGLE_DRIVE_FOLDER</code>, défaut <code>Candidatures</code>), puis
+  uploader <code>cv.pdf</code> et <code>lettre.pdf</code> (un nœud upload par fichier binaire).</li>
+<li><strong>Gmail</strong> : nœud <code>Gmail</code> → <code>resource: draft</code> (créer un brouillon) avec
+  <code>sendTo</code>, <code>subject</code>, <code>message</code> et les pièces jointes binaires (<code>cv</code>, <code>letter</code>).
+  Ne JAMAIS utiliser l'opération d'envoi.</li>
+<li>⚠️ Pour joindre CV <strong>et</strong> lettre, regrouper les deux binaires sur un même item
+  (nœud Merge en mode « combine ») avant le nœud Gmail.</li>
+</ul>
+<hr />
+<h2 id="7-liens-utiles">7. Liens utiles<a class="headerlink" href="#7-liens-utiles" title="Permanent link">&para;</a></h2>
+<ul>
+<li>DeepSeek docs : https://platform.deepseek.com</li>
+<li>France Travail : https://francetravail.io</li>
+<li>JobSpy : https://github.com/cullenwatson/JobSpy</li>
+<li>Notion API : https://developers.notion.com</li>
+<li>n8n docs : https://docs.n8n.io</li>
+<li>Projet inspirant (architecture) : https://github.com/BjornMelin/ai-job-scraper</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Retour en haut de la page
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/benjsant" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.top", "navigation.instant", "navigation.tracking", "toc.follow", "content.code.copy", "search.suggest", "search.highlight"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copi\u00e9 dans le presse-papier", "clipboard.copy": "Copier dans le presse-papier", "search.result.more.one": "1 de plus sur cette page", "search.result.more.other": "# de plus sur cette page", "search.result.none": "Aucun document trouv\u00e9", "search.result.one": "1 document trouv\u00e9", "search.result.other": "# documents trouv\u00e9s", "search.result.placeholder": "Taper pour d\u00e9marrer la recherche", "search.result.term.missing": "Non trouv\u00e9", "select.version": "S\u00e9lectionner la version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
