@@ -14,10 +14,12 @@ Le system prompt et l'index CV sont lus depuis les volumes montés (/prompts, /c
 """
 from __future__ import annotations
 
+import glob
 import os
 
-from fastapi import FastAPI
-from fastapi.responses import HTMLResponse
+import httpx
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse, HTMLResponse
 from pydantic import BaseModel
 
 from agent.graph import load_context, run_agent
@@ -30,6 +32,8 @@ app = FastAPI(title="agent-langgraph", version="0.1.0")
 # Contexte (prompt + index CV) chargé une fois au démarrage.
 CONTEXT = load_context()
 _STATIC = os.path.join(os.path.dirname(__file__), "static", "index.html")
+_OUTPUT = os.environ.get("OUTPUT_DIR", "/output")
+_RENDER = os.environ.get("RENDER_API_URL", "http://render:8000")
 
 
 class UrlIn(BaseModel):
@@ -48,6 +52,45 @@ def home() -> str:
 def health() -> dict:
     ready = bool(CONTEXT.get("system_prompt"))
     return {"status": "ok", "prompt_loaded": ready, "cv_index_loaded": bool(CONTEXT.get("cv_index"))}
+
+
+@app.get("/status")
+def status() -> dict:
+    """État des services pour la page d'accueil (agent, render, Discord configuré)."""
+    render_ok = False
+    try:
+        render_ok = httpx.get(f"{_RENDER}/health", timeout=2).status_code == 200
+    except Exception:
+        render_ok = False
+    return {
+        "agent": bool(CONTEXT.get("system_prompt")),
+        "render": render_ok,
+        "discord": bool(os.environ.get("DISCORD_WEBHOOK_ALERTS")),
+    }
+
+
+@app.get("/history")
+def history() -> dict:
+    """Liste les candidatures générées (dossiers ./output/app-*) avec leurs PDF."""
+    items = []
+    for d in sorted(glob.glob(os.path.join(_OUTPUT, "app-*")), key=os.path.getmtime, reverse=True):
+        app_id = os.path.basename(d)[len("app-"):]
+        cv = os.path.exists(os.path.join(d, "cv.pdf"))
+        letter = os.path.exists(os.path.join(d, "lettre.pdf"))
+        if cv or letter:
+            items.append({"app_id": app_id, "cv": cv, "letter": letter, "mtime": int(os.path.getmtime(d))})
+    return {"items": items[:20]}
+
+
+@app.get("/files/{app_id}/{name}")
+def get_file(app_id: str, name: str) -> FileResponse:
+    """Télécharge un PDF généré (cv.pdf ou lettre.pdf) d'une candidature."""
+    if name not in ("cv.pdf", "lettre.pdf") or "/" in app_id or ".." in app_id:
+        raise HTTPException(status_code=400, detail="fichier non autorisé")
+    path = os.path.join(_OUTPUT, f"app-{app_id}", name)
+    if not os.path.exists(path):
+        raise HTTPException(status_code=404, detail="introuvable")
+    return FileResponse(path, media_type="application/pdf", filename=f"{app_id}-{name}")
 
 
 @app.post("/offer/extract")

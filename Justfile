@@ -20,6 +20,18 @@ up:
 down:
     docker compose down
 
+# Mini-interface SEULE (agent + render) : candidature depuis une URL, sans n8n.
+# Démarre le minimum et affiche l'URL. Voir docs/interface.md.
+ui:
+    docker compose up -d agent-langgraph render
+    @echo "Démarrage… (l'agent charge le contexte)"
+    @for i in $(seq 1 20); do curl -sf http://localhost:8001/health >/dev/null 2>&1 && break || sleep 2; done
+    @echo "✅ Interface prête : http://localhost:8001"
+
+# Coupe uniquement les services de la mini-interface
+ui-stop:
+    docker compose stop agent-langgraph render
+
 # Suit les logs n8n
 logs:
     docker compose logs -f n8n

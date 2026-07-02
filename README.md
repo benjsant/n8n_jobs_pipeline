@@ -113,6 +113,11 @@ docker compose up -d          # ou : just up
 just test                     # suites JS + garde-fou de parité des nœuds
 ```
 
+> **Usage à la demande (sans déployer)** : `just ui` lance la mini-interface web
+> (agent + render seulement) sur http://localhost:8001 — colle l'URL d'une offre,
+> confirme, récupère CV + lettre (téléchargement + Discord). Voir
+> [`docs/interface.md`](docs/interface.md).
+
 > Première install / déploiement VPS : voir [`docs/installation.md`](docs/installation.md)
 > et [`docs/deploiement-vps.md`](docs/deploiement-vps.md) (WireGuard + SSH durci).
 

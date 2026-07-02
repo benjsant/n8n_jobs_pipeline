@@ -102,6 +102,7 @@ def generate_application(offer: dict, ctx: dict) -> dict:
     ).json()
     discord_ok = _deliver_discord(cv.get("cv_path", ""), lt.get("letter_path", ""), out, offer)
     return {
+        "app_id": app_id,
         "cv_title": pc.get("cv_title", ""),
         "summary": pc.get("summary", ""),
         "score": out.get("score", 0),
