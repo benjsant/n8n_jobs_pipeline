@@ -1,8 +1,8 @@
 name: Docs
 
-# Construit le site MkDocs Material et le publie sur GitHub Pages (branche gh-pages)
-# à chaque push sur main touchant la doc. Prérequis côté dépôt : Settings > Pages
-# > Source = "Deploy from a branch" > branche gh-pages.
+# Construit le site MkDocs Material et le déploie sur GitHub Pages via le pipeline
+# officiel GitHub Actions (pas de build Jekyll legacy). Prérequis côté dépôt :
+# Settings > Pages > Source = "GitHub Actions" (réglé via l'API, build_type=workflow).
 on:
   push:
     branches: [main]
@@ -10,12 +10,19 @@ on:
       - docs/**
       - mkdocs.yml
       - .github/workflows/docs.yml
+  workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -23,4 +30,17 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install "mkdocs-material>=9,<10"
-      - run: mkdocs gh-deploy --force --clean
+      - run: mkdocs build --strict
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
