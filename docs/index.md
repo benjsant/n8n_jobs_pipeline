@@ -2,7 +2,7 @@
 
 Assistant de recherche d'emploi **semi-automatique** pour développeur IA / backend.
 Il collecte des offres sur 7 sources, les dédoublonne, les score, notifie sur
-Discord, puis — sur validation humaine — génère un **CV personnalisé** (Astro → PDF)
+Discord, puis, sur validation humaine, génère un **CV personnalisé** (Astro → PDF)
 et une **lettre de motivation** via un agent LLM, prépare la candidature et un
 **dossier d'entretien**.
 
@@ -28,7 +28,7 @@ PostgreSQL est la **seule source de vérité**. n8n orchestre ; l'intelligence
   Quelles clés créer (DeepSeek, France Travail, Discord…) et où les coller.
 
 - :material-server: **[Déploiement VPS](deploiement-vps.md)**
-  VPS privé durci (WireGuard + SSH) — optionnel, pas nécessaire pour un usage local.
+  VPS privé durci (WireGuard + SSH), optionnel, pas nécessaire pour un usage local.
 
 </div>
 
@@ -53,7 +53,7 @@ START → analyze → research → accroche → judge ⇄ (retry max 3) → vali
 ```
 
 - **analyze** : jugement (score, matching/missing, personnalisation CV).
-- **research** : faits officiels (INSEE) + web — *grounding anti-invention*.
+- **research** : faits officiels (INSEE) + web, *grounding anti-invention*.
 - **accroche** : 2-3 phrases groundées (le corps de la lettre est figé hors LLM).
 - **judge** : auto-évaluation (clichés, superlatifs, tirets IA) → régénère si rejet.
 - **validate** : nettoyage déterministe + sortie contractuelle.

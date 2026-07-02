@@ -1,4 +1,4 @@
-# 📦 Données, modèle DeepSeek & génération CV/lettre — décisions
+# 📦 Données, modèle DeepSeek & génération CV/lettre : décisions
 
 > Fiche de reprise (autre machine / autre session Claude). Répond à : « quelles
 > données fournir ? quel modèle DeepSeek ? PDF/docx ou pas ? lettre en Astro ou
@@ -32,10 +32,10 @@ fournit donc **aucun document binaire** au pipeline.
 ## 3. Ce qui EST utile à fournir
 
 - ✅ **Le texte de 1-2 lettres de motivation** que l'utilisateur aime (peu importe
-  docx/txt — seul le **texte** compte). Usage : **référence de style/structure**
+  docx/txt, seul le **texte** compte). Usage : **référence de style/structure**
   pour enrichir les modèles `assets/letters/*.md` (`ia-junior`, `backend`,
   `frontend`, `alternance`, `candidature-spontanee`) et la **section 5** du
-  system prompt. ⚠️ Garde-fou : ça guide le **ton**, jamais les faits — l'agent
+  system prompt. ⚠️ Garde-fou : ça guide le **ton**, jamais les faits, l'agent
   rédige toujours à partir du vrai profil + de l'offre, sans rien inventer.
 - ✅ (Optionnel) une **maquette/PDF ATS** uniquement comme *référence de mise en
   page* si on veut ajuster le template Astro.
@@ -75,7 +75,7 @@ synchronisé par `just cv-sync` → `cv/*.json` + `cv-index.json`. Donc le portf
 ## 7. En attente de l'utilisateur (pour avancer sur ce volet)
 
 - [x] **Lettres de référence fournies** : 6 vraies lettres du candidat
-  (`astro-portfolio/lettres-motivation/*.docx` — offre/spontanée × emploi/alternance
+  (`astro-portfolio/lettres-motivation/*.docx`, offre/spontanée × emploi/alternance
   + CAF, Proxiad). Voix distillée encodée dans la **§5 du system prompt** (ton +
   bloc 3 projets + reconversion RNCP + clôture). Non committées (dépôt public).
   Reste optionnel : aligner aussi chaque `assets/letters/*.md` + trancher 2 faits

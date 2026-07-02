@@ -1,4 +1,4 @@
-# 🔐 OAuth Google (Gmail brouillon + Drive archivage) — guide pas à pas
+# 🔐 OAuth Google (Gmail brouillon + Drive archivage) : guide pas à pas
 
 > Pour le workflow `04` : créer un **brouillon Gmail** (jamais d'envoi auto) avec
 > CV + lettre en pièces jointes, et **archiver** les PDF sur Google Drive
@@ -23,7 +23,7 @@ Le brouillon est créé dans **le compte avec lequel tu te connectes** à l'éta
 
 ---
 
-## A. Google Cloud Console — https://console.cloud.google.com
+## A. Google Cloud Console : https://console.cloud.google.com
 
 1. **Nouveau projet** : menu en haut → « Nouveau projet » (ex. `job-hunter`) → Créer.
 2. **Activer les API** : « APIs & Services » → « Bibliothèque » → active **Gmail API**,
@@ -33,7 +33,7 @@ Le brouillon est créé dans **le compte avec lequel tu te connectes** à l'éta
    - Nom de l'app, email de support, email développeur → Save and continue.
    - **Scopes** : laisse vide (n8n demande les bons scopes à la connexion) → continue.
    - **Test users** → **ajoute l'adresse Gmail** que tu utiliseras. ⚠️ **Crucial** :
-     en mode *Testing*, seuls les test users peuvent se connecter — mais **sans
+     en mode *Testing*, seuls les test users peuvent se connecter, mais **sans
      validation Google** (parfait pour un usage perso).
 4. **Identifiants OAuth** : « Credentials » → « Create Credentials » → **OAuth client ID** :
    - Type d'application : **Web application**.
@@ -42,10 +42,10 @@ Le brouillon est créé dans **le compte avec lequel tu te connectes** à l'éta
      http://localhost:5678/rest/oauth2-credential/callback
      ```
      *(Si tu déploies sur VPS/WireGuard, remplace `localhost:5678` par l'URL
-     d'éditeur n8n correspondante — celle que n8n affiche dans la credential.)*
+     d'éditeur n8n correspondante, celle que n8n affiche dans la credential.)*
    - Create → **copie le `Client ID` et le `Client secret`**.
 
-## B. n8n (http://localhost:5678) — 2 credentials
+## B. n8n (http://localhost:5678) : 2 credentials
 
 > Tu peux réutiliser **le même** Client ID/secret pour les deux credentials.
 

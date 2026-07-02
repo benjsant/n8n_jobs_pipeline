@@ -1,4 +1,4 @@
-# 🔑 Clés des sources d'offres — où les créer, comment les coller
+# 🔑 Clés des sources d'offres : où les créer, comment les coller
 
 > Toutes les clés vont dans le fichier **`.env`** (jamais commité). Après les
 > avoir collées, relance n8n : `docker compose up -d n8n`. Tu peux n'en faire
@@ -15,7 +15,7 @@
 | **Google Jobs** | serpapi.com | gratuit (quota limité) | `SERPAPI_KEY` |
 | **La Bonne Alternance** | api.apprentissage.beta.gouv.fr | **gratuit** | `LBA_API_KEY` |
 | **Welcome to the Jungle** | (pas de compte) | gratuit | `WTTJ_RSS_URL` |
-| **JobSpy** | — | gratuit | aucune clé (conteneur) |
+| **JobSpy** | aucune | gratuit | aucune clé (conteneur) |
 | **Discord** (notifs) | ton serveur Discord | gratuit | `DISCORD_WEBHOOK_ALERTS` ✅ déjà |
 
 > Le minimum pour des offres : **une seule** source suffit (JobSpy marche déjà
@@ -23,7 +23,7 @@
 
 ---
 
-## 1. France Travail (gratuit, officiel) — + dépannage `invalid_client`
+## 1. France Travail (gratuit, officiel) et dépannage `invalid_client`
 
 1. Va sur **https://francetravail.io** → connecte-toi → **« Mes applications »**.
 2. **Crée une application** (ou ouvre l'existante).
@@ -72,7 +72,7 @@ Après correction, mets à jour `.env` et relance le test.
 2. `.env` : `SERPAPI_KEY=...`
    > Quota gratuit modeste (~100 recherches/mois) : à réserver si tu veux Google Jobs.
 
-## 5. La Bonne Alternance (gratuit) — alternance + entreprises à contacter
+## 5. La Bonne Alternance (gratuit) : alternance + entreprises à contacter
 
 1. **https://api.apprentissage.beta.gouv.fr** → « Espace développeurs » → demande
    une **clé API**.
@@ -93,7 +93,7 @@ Après correction, mets à jour `.env` et relance le test.
 ## Après avoir collé des clés
 ```bash
 docker compose up -d n8n           # recharge les variables
-# puis, run manuel du 01 (ou attends le cron 8h) — demande à Claude de le déclencher
+# puis, run manuel du 01 (ou attends le cron 8h), demande à Claude de le déclencher
 ```
 Le `01` repassera sur toutes les sources : celles avec clé répondront, les autres
 resteront vides sans bloquer. Plus tu en ajoutes, plus la couverture est large.

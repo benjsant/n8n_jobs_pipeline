@@ -1,4 +1,4 @@
-# docs/reference.md — Référence technique
+# docs/reference.md : Référence technique
 
 Toutes les infos factuelles dont Claude Code a besoin pour construire les
 workflows sans deviner. Vérifie toujours la doc officielle si un endpoint a
@@ -6,7 +6,7 @@ changé.
 
 ---
 
-## 0. PostgreSQL — source de vérité
+## 0. PostgreSQL : source de vérité
 
 Le même conteneur Postgres sert la persistance interne de n8n ET les tables
 métier ci-dessous (à créer dans `db/schema.sql`, Tâche 2). C'est la **seule**
@@ -37,7 +37,7 @@ est liée au profil via `offers.profile_id`. Seed d'exemple : `db/seed-profiles.
 | id | serial PK | |
 | source | text | `france_travail` / `adzuna` / `jobspy` / `wttj` |
 | source_id | text | identifiant côté source |
-| hash | text UNIQUE | `SHA256(title + company + location)` — dédup |
+| hash | text UNIQUE | `SHA256(title + company + location)`, dédup |
 | title | text | |
 | company | text | |
 | location | text | |
@@ -87,7 +87,7 @@ Index : unique sur `hash`, index sur `status`.
 ### Table `profile`
 Profil candidat. Peut être une simple ligne JSON, OU vivre dans les fichiers
 `cv/*.json` (profile/skills/projects/experiences/education). Source unique et
-autorisée des compétences/expériences — aucune invention.
+autorisée des compétences/expériences, aucune invention.
 
 **Dédup** : avant insertion dans `offers`, calculer le `hash` ; si présent,
 ignorer. **Scoring** : 0-100 (technos, adéquation profil, niveau junior,
@@ -103,8 +103,8 @@ API compatible OpenAI.
 - Endpoint chat : `POST https://api.deepseek.com/chat/completions`
 - Auth : header `Authorization: Bearer $DEEPSEEK_API_KEY`
 - Modèles :
-  - `deepseek-chat` — rapide, généraliste (rédaction des lettres).
-  - `deepseek-reasoner` — raisonnement plus poussé (scoring d'adéquation).
+  - `deepseek-chat`, rapide, généraliste (rédaction des lettres).
+  - `deepseek-reasoner`, raisonnement plus poussé (scoring d'adéquation).
 - Sortie JSON forcée : ajouter `"response_format": {"type": "json_object"}`
   dans le body. ⚠️ Le system prompt DOIT mentionner « JSON » pour que ça marche.
 
@@ -213,7 +213,7 @@ Intégration dans n8n : deux options.
 1. Petit service Python (FastAPI) dans un conteneur séparé qui expose
    `/search?term=...` et renvoie du JSON ; n8n l'appelle en HTTP.
 2. Nœud **Execute Command** qui lance un script Python (nécessite Python dans
-   l'image n8n — préférer l'option 1, plus propre).
+   l'image n8n, préférer l'option 1, plus propre).
 
 ⚠️ LinkedIn via JobSpy peut être rate-limité / nécessiter des proxies. Indeed
 et Glassdoor sont plus fiables sans proxy.
@@ -286,7 +286,7 @@ France Travail, qui vise la candidature spontanée tous contrats, pas l'alternan
 
 ---
 
-## 4. Notion (OPTIONNEL — consultation seule, hors V1)
+## 4. Notion (OPTIONNEL : consultation seule, hors V1)
 
 > ⚠️ Notion **n'est plus le stockage** : la source de vérité est PostgreSQL
 > (section 0). Cette section ne sert que si tu veux, plus tard, une interface de
@@ -303,7 +303,7 @@ France Travail, qui vise la candidature spontanée tous contrats, pas l'alternan
   Notion de n8n renvoie des erreurs de relation/création, vérifier que le nœud
   est à jour, sinon passer par le nœud HTTP Request vers l'API Notion.
 
-### Schéma proposé — Base « Offres »
+### Schéma proposé : Base « Offres »
 | Propriété     | Type        | Notes                                   |
 |---------------|-------------|-----------------------------------------|
 | Poste         | Title       | intitulé de l'offre                     |
@@ -317,7 +317,7 @@ France Travail, qui vise la candidature spontanée tous contrats, pas l'alternan
 | Note CV       | Text        | adaptation CV suggérée                  |
 | ID source     | Text        | identifiant unique pour dédupliquer     |
 
-### Schéma proposé — Base « Entreprises »
+### Schéma proposé : Base « Entreprises »
 | Propriété   | Type     | Notes                              |
 |-------------|----------|------------------------------------|
 | Nom         | Title    |                                    |
@@ -344,7 +344,7 @@ Canal de notification pour recevoir les offres dans un salon Discord.
   L'URL ressemble à `https://discord.com/api/webhooks/<id>/<token>`.
 - **Envoyer un message** : `POST` sur l'URL du webhook, body JSON :
   ```json
-  { "content": "🆕 Nouvelle offre : Dév IA chez Acme — score 82\nhttps://..." }
+  { "content": "🆕 Nouvelle offre : Dév IA chez Acme, score 82\nhttps://..." }
   ```
   - `content` : texte simple (max 2000 caractères), supporte le Markdown Discord.
   - Pour un rendu plus riche, utiliser `embeds` (titre, description, URL, couleur).
@@ -353,7 +353,7 @@ Canal de notification pour recevoir les offres dans un salon Discord.
   `DISCORD_WEBHOOK_URL` reste un alias rétro-compatible d'ALERTS (compose le
   recopie si ALERTS est vide).
 - **Dans n8n** : nœud **HTTP Request** (`POST` vers le webhook voulu,
-  body JSON `{ "content": "..." }`) — pas besoin de credential, le token est
+  body JSON `{ "content": "..." }`), pas besoin de credential, le token est
   dans l'URL. Un nœud Discord natif existe aussi mais le webhook HTTP est le
   plus simple pour du push mono-salon.
 - ⚠️ Le webhook ne sert qu'à **poster** dans un salon ; il ne lit pas les

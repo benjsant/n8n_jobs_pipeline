@@ -4,7 +4,7 @@ Guide complet pour héberger **n8n_jobs_pipeline** sur un VPS **personnel**, non
 exposé au public : accès à l'UI n8n **uniquement via WireGuard**, SSH durci
 (port changé, clés only), pare-feu fermé par défaut.
 
-> Principe : seuls **deux** ports sont ouverts au monde — le **SSH** (port
+> Principe : seuls **deux** ports sont ouverts au monde, le **SSH** (port
 > custom) et le **WireGuard** (UDP). Tout le reste (n8n :5678, Postgres,
 > services) n'écoute que sur le réseau privé WireGuard ou en local.
 
@@ -63,7 +63,7 @@ ssh -p 49222 benjamin@IP_DU_VPS
 ```
 Tant que ça ne marche pas, ne ferme pas la session en cours.
 
-## 3. Pare-feu (ufw) — fermé par défaut
+## 3. Pare-feu (ufw) : fermé par défaut
 
 ```bash
 sudo apt update && sudo apt install -y ufw
@@ -157,7 +157,7 @@ Puis renseigne les clés API utiles (voir [installation.md](installation.md) §3
 
 ## 7. N'exposer n8n que sur le tunnel WireGuard
 
-Par défaut le `docker-compose.yml` mappe `5678:5678` (toutes interfaces — pratique
+Par défaut le `docker-compose.yml` mappe `5678:5678` (toutes interfaces, pratique
 en local). Sur le VPS, **bind le port sur l'IP WireGuard uniquement**. Crée un
 `docker-compose.override.yml` (non versionné, propre au VPS) :
 ```yaml
@@ -194,7 +194,7 @@ done
 Puis dans l'UI (cf. [workflows/README.md](https://github.com/benjsant/n8n_jobs_pipeline/blob/main/workflows/README.md)) :
 1. **Credential Postgres** « Postgres job-hunter » → host `postgres`, port `5432`,
    base/user/mot de passe = ceux du `.env` ; l'associer aux nœuds `REMPLACER`.
-2. **Credentials Google** (Drive + Gmail OAuth2) dans le `04` — voir §11.
+2. **Credentials Google** (Drive + Gmail OAuth2) dans le `04`, voir §11.
 3. Activer les workflows voulus (importés inactifs).
 
 ## 10. Tester le pipeline
@@ -214,7 +214,7 @@ Sur un setup WireGuard privé, deux options :
   HTTPS le temps de cliquer « Autoriser », puis revenir au binding privé. n8n
   affiche l'URL de redirection à déclarer dans la console Google Cloud.
 - **Reverse-proxy HTTPS** (Caddy/Traefik) sur un sous-domaine, accessible
-  seulement via WireGuard, avec un certificat (DNS-01) — plus avancé.
+  seulement via WireGuard, avec un certificat (DNS-01), plus avancé.
 
 Scopes : Drive (fichiers) + Gmail (création de brouillon). **Garde-fou** : le `04`
 crée un **brouillon**, jamais d'envoi automatique.

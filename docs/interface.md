@@ -1,4 +1,4 @@
-# 🖥️ Mini-interface web — candidature depuis une URL
+# 🖥️ Mini-interface web : candidature depuis une URL
 
 Interface graphique légère pour générer un **CV + une lettre** à partir de l'**URL
 d'une offre**, à la demande, **sans déployer de serveur**. Tu la lances sur ton PC
@@ -12,7 +12,7 @@ quand tu veux candidater, tu la coupes après.
 - **Docker** + **Docker Compose**.
 - Le dépôt cloné, et un `.env` rempli au minimum avec :
   - `DEEPSEEK_API_KEY` (l'agent),
-  - `DISCORD_WEBHOOK_ALERTS` (livraison des documents ; optionnel — sinon
+  - `DISCORD_WEBHOOK_ALERTS` (livraison des documents ; optionnel, sinon
     téléchargement direct depuis la page).
 
 ```bash
@@ -41,7 +41,7 @@ just ui-stop       # ou : docker compose down
 
 1. **Colle l'URL** d'une offre → « Extraire ». L'app récupère la page et en extrait
    `titre / entreprise / lieu / description`.
-2. **Vérifie et corrige** ces champs (mémo éditable) — utile si l'extraction est
+2. **Vérifie et corrige** ces champs (mémo éditable), utile si l'extraction est
    incomplète (pages très dynamiques).
 3. **Génère** : l'agent produit un CV (ATS, titre adapté à l'offre) et une lettre,
    sans invention et sans signe IA (tirets nettoyés).

@@ -4,7 +4,7 @@
 
 ---
 
-## 0. Mise à jour 2026-06-25 — état réel + design allégé
+## 0. Mise à jour 2026-06-25 : état réel + design allégé
 
 > Addendum ajouté après coup. Le plan d'origine (sections 1+) date du 2026-06-23 et
 > reste valable dans l'esprit ; cette section corrige ce qui a évolué depuis et
@@ -16,7 +16,7 @@ Le MVP n8n tourne de bout en bout **sans dépendance Google** :
   + affinage DeepSeek → **alertes Discord actionnables** (anti-spam : seules les
   nouvelles offres).
 - Clic « Générer » → `03 → 02` → **CV (design portfolio) + lettre** → `04` = **livraison
-  Discord** (CV + lettre en pièces jointes, prêts à envoyer — garde-fou humain).
+  Discord** (CV + lettre en pièces jointes, prêts à envoyer, garde-fou humain).
 - Maillon **candidature spontanée** (`05`) opérationnel (manque `LBA_API_KEY` pour de
   vraies entreprises).
 - Le critère « une vraie candidature livrée, prête à l'envoi » est **atteint** (via

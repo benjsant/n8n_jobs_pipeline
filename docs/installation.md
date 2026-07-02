@@ -1,4 +1,4 @@
-# 🚀 Installation — reprendre le projet sur une autre machine
+# 🚀 Installation : reprendre le projet sur une autre machine
 
 Guide pour cloner et relancer **n8n_jobs_pipeline** from scratch sur un nouveau PC
 (pour toi ou pour Claude Code en début de session).
@@ -10,7 +10,7 @@ Guide pour cloner et relancer **n8n_jobs_pipeline** from scratch sur un nouveau 
 > Le dépôt GitHub contient **tout le code suivi** (workflows avec leurs `id`,
 > profil `cv/*.json`, services, schéma SQL, scripts), **mais pas** : le `.env`
 > (secrets) ni les volumes Docker (base Postgres + données n8n). Sur un nouveau
-> PC on repart donc d'un `.env` neuf et d'une instance n8n vierge — c'est normal,
+> PC on repart donc d'un `.env` neuf et d'une instance n8n vierge, c'est normal,
 > tout se reconstruit.
 
 ---
@@ -44,7 +44,7 @@ openssl rand -base64 18  # → N8N_BASIC_AUTH_PASSWORD
 ```
 Définis aussi `N8N_BASIC_AUTH_USER` (ex. `admin`).
 
-**b) Clés externes** — à créer, par ordre d'utilité (le pipeline démarre sans,
+**b) Clés externes**, à créer, par ordre d'utilité (le pipeline démarre sans,
 mais ne fait rien d'« utile » tant qu'elles sont vides) :
 
 | Variable | Où l'obtenir | Débloque |
@@ -73,7 +73,7 @@ Services : **postgres** (source de vérité + persistance n8n), **n8n** (UI :567
 Le schéma SQL (`db/schema.sql` + `db/seed-profiles.sql`) s'applique **au premier
 init** de la base vide.
 
-UI n8n : http://localhost:5678 — au **premier démarrage**, n8n 2.x fait créer un
+UI n8n : http://localhost:5678, au **premier démarrage**, n8n 2.x fait créer un
 **compte propriétaire** (owner) ; renseigne-le.
 
 ## 5. Importer les workflows
