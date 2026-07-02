@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>job-hunter — Candidature depuis une URL</title>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <style>
+    :root { --b:#4f46e5; --b7:#3730a3; --fg:#111827; --mut:#4b5563; --bd:#e3e8eb; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:#f3f4f6; color:var(--fg); font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif; line-height:1.5; }
+    .wrap { max-width:720px; margin:0 auto; padding:28px 18px 60px; }
+    h1 { font-size:22px; margin:0 0 4px; }
+    .sub { color:var(--mut); font-size:13px; margin:0 0 20px; }
+    .card { background:#fff; border:1px solid var(--bd); border-radius:10px; padding:18px; margin-bottom:16px; box-shadow:0 1px 3px rgba(0,0,0,.04); }
+    .step { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--b7); margin:0 0 10px; }
+    label { display:block; font-size:12px; font-weight:600; color:var(--mut); margin:10px 0 3px; }
+    input, textarea { width:100%; padding:9px 11px; border:1px solid var(--bd); border-radius:7px; font:inherit; font-size:14px; }
+    textarea { min-height:120px; resize:vertical; }
+    button { background:var(--b); color:#fff; border:0; border-radius:7px; padding:10px 18px; font:inherit; font-weight:600; cursor:pointer; }
+    button:hover { background:var(--b7); }
+    button:disabled { opacity:.55; cursor:default; }
+    .row { display:flex; gap:10px; }
+    .row input { flex:1; }
+    .muted { color:var(--mut); font-size:12px; }
+    .err { color:#b91c1c; font-size:13px; margin-top:8px; }
+    .ok { color:#166534; }
+    .kv { font-size:13px; margin:4px 0; }
+    .kv b { color:var(--fg); }
+    .badge { display:inline-block; background:#eef2ff; color:var(--b7); border:1px solid #e0e7ff; border-radius:6px; padding:2px 8px; font-size:12px; font-weight:600; }
+    .accroche { background:#f9fafb; border-left:3px solid var(--b); padding:8px 12px; border-radius:4px; font-size:13px; color:var(--mut); margin-top:6px; }
+  </style>
+</head>
+<body>
+  <div class="wrap" x-data="app()">
+    <h1>Candidature depuis une URL</h1>
+    <p class="sub">Colle l'URL d'une offre. On extrait les infos, tu confirmes, puis on génère le CV + la lettre et on les envoie sur Discord. Relecture humaine avant tout envoi.</p>
+
+    <!-- Étape 1 : URL -->
+    <div class="card">
+      <p class="step">1. Offre</p>
+      <div class="row">
+        <input type="url" placeholder="https://…/offre" x-model="url" @keydown.enter="extract()" />
+        <button @click="extract()" :disabled="loading || !url">
+          <span x-show="!loading">Extraire</span><span x-show="loading">…</span>
+        </button>
+      </div>
+      <p class="muted" style="margin-top:8px">Astuce : si l'extraction est incomplète (pages dynamiques), corrige les champs à l'étape 2.</p>
+      <p class="err" x-show="error" x-text="error"></p>
+    </div>
+
+    <!-- Étape 2 : mémo de confirmation (éditable) -->
+    <div class="card" x-show="offer">
+      <p class="step">2. Vérifie et confirme les infos</p>
+      <label>Intitulé du poste</label>
+      <input x-model="offer.title" />
+      <label>Entreprise</label>
+      <input x-model="offer.company" />
+      <label>Lieu</label>
+      <input x-model="offer.location" />
+      <label>Description / missions</label>
+      <textarea x-model="offer.description"></textarea>
+      <div style="margin-top:14px">
+        <button @click="generate()" :disabled="generating || !offer.title">
+          <span x-show="!generating">Générer CV + lettre → Discord</span>
+          <span x-show="generating">Génération…</span>
+        </button>
+      </div>
+      <p class="err" x-show="error && offer" x-text="error"></p>
+    </div>
+
+    <!-- Résultat -->
+    <div class="card" x-show="result">
+      <p class="step">3. Résultat</p>
+      <template x-if="result">
+        <div>
+          <p class="kv"><b>Titre CV :</b> <span x-text="result.cv_title"></span></p>
+          <p class="kv"><b>Score :</b> <span class="badge" x-text="result.score + ' / ' + result.recommandation"></span></p>
+          <p class="kv"><b>Objet email :</b> <span x-text="result.subject"></span></p>
+          <p class="kv"><b>Accroche :</b></p>
+          <p class="accroche" x-text="result.accroche"></p>
+          <p class="kv" style="margin-top:12px">
+            <b>Discord :</b>
+            <span x-show="result.discord" class="ok">✅ CV + lettre envoyés</span>
+            <span x-show="!result.discord" class="err" style="display:inline">non envoyé (webhook non configuré)</span>
+          </p>
+          <p class="muted">PDF aussi disponibles dans ./output (<span x-text="result.cv_path"></span>).</p>
+        </div>
+      </template>
+    </div>
+  </div>
+
+  <script>
+    function app() {
+      return {
+        url: '', offer: null, result: null, loading: false, generating: false, error: '',
+        async extract() {
+          this.error=''; this.result=null; this.loading=true;
+          try {
+            const r = await fetch('offer/extract', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ url: this.url }) });
+            const d = await r.json();
+            this.offer = { title:d.title||'', company:d.company||'', location:d.location||'', description:d.description||'' };
+            if (!d.title && !d.company && !d.description) this.error = "Extraction vide : remplis les champs manuellement à l'étape 2.";
+          } catch(e) { this.error = 'Erreur d\'extraction : ' + e; }
+          this.loading=false;
+        },
+        async generate() {
+          this.error=''; this.generating=true; this.result=null;
+          try {
+            const r = await fetch('offer/generate', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(this.offer) });
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            this.result = await r.json();
+          } catch(e) { this.error = 'Erreur de génération : ' + e; }
+          this.generating=false;
+        },
+      };
+    }
+  </script>
+</body>
+</html>

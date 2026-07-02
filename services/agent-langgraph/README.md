@@ -33,6 +33,17 @@ Chaque nœud est une fonction pure (state → patch de state), testable en isola
 | GET | `/health` | — | `{ status, prompt_loaded, cv_index_loaded }` |
 | POST | `/agent/run` | `{ title, company, description, company_info?, location?, spontaneous? }` | objet §6 (`agent/schema.py`) |
 | POST | `/interview/prep` | `{ title, company, description, company_info?, location? }` | dossier de prépa entretien (`InterviewPrep`) |
+| GET | `/` | — | mini-interface web (Alpine.js) : URL offre -> confirmation -> génération |
+| POST | `/offer/extract` | `{ url }` | `{ title, company, location, description }` (best-effort) |
+| POST | `/offer/generate` | `{ title, company, location, description }` | génère CV + lettre (rendu) et les livre sur Discord |
+
+## Mini-interface (URL -> CV + lettre -> Discord)
+
+`http://localhost:8001` : colle l'URL d'une offre, l'app extrait les infos (fetch +
+LLM), tu **confirmes/corriges** (mémo éditable), puis elle appelle l'agent, rend le
+CV + la lettre (service `render`) et les **poste sur Discord** (2 pièces jointes,
+relecture humaine avant envoi). Nécessite `RENDER_API_URL`, `DISCORD_WEBHOOK_ALERTS`
+et le volume `./output` monté (cf. docker-compose).
 
 ## Préparation d'entretien (`/interview/prep`)
 

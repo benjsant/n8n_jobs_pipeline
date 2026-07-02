@@ -114,12 +114,17 @@ services:
       # Contexte lu au démarrage (mêmes fichiers que le 02 lisait).
       PROMPT_PATH: /prompts/agent-system-prompt.md
       CV_INDEX_PATH: /cv/cv-index.json
-    # Pas de port exposé vers l'hôte : seul n8n l'appelle, via http://agent-langgraph:8001
-    expose:
-      - "8001"
+      # Mini-interface (URL -> CV+lettre -> Discord) : rendu + livraison Discord.
+      RENDER_API_URL: ${RENDER_API_URL:-http://render:8000}
+      DISCORD_WEBHOOK_ALERTS: ${DISCORD_WEBHOOK_ALERTS:-${DISCORD_WEBHOOK_URL:-}}
+    # Port publié vers l'hôte pour ouvrir la mini-interface : http://localhost:8001
+    ports:
+      - "8001:8001"
     volumes:
       - ./prompts:/prompts:ro
       - ./cv:/cv:ro
+      # PDF générés par le service render, lus par l'agent pour la livraison Discord.
+      - ./output:/output:ro
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import urllib.request;urllib.request.urlopen('http://localhost:8001/health')\""]
       interval: 30s
