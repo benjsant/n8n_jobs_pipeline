@@ -1,0 +1,26 @@
+name: Docs
+
+# Construit le site MkDocs Material et le publie sur GitHub Pages (branche gh-pages)
+# à chaque push sur main touchant la doc. Prérequis côté dépôt : Settings > Pages
+# > Source = "Deploy from a branch" > branche gh-pages.
+on:
+  push:
+    branches: [main]
+    paths:
+      - docs/**
+      - mkdocs.yml
+      - .github/workflows/docs.yml
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install "mkdocs-material>=9,<10"
+      - run: mkdocs gh-deploy --force --clean

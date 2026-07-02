@@ -191,7 +191,7 @@ for f in 01-recherche-offres 02-agent-candidature 03-statut-offre 04-candidature
   docker exec job-hunter-n8n n8n import:workflow --input=/workflows/$f.json
 done
 ```
-Puis dans l'UI (cf. [workflows/README.md](../workflows/README.md)) :
+Puis dans l'UI (cf. [workflows/README.md](https://github.com/benjsant/n8n_jobs_pipeline/blob/main/workflows/README.md)) :
 1. **Credential Postgres** « Postgres job-hunter » → host `postgres`, port `5432`,
    base/user/mot de passe = ceux du `.env` ; l'associer aux nœuds `REMPLACER`.
 2. **Credentials Google** (Drive + Gmail OAuth2) dans le `04` — voir §11.

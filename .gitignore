@@ -34,3 +34,6 @@ venv/
 # Logs
 *.log
 logs/
+
+# MkDocs (build local, publié par la CI)
+site/

@@ -140,7 +140,7 @@ git status                   # ne montre JAMAIS .env
 
 ## Pour Claude Code (début de session sur la nouvelle machine)
 
-1. Lire [CLAUDE.md](../CLAUDE.md) (contexte + conventions).
+1. Lire [CLAUDE.md](https://github.com/benjsant/n8n_jobs_pipeline/blob/main/CLAUDE.md) (contexte + conventions).
 2. Lire [docs/contexte-claude.md](contexte-claude.md) (mémoire portable : décisions, état).
 3. Lire [docs/reste-a-faire.md](reste-a-faire.md) (état d'avancement + clés à fournir).
 4. Lire [docs/reference.md](reference.md) (infos API exactes).
