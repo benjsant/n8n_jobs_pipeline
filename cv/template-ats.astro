@@ -12,6 +12,7 @@ import experiencesData from "./experiences.json";
 import educationData from "./education.json";
 import certificationsData from "./certifications.json";
 import languagesData from "./languages.json";
+import interestsData from "./interests.json";
 
 // Anti-IA : remplace tiret cadratin/demi-cadratin (— –) par un trait d'union
 // simple, et le point médian (·) par une virgule.
@@ -63,6 +64,8 @@ const experiences = reorder(
 const education = educationData.education.filter((e) => e.degree || e.school);
 const certifications = (certificationsData.certifications || []).filter((c) => c.name);
 const languages = (languagesData.languages || []).filter((l) => l.name);
+const interests = (interestsData.interests || []).filter((i) => i.title)
+  .map((i) => ({ title: clean(i.title), description: clean(i.description) }));
 
 const skillRows = skillsData.categories
   .map((cat) => ({
@@ -83,8 +86,8 @@ const strip = (u) => String(u || "").replace(/^https?:\/\/(www\.)?/, "").replace
 const contacts = [
   { label: "Email", value: profile.email },
   { label: "Portfolio", value: strip(profile.links?.portfolio) },
-  { label: "LinkedIn", value: strip(profile.links?.linkedin).replace(/^linkedin\.com\/in\//, "") },
-  { label: "GitHub", value: strip(profile.links?.github).replace(/^github\.com\//, "") },
+  { label: "LinkedIn", value: strip(profile.links?.linkedin) },
+  { label: "GitHub", value: strip(profile.links?.github) },
 ].filter((c) => c.value);
 
 const meta = [];
@@ -177,6 +180,15 @@ if (profile.location || profile.mobility_label) meta.push({ label: "Mobilité", 
           ))}
         </section>
       )}
+
+      {!isHidden("interests") && interests.length > 0 && (
+        <section>
+          <h2>Centres d'intérêt</h2>
+          {interests.map((i) => (
+            <p class="line"><strong>{i.title}</strong>{i.description ? ` : ${i.description}` : ""}</p>
+          ))}
+        </section>
+      )}
     </article>
 
     <style is:inline>
@@ -186,8 +198,8 @@ if (profile.location || profile.mobility_label) meta.push({ label: "Mobilité", 
       html, body { margin: 0; padding: 0; background: #fff; }
       .cv {
         font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-        color: #111827; font-size: 12px; line-height: 1.47;
-        padding: 10mm 14mm; background: #fff; -webkit-font-smoothing: antialiased;
+        color: #111827; font-size: 12px; line-height: 1.45;
+        padding: 9mm 14mm; background: #fff; -webkit-font-smoothing: antialiased;
       }
 
       .head h1 { font-size: 28px; font-weight: 800; letter-spacing: -0.01em; margin: 0; color: #111827; }
@@ -196,22 +208,22 @@ if (profile.location || profile.mobility_label) meta.push({ label: "Mobilité", 
       .summary { font-size: 12px; color: #374151; margin: 6px 0 0; line-height: 1.47; }
       .contact { font-size: 11.5px; color: #374151; margin: 5px 0 0; }
 
-      section { margin-top: 11px; }
+      section { margin-top: 9px; }
       h2 {
         font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em;
-        color: #3730a3; border-bottom: 1.5px solid #c7d2fe; padding-bottom: 2px; margin: 0 0 6px;
+        color: #3730a3; border-bottom: 1.5px solid #c7d2fe; padding-bottom: 2px; margin: 0 0 5px;
       }
 
-      .skills { font-size: 12px; margin: 3px 0; color: #374151; line-height: 1.47; }
+      .skills { font-size: 12px; margin: 2.5px 0; color: #374151; line-height: 1.45; }
       .skills strong { color: #111827; }
 
-      .item { margin-bottom: 6px; }
+      .item { margin-bottom: 5px; }
       .item-head { font-size: 12.5px; margin: 0; color: #111827; }
       .item-tech { font-size: 11px; color: #4b5563; margin: 1px 0 0; }
-      .item-desc { font-size: 11.5px; color: #374151; margin: 1px 0 0; line-height: 1.47; }
-      ul { margin: 3px 0; padding-left: 18px; }
-      li { font-size: 11.5px; color: #374151; line-height: 1.47; margin: 0; }
-      .line { font-size: 12px; color: #374151; margin: 3px 0; }
+      .item-desc { font-size: 11.5px; color: #374151; margin: 1px 0 0; line-height: 1.45; }
+      ul { margin: 2px 0; padding-left: 18px; }
+      li { font-size: 11.5px; color: #374151; line-height: 1.45; margin: 0; }
+      .line { font-size: 12px; color: #374151; margin: 2.5px 0; }
       .line strong { color: #111827; }
 
       @page { size: A4; margin: 0; }

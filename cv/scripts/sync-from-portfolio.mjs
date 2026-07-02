@@ -173,7 +173,13 @@ export function mapCv(cv, existingProfile = {}, manualSkills = { categories: [] 
     achievements: keepIfFilled(existingProfile.achievements, []),
   };
 
-  return { profile, skills, projects, experiences, education, certifications, languages: { languages } };
+  const interests = {
+    interests: (cv.interests ?? [])
+      .filter((i) => i?.title)
+      .map((i) => ({ title: i.title, description: i.description ?? "" })),
+  };
+
+  return { profile, skills, projects, experiences, education, certifications, languages: { languages }, interests };
 }
 
 // ── Exécution ────────────────────────────────────────────────────────────────
@@ -209,6 +215,7 @@ async function main() {
   await writeJson("education.json", out.education);
   await writeJson("certifications.json", out.certifications);
   await writeJson("languages.json", out.languages);
+  await writeJson("interests.json", out.interests);
 
   // Régénère l'index injecté à l'agent.
   await new Promise((ok, ko) =>

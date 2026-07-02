@@ -11,6 +11,7 @@ import experiencesData from "./experiences.json";
 import educationData from "./education.json";
 import certificationsData from "./certifications.json";
 import languagesData from "./languages.json";
+import interestsData from "./interests.json";
 
 // Photo embarquée en data-URI (le rendu charge le HTML en file://, donc pas de
 // chemin absolu /photo.jpg). Optionnelle : si absente, pas de photo.
@@ -71,6 +72,8 @@ const education = educationData.education.filter((e) => e.degree || e.school)
 const certifications = (certificationsData.certifications || []).filter((c) => c.name)
   .map((c) => ({ ...c, name: clean(c.name), issuer: clean(c.issuer), year: clean(c.year) }));
 const languages = (languagesData.languages || []).filter((l) => l.name);
+const interests = (interestsData.interests || []).filter((i) => i.title)
+  .map((i) => ({ title: clean(i.title), description: clean(i.description) }));
 
 const skillRows = skillsData.categories
   .map((cat) => ({
@@ -112,7 +115,7 @@ const icons = {
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>CV — {profile.name}{profile.title ? ` (${profile.title})` : ""}</title>
+    <title>CV - {profile.name}{profile.title ? ` (${profile.title})` : ""}</title>
   </head>
   <body>
     <div class="cvd-root">
@@ -228,7 +231,16 @@ const icons = {
             <section class="cvd-section">
               <h2 class="cvd-h2"><span class="cvd-dot"></span>Certifications</h2>
               {certifications.map((c) => (
-                <p class="cvd-mini">{c.year && <span class="cvd-mini-date">{c.year}</span>}<strong>{c.name}</strong>{c.issuer ? ` — ${c.issuer}` : ""}</p>
+                <p class="cvd-mini">{c.year && <span class="cvd-mini-date">{c.year}</span>}<strong>{c.name}</strong>{c.issuer ? `, ${c.issuer}` : ""}</p>
+              ))}
+            </section>
+          )}
+
+          {!isHidden("interests") && interests.length > 0 && (
+            <section class="cvd-section">
+              <h2 class="cvd-h2"><span class="cvd-dot"></span>Centres d'intérêt</h2>
+              {interests.map((i) => (
+                <p class="cvd-mini"><strong>{i.title}</strong>{i.description ? ` : ${i.description}` : ""}</p>
               ))}
             </section>
           )}
