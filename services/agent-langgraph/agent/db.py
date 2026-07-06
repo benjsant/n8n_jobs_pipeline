@@ -86,3 +86,30 @@ def counts_by_status() -> dict:
     with _connect() as conn, conn.cursor() as cur:
         cur.execute("SELECT status, count(*) AS n FROM offers GROUP BY status")
         return {r["status"]: r["n"] for r in cur.fetchall()}
+
+
+def list_companies(limit: int = 100) -> list[dict]:
+    """Entreprises à contacter (celles avec un moyen de contact collecté via LBA)."""
+    limit = max(1, min(int(limit), 300))
+    with _connect() as conn, conn.cursor() as cur:
+        cur.execute(
+            "SELECT id, name, sector, website, apply_url, phone, email "
+            "FROM companies "
+            "WHERE COALESCE(apply_url,'') <> '' OR COALESCE(phone,'') <> '' "
+            "   OR COALESCE(email,'') <> '' "
+            "ORDER BY last_updated DESC LIMIT %s",
+            (limit,),
+        )
+        return cur.fetchall()
+
+
+def get_company(name: str) -> dict | None:
+    """Fiche entreprise complète (pour générer la candidature spontanée)."""
+    with _connect() as conn, conn.cursor() as cur:
+        cur.execute(
+            "SELECT id, name, sector, website, description, ai_summary, "
+            "       apply_url, phone, email "
+            "FROM companies WHERE name = %s LIMIT 1",
+            (name,),
+        )
+        return cur.fetchone()

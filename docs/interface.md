@@ -70,6 +70,17 @@ revoir une offre à laquelle tu as déjà répondu.
 > message « base non lancée » : le reste de la page (génération CV + lettre)
 > fonctionne quand même.
 
+## Entreprises à contacter (candidature spontanée)
+
+La page liste aussi les **entreprises à démarcher** (collectées via La Bonne
+Alternance, celles pour lesquelles un contact a été récupéré), façon *La Bonne
+Boîte* : nom, secteur, site, téléphone, email, lien de contact.
+
+Le bouton **✉️ Générer candidature spontanée** lance l'agent en mode spontané
+(template `candidature-spontanee`) : il produit un **CV + une lettre spontanée**
+et **envoie le tout sur Discord** avec les **infos de contact** de l'entreprise,
+prêt à relire puis à envoyer toi-même. Même base Postgres requise.
+
 ## Mini-interface vs stack complète
 
 | Besoin | À lancer |
@@ -89,6 +100,8 @@ revoir une offre à laquelle tu as déjà répondu.
 | GET | `/files/{app_id}/{cv.pdf\|lettre.pdf}` | télécharge un PDF |
 | GET | `/offers` `?status=&limit=` | offres en base + compteurs par statut (503 si base absente) |
 | POST | `/offers/status` `{ hash, status }` | bascule le statut (`ignored`, `applied`, `selected`, `reviewed`) |
+| GET | `/companies` `?limit=` | entreprises à contacter (avec moyen de contact) |
+| POST | `/companies/apply` `{ name }` | génère la candidature spontanée et la livre sur Discord |
 
 ## Notes
 

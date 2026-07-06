@@ -25,7 +25,7 @@ from pydantic import BaseModel
 from agent import db
 from agent.graph import load_context, run_agent
 from agent.interview import run_interview_prep
-from agent.offer_extract import extract_offer, generate_application
+from agent.offer_extract import extract_offer, generate_application, generate_spontaneous
 from agent.schema import AgentOutput, InterviewPrep, Offer
 
 app = FastAPI(title="agent-langgraph", version="0.1.0")
@@ -44,6 +44,10 @@ class UrlIn(BaseModel):
 class StatusIn(BaseModel):
     hash: str
     status: str
+
+
+class CompanyIn(BaseModel):
+    name: str
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -143,3 +147,27 @@ def offers_status(body: StatusIn) -> dict:
         raise HTTPException(status_code=400, detail=str(exc))
     except KeyError:
         raise HTTPException(status_code=404, detail="offre introuvable (hash inconnu)")
+
+
+# --- Entreprises à contacter (candidature spontanée, façon La Bonne Boîte) -----
+
+
+@app.get("/companies")
+def companies(limit: int = 100) -> dict:
+    """Entreprises collectées avec un moyen de contact (LBA), à démarcher."""
+    try:
+        return {"items": db.list_companies(limit=limit)}
+    except db.DbUnavailable as exc:
+        raise HTTPException(status_code=503, detail=f"Base indisponible : {exc}. Lance la stack complète (just up).")
+
+
+@app.post("/companies/apply")
+def companies_apply(body: CompanyIn) -> dict:
+    """Génère une candidature spontanée (CV + lettre) pour l'entreprise et la livre sur Discord."""
+    try:
+        company = db.get_company(body.name)
+    except db.DbUnavailable as exc:
+        raise HTTPException(status_code=503, detail=f"Base indisponible : {exc}.")
+    if not company:
+        raise HTTPException(status_code=404, detail="entreprise introuvable")
+    return generate_spontaneous(company, CONTEXT)

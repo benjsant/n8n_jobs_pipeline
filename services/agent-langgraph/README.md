@@ -38,6 +38,8 @@ Chaque nœud est une fonction pure (state → patch de state), testable en isola
 | POST | `/offer/generate` | `{ title, company, location, description }` | génère CV + lettre (rendu) et les livre sur Discord |
 | GET | `/offers` | `?status=&limit=` | offres en base + compteurs par statut (503 si Postgres absent) |
 | POST | `/offers/status` | `{ hash, status }` | bascule le statut (`ignored`, `applied`, `selected`, `reviewed`) |
+| GET | `/companies` | `?limit=` | entreprises à contacter (avec moyen de contact LBA) |
+| POST | `/companies/apply` | `{ name }` | candidature spontanée (CV + lettre) livrée sur Discord avec le contact |
 
 ## Mini-interface (URL -> CV + lettre -> Discord)
 

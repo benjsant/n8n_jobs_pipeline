@@ -84,6 +84,84 @@ def _deliver_discord(cv_path: str, letter_path: str, out: dict, offer: dict) -> 
             fh.close()
 
 
+def _deliver_spontaneous_discord(cv_path: str, letter_path: str, out: dict, company: dict) -> bool:
+    """Livre la candidature spontanée sur Discord avec les infos de contact."""
+    webhook = os.environ.get("DISCORD_WEBHOOK_ALERTS", "")
+    if not webhook:
+        return False
+    pc = out.get("personnalisation_cv") or {}
+    lines = [
+        f"🏢 **Candidature spontanée : {company.get('name', '') or 'Entreprise'}**",
+        f"📌 {pc.get('cv_title', '') or 'Candidature spontanée'}",
+    ]
+    if company.get("sector"):
+        lines.append(f"🏷️ {company['sector']}")
+    contact = []
+    if company.get("apply_url"):
+        contact.append(f"🔗 {company['apply_url']}")
+    if company.get("phone"):
+        contact.append(f"☎️ {company['phone']}")
+    if company.get("email"):
+        contact.append(f"✉️ {company['email']}")
+    if company.get("website"):
+        contact.append(f"🌐 {company['website']}")
+    if contact:
+        lines.append("**Contact :** " + "  ".join(contact))
+    lines.append("📎 CV + lettre en pièces jointes, à relire avant envoi.")
+    content = "\n".join(lines)
+    files = []
+    for i, p in enumerate([cv_path, letter_path]):
+        if p and os.path.exists(p):
+            files.append((f"files[{i}]", (os.path.basename(p), open(p, "rb"), "application/pdf")))
+    try:
+        resp = httpx.post(webhook, data={"payload_json": json.dumps({"content": content})}, files=files, timeout=30)
+        return resp.status_code < 300
+    except Exception:
+        return False
+    finally:
+        for _, (_, fh, _ct) in files:
+            fh.close()
+
+
+def generate_spontaneous(company: dict, ctx: dict) -> dict:
+    """Candidature SPONTANÉE pour une entreprise : agent -> rendu -> Discord (avec contact)."""
+    info = " · ".join(
+        v for v in (company.get("sector"), company.get("website"), company.get("ai_summary")) if v
+    )
+    offer = {
+        "title": "Candidature spontanée",
+        "company": company.get("name", ""),
+        "location": "",
+        "description": company.get("description") or company.get("ai_summary") or "",
+        "company_info": info,
+        "spontaneous": True,
+    }
+    out = run_agent(offer, ctx)
+    pc = out.get("personnalisation_cv") or {}
+    lettre = out.get("lettre") or {}
+    app_id = _slug(company.get("name") or "spontanee")
+    cv = httpx.post(f"{_RENDER_URL}/cv", json={"application_id": app_id, "personalization": pc}, timeout=120).json()
+    lt = httpx.post(
+        f"{_RENDER_URL}/letter",
+        json={
+            "application_id": app_id, "company": company.get("name", ""),
+            "template": lettre.get("template", "candidature-spontanee"), "accroche": lettre.get("accroche", ""),
+            "vars": {"poste": "Candidature spontanée"},
+        },
+        timeout=120,
+    ).json()
+    discord_ok = _deliver_spontaneous_discord(cv.get("cv_path", ""), lt.get("letter_path", ""), out, company)
+    return {
+        "app_id": app_id,
+        "cv_title": pc.get("cv_title", ""),
+        "accroche": lettre.get("accroche", ""),
+        "template": lettre.get("template", ""),
+        "subject": out.get("objet_email", ""),
+        "contact": {k: company.get(k, "") for k in ("apply_url", "phone", "email", "website")},
+        "discord": discord_ok,
+    }
+
+
 def generate_application(offer: dict, ctx: dict) -> dict:
     """Agent -> rendu PDF (CV + lettre) -> livraison Discord. Renvoie un récap."""
     out = run_agent(offer, ctx)

@@ -51,7 +51,7 @@
   </style>
 </head>
 <body>
-  <div class="wrap" x-data="app()" x-init="loadStatus(); loadHistory(); loadOffers()">
+  <div class="wrap" x-data="app()" x-init="loadStatus(); loadHistory(); loadOffers(); loadCompanies()">
 
     <header class="hero">
       <div>
@@ -160,6 +160,31 @@
       </template>
     </div>
 
+    <!-- Entreprises à contacter (candidature spontanée) -->
+    <div class="card">
+      <p class="step">Entreprises à contacter</p>
+      <p class="muted" style="margin-top:-4px">Entreprises collectées via La Bonne Alternance. « Générer » produit CV + lettre spontanée et envoie tout sur Discord avec le contact.</p>
+      <p class="muted" x-show="coErr" x-text="coErr"></p>
+      <p class="muted" x-show="!coErr && !companies.length">Aucune entreprise à contacter pour l'instant.</p>
+      <template x-for="c in companies" :key="c.id">
+        <div class="offer">
+          <div class="t" x-text="c.name"></div>
+          <div class="m">
+            <span x-show="c.sector" x-text="c.sector"></span>
+            <template x-if="c.phone"><span> · ☎️ <span x-text="c.phone"></span></span></template>
+            <template x-if="c.email"><span> · ✉️ <span x-text="c.email"></span></span></template>
+          </div>
+          <template x-if="c.apply_url"><a class="dl" :href="c.apply_url" target="_blank">↗ Contact</a></template>
+          <template x-if="c.website"><a class="dl" :href="c.website" target="_blank">🌐 Site</a></template>
+          <button class="act app" @click="applySpontaneous(c)" :disabled="c._busy">
+            <span x-show="!c._busy">✉️ Générer candidature spontanée</span>
+            <span x-show="c._busy">Génération…</span>
+          </button>
+          <span x-show="c._done" class="ok" style="font-size:12px"> ✅ envoyé sur Discord</span>
+        </div>
+      </template>
+    </div>
+
     <p class="foot">Collecte automatique et suivi : <a href="http://localhost:5678" target="_blank">n8n</a> (si lancé). PDF aussi dans <code>./output</code>.</p>
   </div>
 
@@ -187,6 +212,26 @@
             if (!r.ok) throw new Error('HTTP '+r.status);
             this.loadOffers();
           } catch(e){ this.offErr = "Impossible de changer le statut : " + e; }
+        },
+        companies:[], coErr:'',
+        async loadCompanies(){
+          this.coErr='';
+          try {
+            const r = await fetch('companies?limit=100');
+            if (r.status===503){ this.companies=[]; this.coErr="Base non lancée : démarre la stack complète (just up)."; return; }
+            this.companies = ((await r.json()).items||[]).map(c=>({...c,_busy:false,_done:false}));
+          } catch(e){ this.coErr = "Erreur de chargement des entreprises."; }
+        },
+        async applySpontaneous(c){
+          c._busy=true; c._done=false; this.coErr='';
+          try {
+            const r = await fetch('companies/apply',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:c.name})});
+            if (!r.ok) throw new Error('HTTP '+r.status);
+            const d = await r.json(); c._done = !!d.discord;
+            if (!d.discord) this.coErr = "Généré, mais Discord non configuré (webhook absent).";
+            this.loadHistory();
+          } catch(e){ this.coErr = "Erreur de génération spontanée : " + e; }
+          c._busy=false;
         },
         async extract(){
           this.error=''; this.result=null; this.loading=true;
