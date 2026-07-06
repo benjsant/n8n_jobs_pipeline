@@ -37,7 +37,9 @@ Chaque nœud est une fonction pure (state → patch de state), testable en isola
 | POST | `/offer/extract` | `{ url }` | `{ title, company, location, description }` (best-effort) |
 | POST | `/offer/generate` | `{ title, company, location, description }` | génère CV + lettre (rendu) et les livre sur Discord |
 | GET | `/offers` | `?status=&limit=` | offres en base + compteurs par statut (503 si Postgres absent) |
-| POST | `/offers/status` | `{ hash, status }` | bascule le statut (`ignored`, `applied`, `selected`, `reviewed`) |
+| POST | `/offers/status` | `{ hash, status }` | bascule le statut (`ignored`, `applied`, `selected`, `reviewed`) ; historique Airtable si configuré |
+| POST | `/offers/reanalyze` | `{ hash }` | relance le scoring de l'agent, met à jour `score`/`score_reason` |
+| POST | `/offers/delete` | `{ hash }` | supprime définitivement une offre |
 | GET | `/companies` | `?limit=` | entreprises à contacter (avec moyen de contact LBA) |
 | POST | `/companies/apply` | `{ name }` | candidature spontanée (CV + lettre) livrée sur Discord avec le contact |
 
@@ -79,6 +81,9 @@ Accès Postgres pour `/offers` (optionnel, seulement pour le tri des offres) :
 `POSTGRES_HOST` (défaut `postgres`), `POSTGRES_PORT` (`5432`), `POSTGRES_DB`,
 `POSTGRES_USER`, `POSTGRES_PASSWORD` — ou `DATABASE_URL`. Absents/injoignables =
 `/offers` renvoie 503, le reste du service fonctionne.
+
+Historique Airtable (optionnel) : `AIRTABLE_API_KEY`, `AIRTABLE_BASE_ID`,
+`AIRTABLE_TABLE` (défaut `Candidatures`). Vides = fonctionnalité inactive.
 
 ## Dév (conteneur)
 

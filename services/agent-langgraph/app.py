@@ -22,10 +22,15 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse, HTMLResponse
 from pydantic import BaseModel
 
-from agent import db
+from agent import airtable, db
 from agent.graph import load_context, run_agent
 from agent.interview import run_interview_prep
-from agent.offer_extract import extract_offer, generate_application, generate_spontaneous
+from agent.offer_extract import (
+    extract_offer,
+    generate_application,
+    generate_spontaneous,
+    reanalyze_offer,
+)
 from agent.schema import AgentOutput, InterviewPrep, Offer
 
 app = FastAPI(title="agent-langgraph", version="0.1.0")
@@ -48,6 +53,10 @@ class StatusIn(BaseModel):
 
 class CompanyIn(BaseModel):
     name: str
+
+
+class HashIn(BaseModel):
+    hash: str
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -140,11 +149,43 @@ def offers(status: str = "", limit: int = 50) -> dict:
 def offers_status(body: StatusIn) -> dict:
     """Bascule le statut d'une offre (ignored / applied / selected / reviewed)."""
     try:
-        return db.set_offer_status(body.hash, body.status)
+        row = db.set_offer_status(body.hash, body.status)
     except db.DbUnavailable as exc:
         raise HTTPException(status_code=503, detail=f"Base indisponible : {exc}.")
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
+    except KeyError:
+        raise HTTPException(status_code=404, detail="offre introuvable (hash inconnu)")
+    # Historique Airtable (optionnel) quand on marque « Postulé ».
+    if body.status == "applied" and airtable.enabled():
+        try:
+            row["airtable"] = airtable.push_application(db.get_offer(body.hash) or {}, status="Postulé")
+        except Exception:
+            row["airtable"] = False
+    return row
+
+
+@app.post("/offers/reanalyze")
+def offers_reanalyze(body: HashIn) -> dict:
+    """Relance l'analyse (scoring) de l'agent sur une offre et met à jour son score."""
+    try:
+        offer = db.get_offer(body.hash)
+    except db.DbUnavailable as exc:
+        raise HTTPException(status_code=503, detail=f"Base indisponible : {exc}.")
+    if not offer:
+        raise HTTPException(status_code=404, detail="offre introuvable")
+    res = reanalyze_offer(offer, CONTEXT)
+    db.update_offer_score(body.hash, res["score"], res["reason"])
+    return res
+
+
+@app.post("/offers/delete")
+def offers_delete(body: HashIn) -> dict:
+    """Supprime définitivement une offre."""
+    try:
+        return db.delete_offer(body.hash)
+    except db.DbUnavailable as exc:
+        raise HTTPException(status_code=503, detail=f"Base indisponible : {exc}.")
     except KeyError:
         raise HTTPException(status_code=404, detail="offre introuvable (hash inconnu)")
 

@@ -57,13 +57,20 @@ l'**historique** des candidatures générées (avec liens de téléchargement).
 La page liste aussi les **offres collectées en base**, filtrables par statut
 (nouvelles / retenues / postulées / ignorées). Deux boutons par offre :
 
-- **✓ Postulé** : marque l'offre `applied` (tu as candidaté, par le système ou
-  à la main).
-- **✕ Ignorer** : marque l'offre `ignored`.
+- **Postulé** : marque l'offre `applied` (tu as candidaté, par le système ou à la main).
+- **Ignorer** : marque l'offre `ignored`.
+- **Réanalyser** : relance le scoring de l'agent sur l'offre et met à jour son
+  score en base (utile pour une offre ancienne ou après une évolution du profil).
+- **Supprimer** : retire définitivement l'offre de la base (offres périmées).
 
-Dans les deux cas, l'offre ne réapparaît plus dans les **alertes Discord** du
-workflow `01` (qui n'alerte que les offres `new`). C'est le moyen d'éviter de
+Une offre `applied` ou `ignored` ne réapparaît plus dans les **alertes Discord**
+du workflow `01` (qui n'alerte que les offres `new`). C'est le moyen d'éviter de
 revoir une offre à laquelle tu as déjà répondu.
+
+> **Historique Airtable (optionnel)** : si `AIRTABLE_API_KEY` + `AIRTABLE_BASE_ID`
+> sont renseignés dans `.env`, marquer une offre « Postulé » ajoute une ligne dans
+> ta base Airtable (Poste, Entreprise, Lieu, Lien, Score, Statut, Date). Postgres
+> reste la source de vérité ; Airtable n'est qu'une vue d'historique.
 
 > Cette section a besoin de la **base Postgres**, donc de la stack complète
 > (`just up`). En mode léger (`just ui`, sans base), elle affiche simplement un
@@ -100,6 +107,8 @@ prêt à relire puis à envoyer toi-même. Même base Postgres requise.
 | GET | `/files/{app_id}/{cv.pdf\|lettre.pdf}` | télécharge un PDF |
 | GET | `/offers` `?status=&limit=` | offres en base + compteurs par statut (503 si base absente) |
 | POST | `/offers/status` `{ hash, status }` | bascule le statut (`ignored`, `applied`, `selected`, `reviewed`) |
+| POST | `/offers/reanalyze` `{ hash }` | relance le scoring de l'agent et met à jour le score |
+| POST | `/offers/delete` `{ hash }` | supprime définitivement une offre |
 | GET | `/companies` `?limit=` | entreprises à contacter (avec moyen de contact) |
 | POST | `/companies/apply` `{ name }` | génère la candidature spontanée et la livre sur Discord |
 

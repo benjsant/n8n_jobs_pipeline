@@ -81,6 +81,43 @@ def set_offer_status(offer_hash: str, status: str) -> dict:
     return row
 
 
+def get_offer(offer_hash: str) -> dict | None:
+    """Offre complète (pour la réanalyse)."""
+    with _connect() as conn, conn.cursor() as cur:
+        cur.execute(
+            "SELECT id, hash, title, company, location, description, url, score "
+            "FROM offers WHERE hash = %s LIMIT 1",
+            (offer_hash,),
+        )
+        return cur.fetchone()
+
+
+def update_offer_score(offer_hash: str, score: int, reason: str) -> dict:
+    """Met à jour le score (et sa justification) d'une offre après réanalyse."""
+    with _connect() as conn, conn.cursor() as cur:
+        cur.execute(
+            "UPDATE offers SET score = %s, score_reason = %s WHERE hash = %s "
+            "RETURNING id, hash, score",
+            (int(score), reason, offer_hash),
+        )
+        row = cur.fetchone()
+        conn.commit()
+    if not row:
+        raise KeyError(offer_hash)
+    return row
+
+
+def delete_offer(offer_hash: str) -> dict:
+    """Supprime définitivement une offre (par hash)."""
+    with _connect() as conn, conn.cursor() as cur:
+        cur.execute("DELETE FROM offers WHERE hash = %s RETURNING id, hash", (offer_hash,))
+        row = cur.fetchone()
+        conn.commit()
+    if not row:
+        raise KeyError(offer_hash)
+    return row
+
+
 def counts_by_status() -> dict:
     """Compteur d'offres par statut (pour les onglets de la page)."""
     with _connect() as conn, conn.cursor() as cur:

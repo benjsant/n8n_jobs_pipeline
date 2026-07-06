@@ -127,6 +127,10 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-n8n}
       POSTGRES_USER: ${POSTGRES_USER:-n8n}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-}
+      # Historique optionnel vers Airtable (inactif si vide).
+      AIRTABLE_API_KEY: ${AIRTABLE_API_KEY:-}
+      AIRTABLE_BASE_ID: ${AIRTABLE_BASE_ID:-}
+      AIRTABLE_TABLE: ${AIRTABLE_TABLE:-Candidatures}
     # Port publié vers l'hôte pour ouvrir la mini-interface (défaut 8901).
     ports:
       - "${UI_PORT:-8901}:8001"

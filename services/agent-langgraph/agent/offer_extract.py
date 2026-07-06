@@ -162,6 +162,23 @@ def generate_spontaneous(company: dict, ctx: dict) -> dict:
     }
 
 
+def reanalyze_offer(offer_row: dict, ctx: dict) -> dict:
+    """Relance l'analyse (scoring) de l'agent sur une offre stockée. Ne génère rien."""
+    offer = {
+        "title": offer_row.get("title", ""),
+        "company": offer_row.get("company", ""),
+        "location": offer_row.get("location", ""),
+        "description": offer_row.get("description", ""),
+    }
+    out = run_agent(offer, ctx)
+    score = int(out.get("score", 0) or 0)
+    reason = out.get("justification_score", "") or ""
+    matching = out.get("matching_skills") or []
+    if isinstance(matching, list) and matching:
+        reason = (reason + " | " if reason else "") + ", ".join(str(m) for m in matching[:3])
+    return {"score": score, "reason": reason[:500], "recommandation": out.get("recommandation", "")}
+
+
 def generate_application(offer: dict, ctx: dict) -> dict:
     """Agent -> rendu PDF (CV + lettre) -> livraison Discord. Renvoie un récap."""
     out = run_agent(offer, ctx)
