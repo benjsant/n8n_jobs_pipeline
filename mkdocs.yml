@@ -49,6 +49,7 @@ nav:
       - Installation: installation.md
       - Mini-interface (URL → CV + lettre): interface.md
       - Clés & sources d'offres: cles-sources.md
+      - Historique Airtable: airtable.md
   - Déploiement:
       - VPS privé (WireGuard + SSH): deploiement-vps.md
       - OAuth Google (Gmail + Drive): oauth-google.md
