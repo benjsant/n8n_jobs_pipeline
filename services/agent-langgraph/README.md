@@ -40,6 +40,8 @@ Chaque nœud est une fonction pure (state → patch de state), testable en isola
 | POST | `/offers/status` | `{ hash, status }` | bascule le statut (`ignored`, `applied`, `selected`, `reviewed`) ; historique Airtable si configuré |
 | POST | `/offers/reanalyze` | `{ hash }` | relance le scoring de l'agent, met à jour `score`/`score_reason` |
 | POST | `/offers/delete` | `{ hash }` | supprime définitivement une offre |
+| GET | `/applications` | — | candidatures suivies (suivi des réponses) |
+| POST | `/applications/update` | `{ id, status?, notes?, remind? }` | avance une candidature ; sync Airtable |
 | GET | `/companies` | `?limit=` | entreprises à contacter (avec moyen de contact LBA) |
 | POST | `/companies/apply` | `{ name }` | candidature spontanée (CV + lettre) livrée sur Discord avec le contact |
 

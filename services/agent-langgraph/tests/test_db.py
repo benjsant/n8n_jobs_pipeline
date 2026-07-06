@@ -22,6 +22,16 @@ def test_set_offer_status_rejects_unknown_status_before_connecting():
         db.set_offer_status("deadbeef", "envoye")
 
 
+def test_update_application_rejects_unknown_status_before_connecting():
+    with pytest.raises(ValueError):
+        db.update_application(1, status="envoye")
+
+
+def test_update_application_requires_something_to_change():
+    with pytest.raises(ValueError):
+        db.update_application(1)
+
+
 def test_dsn_prefers_database_url(monkeypatch):
     monkeypatch.setenv("DATABASE_URL", "postgres://u:p@h:5432/x")
     assert db._dsn() == "postgres://u:p@h:5432/x"

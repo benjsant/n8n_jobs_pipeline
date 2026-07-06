@@ -46,12 +46,14 @@
     .act:hover { background:#f3f4f6; } .act.ign:hover { border-color:var(--err); color:var(--err); } .act.app:hover { border-color:var(--ok); color:var(--ok); }
     .st-tag { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; padding:1px 7px; border-radius:5px; }
     .st-new{background:#eef2ff;color:var(--b7);} .st-ignored{background:#f3f4f6;color:var(--off);} .st-applied{background:#dcfce7;color:#15803d;} .st-selected{background:#fef9c3;color:#a16207;} .st-reviewed{background:#e0f2fe;color:#0369a1;}
+    .st-draft{background:#f3f4f6;color:var(--off);} .st-sent{background:#dbeafe;color:#1d4ed8;} .st-interview{background:#fef9c3;color:#a16207;} .st-accepted{background:#dcfce7;color:#15803d;} .st-rejected{background:#fee2e2;color:#b91c1c;}
+    .note { width:100%; margin-top:6px; font-size:12px; padding:6px 8px; }
     .foot { color:var(--mut); font-size:12px; text-align:center; margin-top:10px; }
     .foot a { color:var(--b7); }
   </style>
 </head>
 <body>
-  <div class="wrap" x-data="app()" x-init="loadStatus(); loadHistory(); loadOffers(); loadCompanies()">
+  <div class="wrap" x-data="app()" x-init="loadStatus(); loadHistory(); loadOffers(); loadCompanies(); loadApplications()">
 
     <header class="hero">
       <div>
@@ -163,6 +165,35 @@
       </template>
     </div>
 
+    <!-- Mes candidatures : suivi des réponses -->
+    <div class="card">
+      <p class="step">Mes candidatures</p>
+      <p class="muted" style="margin-top:-4px">Suivi des réponses. Une candidature apparaît ici quand tu marques une offre « Postulé ».</p>
+      <p class="muted" x-show="apErr" x-text="apErr"></p>
+      <p class="muted" x-show="!apErr && !applications.length">Aucune candidature suivie pour l'instant.</p>
+      <template x-for="a in applications" :key="a.id">
+        <div class="offer">
+          <div style="display:flex; gap:8px; align-items:baseline; flex-wrap:wrap">
+            <span class="st-tag" :class="'st-'+a.status" x-text="statusLabel(a.status)"></span>
+            <span class="t" x-text="a.poste || 'Candidature'"></span>
+            <span class="muted" x-text="a.entreprise || ''"></span>
+          </div>
+          <div class="m">
+            <span>Postulé le <span x-text="a.applied || '?'"></span></span>
+            <template x-if="a.response"><span> · Réponse le <span x-text="a.response"></span></span></template>
+            <template x-if="a.reminded"><span> · Relancée le <span x-text="a.reminded"></span></span></template>
+          </div>
+          <template x-if="a.lien"><a class="dl" :href="a.lien" target="_blank">Voir l'offre</a></template>
+          <button class="act" @click="updateApp(a,{remind:true})" :disabled="a._busy">Relancée</button>
+          <button class="act" @click="updateApp(a,{status:'interview'})" x-show="a.status!=='interview'" :disabled="a._busy">Entretien</button>
+          <button class="act app" @click="updateApp(a,{status:'accepted'})" x-show="a.status!=='accepted'" :disabled="a._busy">Accepté</button>
+          <button class="act ign" @click="updateApp(a,{status:'rejected'})" x-show="a.status!=='rejected'" :disabled="a._busy">Refusé</button>
+          <input class="note" type="text" placeholder="Note (entretien prévu, contact…)" x-model="a.notes" @change="updateApp(a,{notes:a.notes})" />
+          <span x-show="a._msg" class="muted" x-text="a._msg"></span>
+        </div>
+      </template>
+    </div>
+
     <!-- Entreprises à contacter (candidature spontanée) -->
     <div class="card">
       <p class="step">Entreprises à contacter</p>
@@ -234,6 +265,24 @@
             if (!r.ok) throw new Error('HTTP '+r.status);
             this.loadOffers();
           } catch(e){ o._busy=false; this.offErr = "Suppression impossible : " + e; }
+        },
+        applications:[], apErr:'',
+        statusLabel(s){ return {draft:'Brouillon',sent:'Postulé',interview:'Entretien',accepted:'Accepté',rejected:'Refusé'}[s] || s; },
+        async loadApplications(){
+          this.apErr='';
+          try {
+            const r = await fetch('applications');
+            if (r.status===503){ this.applications=[]; this.apErr="Base non lancée : démarre la stack complète (just up)."; return; }
+            this.applications = ((await r.json()).items||[]).map(a=>({...a,_busy:false,_msg:''}));
+          } catch(e){ this.apErr = "Erreur de chargement des candidatures."; }
+        },
+        async updateApp(a, patch){
+          a._busy=true; a._msg='';
+          try {
+            const r = await fetch('applications/update',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:a.id,...patch})});
+            if (!r.ok) throw new Error('HTTP '+r.status);
+            a._msg = 'Enregistré'; this.loadApplications();
+          } catch(e){ a._msg = "Échec de la mise à jour."; a._busy=false; }
         },
         companies:[], coErr:'',
         async loadCompanies(){

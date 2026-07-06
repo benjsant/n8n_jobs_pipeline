@@ -6,8 +6,9 @@ def test_disabled_without_keys(monkeypatch):
     monkeypatch.delenv("AIRTABLE_API_KEY", raising=False)
     monkeypatch.delenv("AIRTABLE_BASE_ID", raising=False)
     assert airtable.enabled() is False
-    # push est un no-op sûr quand la fonctionnalité est inactive
-    assert airtable.push_application({"title": "x"}) is False
+    # push est un no-op sûr quand la fonctionnalité est inactive (aucun id créé)
+    assert airtable.push_application({"title": "x"}) is None
+    assert airtable.update_record("rec123", {"Statut": "Postulé"}) is False
 
 
 def test_enabled_when_both_keys_present(monkeypatch):

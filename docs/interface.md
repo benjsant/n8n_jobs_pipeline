@@ -77,6 +77,20 @@ revoir une offre à laquelle tu as déjà répondu.
 > message « base non lancée » : le reste de la page (génération CV + lettre)
 > fonctionne quand même.
 
+## Mes candidatures (suivi des réponses)
+
+Quand tu marques une offre « Postulé », une **candidature** est créée et apparaît
+dans la section « Mes candidatures ». Tu la fais avancer dans le temps :
+
+- **Relancée** : note une relance (date du jour).
+- **Entretien** / **Accepté** / **Refusé** : change le statut ; la date de réponse
+  est enregistrée automatiquement au premier passage.
+- **Note** : champ libre (entretien prévu, contact, etc.).
+
+Les candidatures sont **dénormalisées** (poste, entreprise, lien, score copiés) :
+elles **survivent à la suppression de l'offre** périmée, tu gardes ton historique.
+Si Airtable est configuré, le statut y est répercuté.
+
 ## Entreprises à contacter (candidature spontanée)
 
 La page liste aussi les **entreprises à démarcher** (collectées via La Bonne
@@ -109,6 +123,8 @@ prêt à relire puis à envoyer toi-même. Même base Postgres requise.
 | POST | `/offers/status` `{ hash, status }` | bascule le statut (`ignored`, `applied`, `selected`, `reviewed`) |
 | POST | `/offers/reanalyze` `{ hash }` | relance le scoring de l'agent et met à jour le score |
 | POST | `/offers/delete` `{ hash }` | supprime définitivement une offre |
+| GET | `/applications` | candidatures suivies (statut, dates, notes) |
+| POST | `/applications/update` `{ id, status?, notes?, remind? }` | fait avancer une candidature (+ sync Airtable) |
 | GET | `/companies` `?limit=` | entreprises à contacter (avec moyen de contact) |
 | POST | `/companies/apply` `{ name }` | génère la candidature spontanée et la livre sur Discord |
 

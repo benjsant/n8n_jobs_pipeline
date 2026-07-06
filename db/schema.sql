@@ -131,6 +131,29 @@ DO $$ BEGIN
   END IF;
 END $$;
 
+-- Suivi des réponses (page « Mes candidatures ») : champs dénormalisés pour que
+-- la candidature survive à la suppression d'une offre périmée, + relance + sync.
+ALTER TABLE applications ADD COLUMN IF NOT EXISTS poste       TEXT;
+ALTER TABLE applications ADD COLUMN IF NOT EXISTS entreprise  TEXT;
+ALTER TABLE applications ADD COLUMN IF NOT EXISTS lien        TEXT;
+ALTER TABLE applications ADD COLUMN IF NOT EXISTS score       INTEGER;
+ALTER TABLE applications ADD COLUMN IF NOT EXISTS reminded_at TIMESTAMPTZ;   -- « relancée »
+ALTER TABLE applications ADD COLUMN IF NOT EXISTS airtable_id TEXT;          -- id de ligne Airtable (sync)
+
+-- Ne pas perdre l'historique quand on supprime une offre : SET NULL au lieu de CASCADE.
+DO $$
+DECLARE cname text;
+BEGIN
+  SELECT conname INTO cname FROM pg_constraint
+   WHERE conrelid = 'applications'::regclass AND contype = 'f'
+     AND pg_get_constraintdef(oid) LIKE '%offer_id%REFERENCES offers%';
+  IF cname IS NOT NULL AND pg_get_constraintdef((SELECT oid FROM pg_constraint WHERE conname = cname)) LIKE '%CASCADE%' THEN
+    EXECUTE 'ALTER TABLE applications DROP CONSTRAINT ' || quote_ident(cname);
+    ALTER TABLE applications ADD CONSTRAINT applications_offer_id_fkey
+      FOREIGN KEY (offer_id) REFERENCES offers (id) ON DELETE SET NULL;
+  END IF;
+END $$;
+
 CREATE INDEX IF NOT EXISTS idx_applications_offer ON applications (offer_id);
 CREATE INDEX IF NOT EXISTS idx_applications_status ON applications (status);
 

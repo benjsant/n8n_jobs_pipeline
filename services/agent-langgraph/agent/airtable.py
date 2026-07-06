@@ -28,16 +28,16 @@ def enabled() -> bool:
     return bool(key and base)
 
 
-def push_application(offer: dict, status: str = "Postulé") -> bool:
-    """Ajoute une ligne d'historique dans Airtable. Best-effort (jamais bloquant)."""
+def push_application(offer: dict, status: str = "Postulé") -> str | None:
+    """Ajoute une ligne d'historique dans Airtable. Renvoie l'id de ligne (ou None)."""
     key, base, table = _config()
     if not (key and base):
-        return False
+        return None
     fields = {
-        "Poste": offer.get("title", "") or "",
-        "Entreprise": offer.get("company", "") or "",
+        "Poste": offer.get("title") or offer.get("poste") or "",
+        "Entreprise": offer.get("company") or offer.get("entreprise") or "",
         "Lieu": offer.get("location", "") or "",
-        "Lien": offer.get("url", "") or "",
+        "Lien": offer.get("url") or offer.get("lien") or "",
         "Score": offer.get("score") if offer.get("score") is not None else None,
         "Statut": status,
         "Date": date.today().isoformat(),
@@ -46,6 +46,26 @@ def push_application(offer: dict, status: str = "Postulé") -> bool:
     url = f"https://api.airtable.com/v0/{base}/{table}"
     try:
         resp = httpx.post(
+            url,
+            headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"},
+            json={"fields": fields, "typecast": True},
+            timeout=15,
+        )
+        if resp.status_code < 300:
+            return resp.json().get("id")
+        return None
+    except Exception:
+        return None
+
+
+def update_record(record_id: str, fields: dict) -> bool:
+    """Met à jour une ligne Airtable existante (sync du statut). Best-effort."""
+    key, base, table = _config()
+    if not (key and base and record_id):
+        return False
+    url = f"https://api.airtable.com/v0/{base}/{table}/{record_id}"
+    try:
+        resp = httpx.patch(
             url,
             headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"},
             json={"fields": fields, "typecast": True},

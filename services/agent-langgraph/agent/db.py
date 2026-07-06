@@ -140,6 +140,96 @@ def list_companies(limit: int = 100) -> list[dict]:
         return cur.fetchall()
 
 
+# Statuts de candidature réglables depuis la page « Mes candidatures ».
+APP_SETTABLE_STATUS = {"draft", "sent", "interview", "rejected", "accepted"}
+# Statuts considérés comme « une réponse reçue » (fixent response_at).
+APP_RESPONSE_STATUS = {"interview", "rejected", "accepted"}
+
+
+def ensure_application_for_offer(offer_hash: str, status: str = "sent") -> dict:
+    """Crée (si absente) la candidature liée à une offre, avec snapshot dénormalisé."""
+    with _connect() as conn, conn.cursor() as cur:
+        cur.execute(
+            "SELECT id, title, company, location, url, score FROM offers WHERE hash = %s",
+            (offer_hash,),
+        )
+        off = cur.fetchone()
+        if not off:
+            raise KeyError(offer_hash)
+        cur.execute(
+            "SELECT id, airtable_id, poste, entreprise, lien, score, status "
+            "FROM applications WHERE offer_id = %s AND kind = 'offer' LIMIT 1",
+            (off["id"],),
+        )
+        existing = cur.fetchone()
+        if existing:
+            return {**existing, "created": False}
+        cur.execute(
+            "INSERT INTO applications (offer_id, kind, status, applied_at, poste, entreprise, lien, score) "
+            "VALUES (%s, 'offer', %s, now(), %s, %s, %s, %s) "
+            "RETURNING id, airtable_id, poste, entreprise, lien, score, status",
+            (off["id"], status, off["title"], off["company"], off["url"], off["score"]),
+        )
+        row = cur.fetchone()
+        conn.commit()
+        return {**row, "created": True}
+
+
+def list_applications(limit: int = 200) -> list[dict]:
+    """Toutes les candidatures pour la page de suivi (les plus récentes d'abord)."""
+    limit = max(1, min(int(limit), 500))
+    with _connect() as conn, conn.cursor() as cur:
+        cur.execute(
+            "SELECT id, kind, status, poste, entreprise, lien, score, "
+            "       to_char(applied_at, 'YYYY-MM-DD') AS applied, "
+            "       to_char(response_at, 'YYYY-MM-DD') AS response, "
+            "       to_char(reminded_at, 'YYYY-MM-DD') AS reminded, "
+            "       COALESCE(notes,'') AS notes, airtable_id "
+            "FROM applications ORDER BY applied_at DESC NULLS LAST, id DESC LIMIT %s",
+            (limit,),
+        )
+        return cur.fetchall()
+
+
+def update_application(app_id: int, status: str | None = None,
+                       notes: str | None = None, remind: bool = False) -> dict:
+    """Fait avancer une candidature : statut, note, ou « relancée » (reminded_at)."""
+    sets, params = [], []
+    if status is not None:
+        if status not in APP_SETTABLE_STATUS:
+            raise ValueError(f"statut non autorisé : {status}")
+        sets.append("status = %s")
+        params.append(status)
+        if status in APP_RESPONSE_STATUS:
+            sets.append("response_at = COALESCE(response_at, now())")
+    if notes is not None:
+        sets.append("notes = %s")
+        params.append(notes)
+    if remind:
+        sets.append("reminded_at = now()")
+    if not sets:
+        raise ValueError("rien à mettre à jour")
+    params.append(int(app_id))
+    with _connect() as conn, conn.cursor() as cur:
+        cur.execute(
+            "UPDATE applications SET " + ", ".join(sets) + " WHERE id = %s "
+            "RETURNING id, status, poste, entreprise, lien, score, airtable_id, "
+            "          to_char(response_at,'YYYY-MM-DD') AS response",
+            params,
+        )
+        row = cur.fetchone()
+        conn.commit()
+    if not row:
+        raise KeyError(app_id)
+    return row
+
+
+def set_application_airtable_id(app_id: int, record_id: str) -> None:
+    with _connect() as conn, conn.cursor() as cur:
+        cur.execute("UPDATE applications SET airtable_id = %s WHERE id = %s", (record_id, int(app_id)))
+        conn.commit()
+
+
 def get_company(name: str) -> dict | None:
     """Fiche entreprise complète (pour générer la candidature spontanée)."""
     with _connect() as conn, conn.cursor() as cur:

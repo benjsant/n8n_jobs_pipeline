@@ -59,6 +59,20 @@ class HashIn(BaseModel):
     hash: str
 
 
+class AppUpdateIn(BaseModel):
+    id: int
+    status: str | None = None
+    notes: str | None = None
+    remind: bool = False
+
+
+# Libellés FR des statuts de candidature, pour la colonne « Statut » d'Airtable.
+STATUS_FR = {
+    "draft": "Brouillon", "sent": "Postulé", "interview": "Entretien",
+    "rejected": "Refusé", "accepted": "Accepté",
+}
+
+
 @app.get("/", response_class=HTMLResponse)
 def home() -> str:
     try:
@@ -156,12 +170,17 @@ def offers_status(body: StatusIn) -> dict:
         raise HTTPException(status_code=400, detail=str(exc))
     except KeyError:
         raise HTTPException(status_code=404, detail="offre introuvable (hash inconnu)")
-    # Historique Airtable (optionnel) quand on marque « Postulé ».
-    if body.status == "applied" and airtable.enabled():
+    # Marquer « Postulé » crée/retrouve la candidature (suivi) + ligne Airtable.
+    if body.status == "applied":
         try:
-            row["airtable"] = airtable.push_application(db.get_offer(body.hash) or {}, status="Postulé")
+            app_row = db.ensure_application_for_offer(body.hash, status="sent")
+            if airtable.enabled() and not app_row.get("airtable_id"):
+                rec = airtable.push_application(app_row, status="Postulé")
+                if rec:
+                    db.set_application_airtable_id(app_row["id"], rec)
+            row["application_id"] = app_row["id"]
         except Exception:
-            row["airtable"] = False
+            pass
     return row
 
 
@@ -188,6 +207,38 @@ def offers_delete(body: HashIn) -> dict:
         raise HTTPException(status_code=503, detail=f"Base indisponible : {exc}.")
     except KeyError:
         raise HTTPException(status_code=404, detail="offre introuvable (hash inconnu)")
+
+
+# --- Suivi des candidatures (« Mes candidatures ») ---------------------------
+
+
+@app.get("/applications")
+def applications() -> dict:
+    """Liste des candidatures pour le suivi des réponses."""
+    try:
+        return {"items": db.list_applications()}
+    except db.DbUnavailable as exc:
+        raise HTTPException(status_code=503, detail=f"Base indisponible : {exc}. Lance la stack complète (just up).")
+
+
+@app.post("/applications/update")
+def applications_update(body: AppUpdateIn) -> dict:
+    """Fait avancer une candidature (statut / note / relance) + sync Airtable."""
+    try:
+        row = db.update_application(body.id, status=body.status, notes=body.notes, remind=body.remind)
+    except db.DbUnavailable as exc:
+        raise HTTPException(status_code=503, detail=f"Base indisponible : {exc}.")
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    except KeyError:
+        raise HTTPException(status_code=404, detail="candidature introuvable")
+    # Répercute le statut sur Airtable si la ligne y existe.
+    if row.get("airtable_id") and airtable.enabled() and body.status:
+        try:
+            airtable.update_record(row["airtable_id"], {"Statut": STATUS_FR.get(body.status, body.status)})
+        except Exception:
+            pass
+    return row
 
 
 # --- Entreprises à contacter (candidature spontanée, façon La Bonne Boîte) -----
