@@ -29,7 +29,7 @@ just ui            # démarre agent + render, attend, affiche l'URL
 docker compose up -d agent-langgraph render
 ```
 
-Puis ouvre **http://localhost:8001**.
+Puis ouvre **http://localhost:8901**.
 
 Pour couper :
 

@@ -25,8 +25,8 @@ down:
 ui:
     docker compose up -d agent-langgraph render
     @echo "Démarrage… (l'agent charge le contexte)"
-    @for i in $(seq 1 20); do curl -sf http://localhost:8001/health >/dev/null 2>&1 && break || sleep 2; done
-    @echo "✅ Interface prête : http://localhost:8001"
+    @for i in $(seq 1 20); do curl -sf http://localhost:${UI_PORT:-8901}/health >/dev/null 2>&1 && break || sleep 2; done
+    @echo "✅ Interface prête : http://localhost:${UI_PORT:-8901}"
 
 # Coupe uniquement les services de la mini-interface
 ui-stop:
@@ -36,7 +36,7 @@ ui-stop:
 metabase:
     docker compose exec -T postgres sh -c 'psql -tc "SELECT 1 FROM pg_database WHERE datname='"'"'metabase'"'"'" -U "$POSTGRES_USER" -d "$POSTGRES_DB" | grep -q 1 || psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "CREATE DATABASE metabase"'
     docker compose --profile metabase up -d metabase
-    @echo "Metabase démarre (1-2 min au 1er lancement) : http://localhost:3000"
+    @echo "Metabase démarre (1-2 min au 1er lancement) : http://localhost:${METABASE_PORT:-8930}"
 
 # Arrête Metabase
 metabase-stop:

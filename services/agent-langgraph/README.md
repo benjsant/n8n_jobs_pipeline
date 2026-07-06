@@ -43,7 +43,7 @@ Chaque nœud est une fonction pure (state → patch de state), testable en isola
 
 ## Mini-interface (URL -> CV + lettre -> Discord)
 
-`http://localhost:8001` : colle l'URL d'une offre, l'app extrait les infos (fetch +
+`http://localhost:8901` : colle l'URL d'une offre, l'app extrait les infos (fetch +
 LLM), tu **confirmes/corriges** (mémo éditable), puis elle appelle l'agent, rend le
 CV + la lettre (service `render`) et les **poste sur Discord** (2 pièces jointes,
 relecture humaine avant envoi). Nécessite `RENDER_API_URL`, `DISCORD_WEBHOOK_ALERTS`

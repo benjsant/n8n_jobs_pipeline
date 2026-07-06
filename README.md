@@ -106,7 +106,7 @@ openssl rand -hex 32          # -> N8N_ENCRYPTION_KEY
 # 2. Lancer la stack (postgres pgvector, n8n, jobspy, render, agent, embeddings)
 docker compose up -d          # ou : just up
 
-# 3. n8n -> http://localhost:5678 (login dans .env)
+# 3. n8n -> http://localhost:8978 (login dans .env)
 #    Importer workflows/*.json, associer la credential Postgres, activer.
 
 # 4. Tests hors stack (aucune clé)
@@ -114,7 +114,7 @@ just test                     # suites JS + garde-fou de parité des nœuds
 ```
 
 > **Usage à la demande (sans déployer)** : `just ui` lance la mini-interface web
-> (agent + render seulement) sur http://localhost:8001 — colle l'URL d'une offre,
+> (agent + render seulement) sur http://localhost:8901 — colle l'URL d'une offre,
 > confirme, récupère CV + lettre (téléchargement + Discord). Voir
 > [`docs/interface.md`](docs/interface.md).
 

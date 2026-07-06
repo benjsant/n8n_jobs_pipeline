@@ -39,13 +39,13 @@ Le brouillon est créé dans **le compte avec lequel tu te connectes** à l'éta
    - Type d'application : **Web application**.
    - **Authorized redirect URIs** → ajoute **exactement** :
      ```
-     http://localhost:5678/rest/oauth2-credential/callback
+     http://localhost:8978/rest/oauth2-credential/callback
      ```
-     *(Si tu déploies sur VPS/WireGuard, remplace `localhost:5678` par l'URL
+     *(Si tu déploies sur VPS/WireGuard, remplace `localhost:8978` par l'URL
      d'éditeur n8n correspondante, celle que n8n affiche dans la credential.)*
    - Create → **copie le `Client ID` et le `Client secret`**.
 
-## B. n8n (http://localhost:5678) : 2 credentials
+## B. n8n (http://localhost:8978) : 2 credentials
 
 > Tu peux réutiliser **le même** Client ID/secret pour les deux credentials.
 

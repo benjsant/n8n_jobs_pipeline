@@ -81,14 +81,14 @@ Services :
 Le schéma SQL (`db/schema.sql` + `db/seed-profiles.sql`) s'applique au premier
 init de la base vide.
 
-UI n8n : http://localhost:5678. Au premier démarrage, n8n 2.x fait créer un
+UI n8n : http://localhost:8978. Au premier démarrage, n8n 2.x fait créer un
 compte propriétaire (owner) ; renseigne-le.
 
 > Pour un usage à la demande sans n8n (URL d'offre vers CV + lettre), voir la
 > [mini-interface](interface.md) : `just ui` lance seulement `agent-langgraph` + `render`.
 
 > Dashboards optionnels : `just metabase` démarre **Metabase** (profil opt-in, non
-> lancé par défaut car lourd ~1 Go) sur http://localhost:3000 pour explorer la base.
+> lancé par défaut car lourd ~1 Go) sur http://localhost:8930 pour explorer la base.
 
 ## 5. Importer les workflows
 

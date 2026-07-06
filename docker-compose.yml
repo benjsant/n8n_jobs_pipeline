@@ -31,7 +31,8 @@ services:
     container_name: job-hunter-n8n
     restart: unless-stopped
     ports:
-      - "5678:5678"
+      # Port publié vers l'hôte (défaut 8978). Le port INTERNE n8n reste 5678.
+      - "${N8N_PORT:-8978}:5678"
     environment:
       # --- Base de données ---
       DB_TYPE: postgresdb
@@ -44,7 +45,7 @@ services:
       N8N_HOST: ${N8N_HOST:-localhost}
       N8N_PORT: 5678
       N8N_PROTOCOL: http
-      WEBHOOK_URL: ${WEBHOOK_URL:-http://localhost:5678/}
+      WEBHOOK_URL: ${WEBHOOK_URL:-http://localhost:8978/}
       N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY}
       # --- Authentification basique de l'UI ---
       N8N_BASIC_AUTH_ACTIVE: "true"
@@ -126,9 +127,9 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-n8n}
       POSTGRES_USER: ${POSTGRES_USER:-n8n}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-}
-    # Port publié vers l'hôte pour ouvrir la mini-interface : http://localhost:8001
+    # Port publié vers l'hôte pour ouvrir la mini-interface (défaut 8901).
     ports:
-      - "8001:8001"
+      - "${UI_PORT:-8901}:8001"
     volumes:
       - ./prompts:/prompts:ro
       - ./cv:/cv:ro
@@ -224,7 +225,7 @@ services:
       MB_DB_USER: ${POSTGRES_USER:-n8n}
       MB_DB_PASS: ${POSTGRES_PASSWORD:-}
     ports:
-      - "3000:3000"
+      - "${METABASE_PORT:-8930}:3000"
 
 volumes:
   postgres_data:
