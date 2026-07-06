@@ -95,11 +95,15 @@ CREATE TABLE IF NOT EXISTS companies (
     description  TEXT,
     ai_summary   TEXT,                           -- résumé généré (V2)
     apply_url    TEXT,                            -- lien de contact LBA (candidature spontanée)
+    phone        TEXT,                            -- téléphone de contact (LBA, si fourni)
+    email        TEXT,                            -- email de contact (source officielle, si fourni)
     last_updated TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- Pour les bases déjà créées avant cette colonne (idempotent).
+-- Pour les bases déjà créées avant ces colonnes (idempotent).
 ALTER TABLE companies ADD COLUMN IF NOT EXISTS apply_url TEXT;
+ALTER TABLE companies ADD COLUMN IF NOT EXISTS phone TEXT;
+ALTER TABLE companies ADD COLUMN IF NOT EXISTS email TEXT;
 
 -- ---------------------------------------------------------------------
 -- applications : suivi des candidatures

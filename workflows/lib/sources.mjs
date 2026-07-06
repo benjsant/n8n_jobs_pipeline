@@ -192,6 +192,7 @@ export function normalizeLBARecruiters(payload) {
       location: s(wp.location?.address),
       apply_url: s(r.apply?.url),
       phone: s(r.apply?.phone),
+      email: s(r.apply?.email || r.contact?.email || wp.email),
     };
   });
 }

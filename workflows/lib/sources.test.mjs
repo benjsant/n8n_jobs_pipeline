@@ -180,7 +180,7 @@ t("La Bonne Alternance (recruteurs) -> fiche entreprise (candidature spontanée)
       workplace: { name: "Acme", siret: "98765", website: "https://acme.fr",
         domain: { naf: { label: "Programmation informatique" } },
         location: { address: "59300 Valenciennes" } },
-      apply: { url: "https://lba/contact/r1", phone: "0102030405" },
+      apply: { url: "https://lba/contact/r1", phone: "0102030405", email: "rh@acme.fr" },
     }],
   });
   assert.equal(out.length, 1);
@@ -190,6 +190,8 @@ t("La Bonne Alternance (recruteurs) -> fiche entreprise (candidature spontanée)
   assert.equal(out[0].website, "https://acme.fr");
   assert.equal(out[0].location, "59300 Valenciennes");
   assert.equal(out[0].apply_url, "https://lba/contact/r1");
+  assert.equal(out[0].phone, "0102030405");
+  assert.equal(out[0].email, "rh@acme.fr");
 });
 
 t("La Bonne Alternance : payloads vides -> tableaux vides", () => {

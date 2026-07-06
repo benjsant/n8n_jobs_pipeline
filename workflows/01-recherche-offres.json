@@ -202,7 +202,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// La Bonne Alternance — ENTREPRISES à contacter (recruiters[]), candidature spontanée.\n// Cf. lib/sources.mjs normalizeLBARecruiters. Filtre les fiches sans nom.\nconst s=(v)=>String(v??'').trim();\nconst rs=$input.first().json.recruiters||[];\nreturn rs.map((r)=>{const wp=r.workplace||{};return{json:{source:'la_bonne_alternance',source_id:s((r.identifier&&r.identifier.id)||wp.siret),name:s(wp.brand||wp.name||wp.legal_name),siret:s(wp.siret),sector:s((wp.domain&&wp.domain.naf&&wp.domain.naf.label)||(wp.naf&&wp.naf.label)),website:s(wp.website),location:s(wp.location&&wp.location.address),apply_url:s(r.apply&&r.apply.url),phone:s(r.apply&&r.apply.phone)}};}).filter((o)=>o.json.name);"
+        "jsCode": "// La Bonne Alternance — ENTREPRISES à contacter (recruiters[]), candidature spontanée.\n// Cf. lib/sources.mjs normalizeLBARecruiters. Filtre les fiches sans nom.\nconst s=(v)=>String(v??'').trim();\nconst rs=$input.first().json.recruiters||[];\nreturn rs.map((r)=>{const wp=r.workplace||{};return{json:{source:'la_bonne_alternance',source_id:s((r.identifier&&r.identifier.id)||wp.siret),name:s(wp.brand||wp.name||wp.legal_name),siret:s(wp.siret),sector:s((wp.domain&&wp.domain.naf&&wp.domain.naf.label)||(wp.naf&&wp.naf.label)),website:s(wp.website),location:s(wp.location&&wp.location.address),apply_url:s(r.apply&&r.apply.url),phone:s(r.apply&&r.apply.phone),email:s((r.apply&&r.apply.email)||(r.contact&&r.contact.email)||wp.email)}};}).filter((o)=>o.json.name);"
       },
       "id": "a1000000-0000-4000-8000-000000000062",
       "name": "norm LBA recruteurs",
@@ -216,9 +216,9 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "INSERT INTO companies (name, website, sector, apply_url, last_updated) VALUES ($1, $2, $3, $4, now()) ON CONFLICT (name) DO UPDATE SET website = COALESCE(NULLIF(EXCLUDED.website, ''), companies.website), sector = COALESCE(NULLIF(EXCLUDED.sector, ''), companies.sector), apply_url = COALESCE(NULLIF(EXCLUDED.apply_url, ''), companies.apply_url), last_updated = now() RETURNING name, sector, website, apply_url;",
+        "query": "INSERT INTO companies (name, website, sector, apply_url, phone, email, last_updated) VALUES ($1, $2, $3, $4, $5, $6, now()) ON CONFLICT (name) DO UPDATE SET website = COALESCE(NULLIF(EXCLUDED.website, ''), companies.website), sector = COALESCE(NULLIF(EXCLUDED.sector, ''), companies.sector), apply_url = COALESCE(NULLIF(EXCLUDED.apply_url, ''), companies.apply_url), phone = COALESCE(NULLIF(EXCLUDED.phone, ''), companies.phone), email = COALESCE(NULLIF(EXCLUDED.email, ''), companies.email), last_updated = now() RETURNING name, sector, website, apply_url, phone, email;",
         "options": {
-          "queryReplacement": "={{ [$json.name, $json.website || '', $json.sector || '', $json.apply_url || ''] }}"
+          "queryReplacement": "={{ [$json.name, $json.website || '', $json.sector || '', $json.apply_url || '', $json.phone || '', $json.email || ''] }}"
         }
       },
       "id": "a1000000-0000-4000-8000-000000000063",
@@ -242,7 +242,7 @@
         "url": "={{ $env.DISCORD_WEBHOOK_ALERTS }}",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ { \"content\": `🏢 **Candidature spontanée (alternance)** — ${$json.name}${$json.sector ? ' · ' + $json.sector : ''}\\n[${$('Boucle profils').first().json.name}]${$json.website ? '\\n🌐 ' + $json.website : ''}${$json.apply_url ? '\\n🔗 Entreprise: ' + $json.apply_url : ''}\\n✅ Postuler: ${$env.WEBHOOK_URL}webhook/spontaneous-apply?company=${encodeURIComponent($json.name)}` } }}",
+        "jsonBody": "={{ { \"content\": `🏢 **Candidature spontanée (alternance)** — ${$json.name}${$json.sector ? ' · ' + $json.sector : ''}\\n[${$('Boucle profils').first().json.name}]${$json.website ? '\\n🌐 ' + $json.website : ''}${$json.apply_url ? '\\n🔗 Entreprise: ' + $json.apply_url : ''}${$json.phone ? '\\n☎️ ' + $json.phone : ''}${$json.email ? '\\n✉️ ' + $json.email : ''}\\n✅ Postuler: ${$env.WEBHOOK_URL}webhook/spontaneous-apply?company=${encodeURIComponent($json.name)}` } }}",
         "options": {}
       },
       "id": "a1000000-0000-4000-8000-000000000064",

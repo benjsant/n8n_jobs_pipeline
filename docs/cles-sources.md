@@ -80,6 +80,9 @@ Après correction, mets à jour `.env` et relance le test.
    > Débloque le maillon **candidature spontanée** (`05`) avec de vraies entreprises
    > + des offres d'alternance. ✅ Auth `Bearer` + forme de réponse **vérifiées** le
    > 2026-06-28 (cf. `reference.md §3d`).
+   > Le contact entreprise collecté (lien de candidature, téléphone, email quand LBA
+   > le fournit) apparaît dans l'alerte Discord « Candidature spontanée ». LBA masque
+   > souvent l'email brut (RGPD) : le lien de contact reste la voie fiable.
 
 ## 6. Welcome to the Jungle (RSS, pas de compte)
 
