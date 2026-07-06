@@ -86,6 +86,10 @@ dans la section « Mes candidatures ». Tu la fais avancer dans le temps :
 - **Entretien** / **Accepté** / **Refusé** : change le statut ; la date de réponse
   est enregistrée automatiquement au premier passage.
 - **Note** : champ libre (entretien prévu, contact, etc.).
+- **Préparer entretien** : génère un dossier de préparation directement sous la
+  candidature (résumé entreprise grounded, tes atouts, points à anticiper,
+  questions probables avec angles de réponse, questions à poser). Même moteur que
+  `/interview/prep`, sans invention.
 
 Les candidatures sont **dénormalisées** (poste, entreprise, lien, score copiés) :
 elles **survivent à la suppression de l'offre** périmée, tu gardes ton historique.

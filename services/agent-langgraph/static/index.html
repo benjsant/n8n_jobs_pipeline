@@ -48,6 +48,12 @@
     .st-new{background:#eef2ff;color:var(--b7);} .st-ignored{background:#f3f4f6;color:var(--off);} .st-applied{background:#dcfce7;color:#15803d;} .st-selected{background:#fef9c3;color:#a16207;} .st-reviewed{background:#e0f2fe;color:#0369a1;}
     .st-draft{background:#f3f4f6;color:var(--off);} .st-sent{background:#dbeafe;color:#1d4ed8;} .st-interview{background:#fef9c3;color:#a16207;} .st-accepted{background:#dcfce7;color:#15803d;} .st-rejected{background:#fee2e2;color:#b91c1c;}
     .note { width:100%; margin-top:6px; font-size:12px; padding:6px 8px; }
+    .prep { margin-top:10px; padding:10px 12px; background:#f9fafb; border:1px solid var(--bd); border-radius:8px; font-size:13px; }
+    .prep h4 { margin:10px 0 4px; font-size:12px; text-transform:uppercase; letter-spacing:.04em; color:var(--b7); }
+    .prep h4:first-child { margin-top:0; }
+    .prep ul { margin:4px 0; padding-left:18px; } .prep li { margin:2px 0; }
+    .prep .q { font-weight:600; color:var(--fg); margin-top:6px; }
+    .prep .a { color:var(--mut); margin:2px 0 0; }
     .foot { color:var(--mut); font-size:12px; text-align:center; margin-top:10px; }
     .foot a { color:var(--b7); }
   </style>
@@ -188,8 +194,28 @@
           <button class="act" @click="updateApp(a,{status:'interview'})" x-show="a.status!=='interview'" :disabled="a._busy">Entretien</button>
           <button class="act app" @click="updateApp(a,{status:'accepted'})" x-show="a.status!=='accepted'" :disabled="a._busy">Accepté</button>
           <button class="act ign" @click="updateApp(a,{status:'rejected'})" x-show="a.status!=='rejected'" :disabled="a._busy">Refusé</button>
+          <button class="act" @click="prepInterview(a)" :disabled="a._prepBusy"><span x-show="!a._prepBusy">Préparer entretien</span><span x-show="a._prepBusy">Préparation…</span></button>
           <input class="note" type="text" placeholder="Note (entretien prévu, contact…)" x-model="a.notes" @change="updateApp(a,{notes:a.notes})" />
           <span x-show="a._msg" class="muted" x-text="a._msg"></span>
+          <div class="prep" x-show="a._prep" x-cloak>
+            <template x-if="a._prep">
+              <div>
+                <h4>Entreprise</h4>
+                <p x-text="a._prep.entreprise.resume"></p>
+                <ul><template x-for="p in a._prep.entreprise.points_cles"><li x-text="p"></li></template></ul>
+                <h4>Tes atouts</h4>
+                <ul><template x-for="p in a._prep.match.atouts"><li x-text="p"></li></template></ul>
+                <h4>À anticiper</h4>
+                <ul><template x-for="p in a._prep.match.a_anticiper"><li x-text="p"></li></template></ul>
+                <h4>Questions probables</h4>
+                <template x-for="q in a._prep.questions_probables">
+                  <div><p class="q" x-text="q.question"></p><p class="a" x-text="q.angle_reponse"></p></div>
+                </template>
+                <h4>Questions à poser</h4>
+                <ul><template x-for="q in a._prep.questions_a_poser"><li x-text="q"></li></template></ul>
+              </div>
+            </template>
+          </div>
         </div>
       </template>
     </div>
@@ -273,16 +299,27 @@
           try {
             const r = await fetch('applications');
             if (r.status===503){ this.applications=[]; this.apErr="Base non lancée : démarre la stack complète (just up)."; return; }
-            this.applications = ((await r.json()).items||[]).map(a=>({...a,_busy:false,_msg:''}));
+            this.applications = ((await r.json()).items||[]).map(a=>({...a,_busy:false,_msg:'',_prep:null,_prepBusy:false}));
           } catch(e){ this.apErr = "Erreur de chargement des candidatures."; }
         },
         async updateApp(a, patch){
           a._busy=true; a._msg='';
+          const prep=a._prep;
           try {
             const r = await fetch('applications/update',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:a.id,...patch})});
             if (!r.ok) throw new Error('HTTP '+r.status);
-            a._msg = 'Enregistré'; this.loadApplications();
+            a._msg = 'Enregistré'; await this.loadApplications();
+            const again=this.applications.find(x=>x.id===a.id); if(again) again._prep=prep;
           } catch(e){ a._msg = "Échec de la mise à jour."; a._busy=false; }
+        },
+        async prepInterview(a){
+          a._prepBusy=true; a._msg='';
+          try {
+            const r = await fetch('interview/prep',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:a.poste||'',company:a.entreprise||'',location:'',description:''})});
+            if (!r.ok) throw new Error('HTTP '+r.status);
+            a._prep = await r.json();
+          } catch(e){ a._msg = "Échec de la préparation d'entretien."; }
+          a._prepBusy=false;
         },
         companies:[], coErr:'',
         async loadCompanies(){
