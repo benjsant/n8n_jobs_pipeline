@@ -23,7 +23,7 @@ Distribution de référence : **Debian 12 / Ubuntu 22.04** (adapter `apt` au bes
 ```
 
 Ce qui est **public** : SSH (port custom) + WireGuard (UDP). Ce qui est **privé** :
-n8n, Postgres, jobspy, render.
+n8n, Postgres, jobspy, render, agent-langgraph, embeddings.
 
 ---
 
@@ -178,7 +178,7 @@ echo "docker-compose.override.yml" >> .gitignore
 
 ```bash
 docker compose config        # valide .env + override
-docker compose up -d         # build jobspy + render (lourd au 1er run), démarre postgres + n8n
+docker compose up -d         # build des images (lourd au 1er run), démarre tous les services
 docker compose ps            # tout healthy ?
 ```
 Accès UI (depuis ton PC, tunnel monté) : **http://10.66.66.1:5678**
@@ -187,7 +187,8 @@ Accès UI (depuis ton PC, tunnel monté) : **http://10.66.66.1:5678**
 ## 9. Importer les workflows + credentials
 
 ```bash
-for f in 01-recherche-offres 02-agent-candidature 03-statut-offre 04-candidature-finalisation; do
+for f in 01-recherche-offres 02-agent-candidature 03-statut-offre \
+         04-candidature-finalisation 05-candidature-spontanee 06-prepa-entretien; do
   docker exec job-hunter-n8n n8n import:workflow --input=/workflows/$f.json
 done
 ```

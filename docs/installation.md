@@ -60,39 +60,55 @@ mais ne fait rien d'« utile » tant qu'elles sont vides) :
 > JobSpy et le service de rendu ne demandent **aucune** clé.
 > **Démarrage minimal utile** : `DEEPSEEK_API_KEY` + (Adzuna **ou** SerpApi) + un webhook Discord.
 
-## 4. Lancer la stack (4 services)
+## 4. Lancer la stack
 
 ```bash
 docker compose config        # valide la syntaxe + l'interpolation du .env
-docker compose up -d         # build jobspy + render (lourd au 1er run), démarre postgres + n8n
+docker compose up -d         # build des images (lourd au 1er run), démarre les services
 docker compose ps            # tous healthy ?
 ```
 
-Services : **postgres** (source de vérité + persistance n8n), **n8n** (UI :5678),
-**jobspy** (micro-service sources), **render** (CV Astro + lettre → PDF).
-Le schéma SQL (`db/schema.sql` + `db/seed-profiles.sql`) s'applique **au premier
-init** de la base vide.
+Services :
 
-UI n8n : http://localhost:5678, au **premier démarrage**, n8n 2.x fait créer un
-**compte propriétaire** (owner) ; renseigne-le.
+- **postgres** (pgvector) : source de vérité + persistance n8n.
+- **n8n** : orchestration, UI sur `:5678`.
+- **jobspy** : micro-service de collecte (LinkedIn / Indeed).
+- **render** : CV Astro et lettre vers PDF.
+- **agent-langgraph** : l'agent (scoring, accroche, prépa entretien) et la mini-interface web (`:8001`).
+- **embeddings** : vecteurs pour la déduplication sémantique.
+- **cleanup** : purge automatique de `./output` (rétention 21 j).
+
+Le schéma SQL (`db/schema.sql` + `db/seed-profiles.sql`) s'applique au premier
+init de la base vide.
+
+UI n8n : http://localhost:5678. Au premier démarrage, n8n 2.x fait créer un
+compte propriétaire (owner) ; renseigne-le.
+
+> Pour un usage à la demande sans n8n (URL d'offre vers CV + lettre), voir la
+> [mini-interface](interface.md) : `just ui` lance seulement `agent-langgraph` + `render`.
 
 ## 5. Importer les workflows
 
-Les 4 workflows portent un **`id` racine stable** et leurs appels croisés
-(`03→02`, `02→04`) sont déjà câblés. Import en une commande :
+Les 6 workflows portent un `id` racine stable et leurs appels croisés
+(`03→02`, `02→04`, `05→02`) sont déjà câblés. Import en une commande :
 
 ```bash
-for f in 01-recherche-offres 02-agent-candidature 03-statut-offre 04-candidature-finalisation; do
+for f in 01-recherche-offres 02-agent-candidature 03-statut-offre \
+         04-candidature-finalisation 05-candidature-spontanee 06-prepa-entretien; do
   docker exec job-hunter-n8n n8n import:workflow --input=/workflows/$f.json
 done
 ```
 
-(ou via l'UI : **Workflows → Import from File**.) Vérifié sur **n8n 2.26.7**.
+(ou via l'UI : Workflows → Import from File.) Vérifié sur n8n 2.26.7.
 
-Ensuite, **dans l'UI** :
-1. Associer la **credential Postgres** (« Postgres job-hunter ») à chaque nœud Postgres (ils portent `id: REMPLACER`).
-2. Associer les **credentials Google** (Drive + Gmail OAuth2) dans le `04`.
-3. Activer les workflows voulus (importés **inactifs**).
+> Chaque nœud Postgres porte `id: REMPLACER` : remplace-le par l'id réel de ta
+> credential avant l'import (ou associe la credential dans l'UI après import).
+
+Ensuite, dans l'UI :
+
+1. Associer la credential Postgres (« Postgres job-hunter ») à chaque nœud Postgres.
+2. Associer les credentials Google (Drive + Gmail OAuth2) dans le `04` (optionnel).
+3. Activer les workflows voulus (importés inactifs). Un réimport les repasse inactifs.
 
 ## 6. Profil candidat (CV)
 
@@ -106,11 +122,11 @@ just cv-sync     # récupère src/data/cv.ts → régénère cv/*.json + cv-inde
 ## 7. Vérifier
 
 ```bash
-just test                    # suites hors stack (libs, scoring, sync, schéma, intégration DB)
-docker compose ps            # 4 conteneurs running/healthy
+just test                    # suites hors stack (libs, scoring, sync, câblage, schéma)
+docker compose ps            # tous les conteneurs running/healthy
 git status                   # ne montre JAMAIS .env
 ```
-- [ ] UI n8n se charge ; les 4 workflows sont importés.
+- [ ] UI n8n se charge ; les 6 workflows sont importés.
 - [ ] Service `render` répond (`docker exec job-hunter-render node -e "require('http').get('http://localhost:8000/health',r=>console.log(r.statusCode))"`).
 
 ---
