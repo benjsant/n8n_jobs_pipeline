@@ -22,6 +22,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse, HTMLResponse
 from pydantic import BaseModel
 
+from agent import db
 from agent.graph import load_context, run_agent
 from agent.interview import run_interview_prep
 from agent.offer_extract import extract_offer, generate_application
@@ -38,6 +39,11 @@ _RENDER = os.environ.get("RENDER_API_URL", "http://render:8000")
 
 class UrlIn(BaseModel):
     url: str = ""
+
+
+class StatusIn(BaseModel):
+    hash: str
+    status: str
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -111,3 +117,29 @@ def agent_run(offer: Offer) -> dict:
 @app.post("/interview/prep", response_model=InterviewPrep)
 def interview_prep(offer: Offer) -> dict:
     return run_interview_prep(offer.model_dump(), CONTEXT)
+
+
+# --- Tri des offres (nécessite Postgres = stack complète, sinon 503) ---------
+
+
+@app.get("/offers")
+def offers(status: str = "", limit: int = 50) -> dict:
+    """Offres collectées (source de vérité Postgres), pour les trier/ignorer."""
+    try:
+        items = db.list_offers(status=status or None, limit=limit)
+        return {"items": items, "counts": db.counts_by_status()}
+    except db.DbUnavailable as exc:
+        raise HTTPException(status_code=503, detail=f"Base indisponible : {exc}. Lance la stack complète (just up).")
+
+
+@app.post("/offers/status")
+def offers_status(body: StatusIn) -> dict:
+    """Bascule le statut d'une offre (ignored / applied / selected / reviewed)."""
+    try:
+        return db.set_offer_status(body.hash, body.status)
+    except db.DbUnavailable as exc:
+        raise HTTPException(status_code=503, detail=f"Base indisponible : {exc}.")
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    except KeyError:
+        raise HTTPException(status_code=404, detail="offre introuvable (hash inconnu)")

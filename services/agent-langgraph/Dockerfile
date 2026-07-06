@@ -8,7 +8,8 @@ WORKDIR /app
 RUN pip install --no-cache-dir uv \
  && uv pip install --system --no-cache \
       "fastapi>=0.115,<1" "uvicorn[standard]>=0.34,<1" \
-      "langgraph>=0.2,<0.3" "langchain-openai>=0.2,<0.4" "pydantic>=2,<3" "httpx>=0.27,<1"
+      "langgraph>=0.2,<0.3" "langchain-openai>=0.2,<0.4" "pydantic>=2,<3" "httpx>=0.27,<1" \
+      "psycopg[binary]>=3.1,<4"
 
 COPY . .
 

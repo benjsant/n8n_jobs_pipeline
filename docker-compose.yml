@@ -117,6 +117,13 @@ services:
       # Mini-interface (URL -> CV+lettre -> Discord) : rendu + livraison Discord.
       RENDER_API_URL: ${RENDER_API_URL:-http://render:8000}
       DISCORD_WEBHOOK_ALERTS: ${DISCORD_WEBHOOK_ALERTS:-${DISCORD_WEBHOOK_URL:-}}
+      # Accès Postgres pour la page de tri des offres (/offers). Optionnel :
+      # si la base n'est pas lancée (mode léger just ui), la page renvoie un 503.
+      POSTGRES_HOST: ${POSTGRES_HOST:-postgres}
+      POSTGRES_PORT: ${POSTGRES_PORT:-5432}
+      POSTGRES_DB: ${POSTGRES_DB:-n8n}
+      POSTGRES_USER: ${POSTGRES_USER:-n8n}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-}
     # Port publié vers l'hôte pour ouvrir la mini-interface : http://localhost:8001
     ports:
       - "8001:8001"

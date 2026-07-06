@@ -36,6 +36,8 @@ Chaque nœud est une fonction pure (state → patch de state), testable en isola
 | GET | `/` | — | mini-interface web (Alpine.js) : URL offre -> confirmation -> génération |
 | POST | `/offer/extract` | `{ url }` | `{ title, company, location, description }` (best-effort) |
 | POST | `/offer/generate` | `{ title, company, location, description }` | génère CV + lettre (rendu) et les livre sur Discord |
+| GET | `/offers` | `?status=&limit=` | offres en base + compteurs par statut (503 si Postgres absent) |
+| POST | `/offers/status` | `{ hash, status }` | bascule le statut (`ignored`, `applied`, `selected`, `reviewed`) |
 
 ## Mini-interface (URL -> CV + lettre -> Discord)
 
@@ -70,6 +72,11 @@ Deux sources, injectées dans l'accroche **et** la prépa d'entretien :
 `DEEPSEEK_MODEL` (défaut `deepseek-chat`). Contexte lu au démarrage :
 `PROMPT_PATH` (défaut `/prompts/agent-system-prompt.md`),
 `CV_INDEX_PATH` (défaut `/cv/cv-index.json`) — montés en lecture seule.
+
+Accès Postgres pour `/offers` (optionnel, seulement pour le tri des offres) :
+`POSTGRES_HOST` (défaut `postgres`), `POSTGRES_PORT` (`5432`), `POSTGRES_DB`,
+`POSTGRES_USER`, `POSTGRES_PASSWORD` — ou `DATABASE_URL`. Absents/injoignables =
+`/offers` renvoie 503, le reste du service fonctionne.
 
 ## Dév (conteneur)
 

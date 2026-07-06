@@ -34,12 +34,24 @@
     a.dl:hover { background:#e0e7ff; }
     .hist { font-size:13px; padding:8px 0; border-top:1px solid var(--bd); }
     .hist:first-of-type { border-top:0; }
+    .tabs { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px; }
+    .tab { background:#f3f4f6; color:var(--mut); border:1px solid var(--bd); border-radius:16px; padding:4px 12px; font-size:12px; font-weight:600; cursor:pointer; }
+    .tab.sel { background:var(--b); color:#fff; border-color:var(--b); }
+    .offer { padding:10px 0; border-top:1px solid var(--bd); font-size:13px; }
+    .offer:first-of-type { border-top:0; }
+    .offer .t { font-weight:600; color:var(--fg); }
+    .offer .m { color:var(--mut); font-size:12px; margin:2px 0 6px; }
+    .sc { display:inline-block; min-width:34px; text-align:center; background:#eef2ff; color:var(--b7); border-radius:6px; padding:1px 6px; font-weight:700; font-size:12px; }
+    .act { background:#fff; color:var(--mut); border:1px solid var(--bd); border-radius:6px; padding:3px 10px; font-size:12px; font-weight:600; cursor:pointer; margin-right:6px; }
+    .act:hover { background:#f3f4f6; } .act.ign:hover { border-color:var(--err); color:var(--err); } .act.app:hover { border-color:var(--ok); color:var(--ok); }
+    .st-tag { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; padding:1px 7px; border-radius:5px; }
+    .st-new{background:#eef2ff;color:var(--b7);} .st-ignored{background:#f3f4f6;color:var(--off);} .st-applied{background:#dcfce7;color:#15803d;} .st-selected{background:#fef9c3;color:#a16207;} .st-reviewed{background:#e0f2fe;color:#0369a1;}
     .foot { color:var(--mut); font-size:12px; text-align:center; margin-top:10px; }
     .foot a { color:var(--b7); }
   </style>
 </head>
 <body>
-  <div class="wrap" x-data="app()" x-init="loadStatus(); loadHistory()">
+  <div class="wrap" x-data="app()" x-init="loadStatus(); loadHistory(); loadOffers()">
 
     <header class="hero">
       <div>
@@ -117,6 +129,37 @@
       </template>
     </div>
 
+    <!-- Offres collectées : trier / ignorer (nécessite la stack complète) -->
+    <div class="card">
+      <p class="step">Offres collectées</p>
+      <p class="muted" style="margin-top:-4px">Marque « Postulé » ou « Ignorer » pour ne plus les revoir dans les alertes Discord.</p>
+      <div class="tabs" style="margin-top:10px">
+        <template x-for="f in filters" :key="f.v">
+          <span class="tab" :class="offFilter===f.v ? 'sel':''" @click="offFilter=f.v; loadOffers()">
+            <span x-text="f.label"></span>
+            <span x-show="counts[f.v]!==undefined" x-text="'· '+(counts[f.v]||0)"></span>
+          </span>
+        </template>
+      </div>
+      <p class="muted" x-show="offErr" x-text="offErr"></p>
+      <p class="muted" x-show="!offErr && !offers.length">Aucune offre pour ce filtre.</p>
+      <template x-for="o in offers" :key="o.hash">
+        <div class="offer">
+          <div style="display:flex; gap:8px; align-items:baseline">
+            <span class="sc" x-text="o.score ?? '–'"></span>
+            <span class="t" x-text="o.title"></span>
+            <span class="st-tag" :class="'st-'+o.status" x-text="o.status"></span>
+          </div>
+          <div class="m">
+            <span x-text="o.company || '—'"></span> · <span x-text="o.location || '—'"></span> · <span x-text="o.created"></span>
+          </div>
+          <template x-if="o.url"><a class="dl" :href="o.url" target="_blank">↗ Voir l'offre</a></template>
+          <button class="act app" @click="setStatus(o,'applied')" x-show="o.status!=='applied'">✓ Postulé</button>
+          <button class="act ign" @click="setStatus(o,'ignored')" x-show="o.status!=='ignored'">✕ Ignorer</button>
+        </div>
+      </template>
+    </div>
+
     <p class="foot">Collecte automatique et suivi : <a href="http://localhost:5678" target="_blank">n8n</a> (si lancé). PDF aussi dans <code>./output</code>.</p>
   </div>
 
@@ -126,8 +169,25 @@
       return {
         url:'', offer:null, result:null, loading:false, generating:false, error:'',
         st:{agent:false,render:false,discord:false}, history:[],
+        offers:[], counts:{}, offErr:'', offFilter:'new',
+        filters:[{v:'new',label:'Nouvelles'},{v:'selected',label:'Retenues'},{v:'applied',label:'Postulées'},{v:'ignored',label:'Ignorées'},{v:'',label:'Toutes'}],
         async loadStatus(){ try { this.st = await (await fetch('status')).json(); } catch(e){} },
         async loadHistory(){ try { this.history = (await (await fetch('history')).json()).items || []; } catch(e){} },
+        async loadOffers(){
+          this.offErr='';
+          try {
+            const r = await fetch('offers?limit=50'+(this.offFilter?'&status='+this.offFilter:''));
+            if (r.status===503){ this.offers=[]; this.counts={}; this.offErr="Base non lancée : démarre la stack complète (just up) pour trier les offres."; return; }
+            const d = await r.json(); this.offers = d.items||[]; this.counts = d.counts||{};
+          } catch(e){ this.offErr = "Erreur de chargement des offres."; }
+        },
+        async setStatus(o, status){
+          try {
+            const r = await fetch('offers/status',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({hash:o.hash,status})});
+            if (!r.ok) throw new Error('HTTP '+r.status);
+            this.loadOffers();
+          } catch(e){ this.offErr = "Impossible de changer le statut : " + e; }
+        },
         async extract(){
           this.error=''; this.result=null; this.loading=true;
           try {

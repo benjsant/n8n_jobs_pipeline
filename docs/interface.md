@@ -52,6 +52,24 @@ just ui-stop       # ou : docker compose down
 La page affiche aussi l'**état des services** (agent / rendu / Discord) et
 l'**historique** des candidatures générées (avec liens de téléchargement).
 
+## Trier les offres collectées (postulé / ignoré)
+
+La page liste aussi les **offres collectées en base**, filtrables par statut
+(nouvelles / retenues / postulées / ignorées). Deux boutons par offre :
+
+- **✓ Postulé** : marque l'offre `applied` (tu as candidaté, par le système ou
+  à la main).
+- **✕ Ignorer** : marque l'offre `ignored`.
+
+Dans les deux cas, l'offre ne réapparaît plus dans les **alertes Discord** du
+workflow `01` (qui n'alerte que les offres `new`). C'est le moyen d'éviter de
+revoir une offre à laquelle tu as déjà répondu.
+
+> Cette section a besoin de la **base Postgres**, donc de la stack complète
+> (`just up`). En mode léger (`just ui`, sans base), elle affiche simplement un
+> message « base non lancée » : le reste de la page (génération CV + lettre)
+> fonctionne quand même.
+
 ## Mini-interface vs stack complète
 
 | Besoin | À lancer |
@@ -69,6 +87,8 @@ l'**historique** des candidatures générées (avec liens de téléchargement).
 | POST | `/offer/generate` | génère CV + lettre, livre sur Discord |
 | GET | `/history` | candidatures générées |
 | GET | `/files/{app_id}/{cv.pdf\|lettre.pdf}` | télécharge un PDF |
+| GET | `/offers` `?status=&limit=` | offres en base + compteurs par statut (503 si base absente) |
+| POST | `/offers/status` `{ hash, status }` | bascule le statut (`ignored`, `applied`, `selected`, `reviewed`) |
 
 ## Notes
 
