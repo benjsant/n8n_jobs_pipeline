@@ -87,6 +87,9 @@ compte propriétaire (owner) ; renseigne-le.
 > Pour un usage à la demande sans n8n (URL d'offre vers CV + lettre), voir la
 > [mini-interface](interface.md) : `just ui` lance seulement `agent-langgraph` + `render`.
 
+> Dashboards optionnels : `just metabase` démarre **Metabase** (profil opt-in, non
+> lancé par défaut car lourd ~1 Go) sur http://localhost:3000 pour explorer la base.
+
 ## 5. Importer les workflows
 
 Les 6 workflows portent un `id` racine stable et leurs appels croisés

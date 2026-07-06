@@ -32,6 +32,16 @@ ui:
 ui-stop:
     docker compose stop agent-langgraph render
 
+# Dashboards Metabase (opt-in, lourd). Crée la base metabase si besoin puis démarre.
+metabase:
+    docker compose exec -T postgres sh -c 'psql -tc "SELECT 1 FROM pg_database WHERE datname='"'"'metabase'"'"'" -U "$POSTGRES_USER" -d "$POSTGRES_DB" | grep -q 1 || psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "CREATE DATABASE metabase"'
+    docker compose --profile metabase up -d metabase
+    @echo "Metabase démarre (1-2 min au 1er lancement) : http://localhost:3000"
+
+# Arrête Metabase
+metabase-stop:
+    docker compose --profile metabase stop metabase
+
 # Suit les logs n8n
 logs:
     docker compose logs -f n8n

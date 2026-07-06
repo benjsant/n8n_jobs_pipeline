@@ -18,6 +18,8 @@ services:
       # appliquer db/schema.sql à la main.
       - ./db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
       - ./db/seed-profiles.sql:/docker-entrypoint-initdb.d/02-seed-profiles.sql:ro
+      # Crée la base applicative de Metabase (profil opt-in). Idempotent.
+      - ./db/init-metabase.sh:/docker-entrypoint-initdb.d/03-init-metabase.sh:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
@@ -199,6 +201,30 @@ services:
           find /output -mindepth 1 -maxdepth 1 -type d -mtime +${OUTPUT_RETENTION_DAYS:-21} -exec rm -rf {} + 2>/dev/null || true;
           sleep 86400;
         done
+
+  # Metabase : dashboards / exploration de la base (offres, entreprises, suivi).
+  # Opt-in via le profil "metabase" : NE démarre PAS avec `docker compose up`.
+  #   Lancer :  just metabase   (ou docker compose --profile metabase up -d metabase)
+  # Lourd (~1 Go RAM, JVM) : à réserver aux moments où tu veux des stats.
+  metabase:
+    image: metabase/metabase:latest
+    container_name: job-hunter-metabase
+    profiles: ["metabase"]
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      # Données applicatives de Metabase stockées dans le Postgres du projet
+      # (base dédiée "metabase", créée par db/init-metabase.sh au 1er init).
+      MB_DB_TYPE: postgres
+      MB_DB_HOST: postgres
+      MB_DB_PORT: "5432"
+      MB_DB_DBNAME: ${METABASE_DB:-metabase}
+      MB_DB_USER: ${POSTGRES_USER:-n8n}
+      MB_DB_PASS: ${POSTGRES_PASSWORD:-}
+    ports:
+      - "3000:3000"
 
 volumes:
   postgres_data:
