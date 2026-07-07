@@ -149,6 +149,13 @@
           </span>
         </template>
       </div>
+      <div class="m" style="margin:4px 0 8px">
+        Purge : supprimer les offres de plus de
+        <input type="number" min="0" x-model.number="purgeDays" style="width:56px; padding:2px 6px; font-size:12px" />
+        jours
+        <button class="act ign" @click="purgeOffers()" :disabled="purgeBusy">Purger</button>
+        <span x-show="purgeMsg" class="muted" x-text="purgeMsg"></span>
+      </div>
       <p class="muted" x-show="offErr" x-text="offErr"></p>
       <p class="muted" x-show="!offErr && !offers.length">Aucune offre pour ce filtre.</p>
       <template x-for="o in offers" :key="o.hash">
@@ -255,7 +262,7 @@
       return {
         url:'', offer:null, result:null, loading:false, generating:false, error:'',
         st:{agent:false,render:false,discord:false}, history:[],
-        offers:[], counts:{}, offErr:'', offFilter:'new',
+        offers:[], counts:{}, offErr:'', offFilter:'new', purgeDays:30, purgeMsg:'', purgeBusy:false,
         filters:[{v:'new',label:'Nouvelles'},{v:'selected',label:'Retenues'},{v:'applied',label:'Postulées'},{v:'ignored',label:'Ignorées'},{v:'',label:'Toutes'}],
         async loadStatus(){ try { this.st = await (await fetch('status')).json(); } catch(e){} },
         async loadHistory(){ try { this.history = (await (await fetch('history')).json()).items || []; } catch(e){} },
@@ -292,6 +299,19 @@
             if (!r.ok) throw new Error('HTTP '+r.status);
             this.loadOffers();
           } catch(e){ o._busy=false; this.offErr = "Suppression impossible : " + e; }
+        },
+        async purgeOffers(){
+          const d = Number(this.purgeDays);
+          if (!Number.isInteger(d) || d < 0){ this.purgeMsg = "Nombre de jours invalide."; return; }
+          if (!confirm('Supprimer définitivement toutes les offres de plus de '+d+' jours ?')) return;
+          this.purgeBusy=true; this.purgeMsg=''; this.offErr='';
+          try {
+            const r = await fetch('offers/purge',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({days:d})});
+            if (!r.ok) throw new Error('HTTP '+r.status);
+            const res = await r.json(); this.purgeMsg = res.deleted + ' offre(s) supprimée(s)';
+            this.loadOffers();
+          } catch(e){ this.purgeMsg = "Purge impossible : " + e; }
+          this.purgeBusy=false;
         },
         applications:[], apErr:'',
         statusLabel(s){ return {draft:'Brouillon',sent:'Postulé',interview:'Entretien',accepted:'Accepté',rejected:'Refusé'}[s] || s; },

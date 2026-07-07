@@ -118,6 +118,36 @@ def delete_offer(offer_hash: str) -> dict:
     return row
 
 
+OFFER_STATUS = {"new", "reviewed", "selected", "ignored", "applied"}
+
+
+def purge_offers(days: int | None = None, status: str | None = None) -> int:
+    """Supprime en masse les offres selon l'âge et/ou le statut. Renvoie le nombre.
+
+    Les candidatures liées ne sont pas perdues (offer_id passe en NULL).
+    Au moins un critère (days ou status) est requis pour éviter un DELETE total.
+    """
+    conds, params = [], []
+    if days is not None:
+        d = int(days)
+        if d < 0:
+            raise ValueError("days doit être >= 0")
+        conds.append("created_at < now() - make_interval(days => %s)")
+        params.append(d)
+    if status:
+        if status not in OFFER_STATUS:
+            raise ValueError(f"statut non autorisé : {status}")
+        conds.append("status = %s")
+        params.append(status)
+    if not conds:
+        raise ValueError("préciser days et/ou status (pas de suppression totale)")
+    with _connect() as conn, conn.cursor() as cur:
+        cur.execute("DELETE FROM offers WHERE " + " AND ".join(conds), params)
+        n = cur.rowcount
+        conn.commit()
+    return n
+
+
 def counts_by_status() -> dict:
     """Compteur d'offres par statut (pour les onglets de la page)."""
     with _connect() as conn, conn.cursor() as cur:

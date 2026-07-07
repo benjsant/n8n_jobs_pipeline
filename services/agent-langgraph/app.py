@@ -59,6 +59,11 @@ class HashIn(BaseModel):
     hash: str
 
 
+class PurgeIn(BaseModel):
+    days: int | None = None
+    status: str | None = None
+
+
 class AppUpdateIn(BaseModel):
     id: int
     status: str | None = None
@@ -207,6 +212,17 @@ def offers_delete(body: HashIn) -> dict:
         raise HTTPException(status_code=503, detail=f"Base indisponible : {exc}.")
     except KeyError:
         raise HTTPException(status_code=404, detail="offre introuvable (hash inconnu)")
+
+
+@app.post("/offers/purge")
+def offers_purge(body: PurgeIn) -> dict:
+    """Supprime en masse les offres selon l'âge (days) et/ou le statut."""
+    try:
+        return {"deleted": db.purge_offers(days=body.days, status=body.status)}
+    except db.DbUnavailable as exc:
+        raise HTTPException(status_code=503, detail=f"Base indisponible : {exc}.")
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
 
 
 # --- Suivi des candidatures (« Mes candidatures ») ---------------------------

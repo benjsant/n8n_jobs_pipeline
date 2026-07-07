@@ -32,6 +32,22 @@ def test_update_application_requires_something_to_change():
         db.update_application(1)
 
 
+def test_purge_offers_requires_a_criterion():
+    # Sans days ni status : refus AVANT toute connexion (pas de DELETE total).
+    with pytest.raises(ValueError):
+        db.purge_offers()
+
+
+def test_purge_offers_rejects_unknown_status():
+    with pytest.raises(ValueError):
+        db.purge_offers(status="perime")
+
+
+def test_purge_offers_rejects_negative_days():
+    with pytest.raises(ValueError):
+        db.purge_offers(days=-5)
+
+
 def test_dsn_prefers_database_url(monkeypatch):
     monkeypatch.setenv("DATABASE_URL", "postgres://u:p@h:5432/x")
     assert db._dsn() == "postgres://u:p@h:5432/x"

@@ -62,6 +62,9 @@ La page liste aussi les **offres collectées en base**, filtrables par statut
 - **Réanalyser** : relance le scoring de l'agent sur l'offre et met à jour son
   score en base (utile pour une offre ancienne ou après une évolution du profil).
 - **Supprimer** : retire définitivement l'offre de la base (offres périmées).
+- **Purge en masse** : en haut de la liste, « supprimer les offres de plus de N
+  jours » retire d'un coup toutes les offres trop anciennes (avec confirmation).
+  Les candidatures liées ne sont pas perdues (l'offre est déliée, pas la candidature).
 
 Une offre `applied` ou `ignored` ne réapparaît plus dans les **alertes Discord**
 du workflow `01` (qui n'alerte que les offres `new`). C'est le moyen d'éviter de
@@ -132,6 +135,7 @@ de doublon.
 | POST | `/offers/status` `{ hash, status }` | bascule le statut (`ignored`, `applied`, `selected`, `reviewed`) |
 | POST | `/offers/reanalyze` `{ hash }` | relance le scoring de l'agent et met à jour le score |
 | POST | `/offers/delete` `{ hash }` | supprime définitivement une offre |
+| POST | `/offers/purge` `{ days?, status? }` | supprime en masse par âge et/ou statut |
 | GET | `/applications` | candidatures suivies (statut, dates, notes) |
 | POST | `/applications/update` `{ id, status?, notes?, remind? }` | fait avancer une candidature (+ sync Airtable) |
 | GET | `/companies` `?limit=` | entreprises à contacter (avec moyen de contact) |
