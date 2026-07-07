@@ -238,6 +238,9 @@ docker compose up -d --force-recreate --no-deps agent-langgraph
 - **Ports : interne vs hôte.** n8n écoute **5678** dans le conteneur ; l'hôte publie
   **8978** (`N8N_PORT`). Idem interface **8001**->**8901** (`UI_PORT`). Si tu changes
   `N8N_PORT`, aligne `WEBHOOK_URL`.
+- **Écoute locale par défaut.** Les ports sont publiés sur `127.0.0.1` (`BIND_HOST`),
+  car la mini-interface n'a **pas d'authentification**. Pour ouvrir au réseau local
+  (ou binder l'IP WireGuard sur VPS), mets `BIND_HOST=0.0.0.0` (ou l'IP voulue).
 - **Fichiers root-owned** : un conteneur qui écrit dans un volume monté crée des
   fichiers `root`. Nettoyer via `docker run ... alpine rm` ou `--user "$(id -u):$(id -g)"`.
 - **Coût DeepSeek** : les chemins de génération réelle (agent, prépa entretien,

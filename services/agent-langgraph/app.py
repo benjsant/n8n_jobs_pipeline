@@ -15,6 +15,7 @@ Le system prompt et l'index CV sont lus depuis les volumes montés (/prompts, /c
 from __future__ import annotations
 
 import glob
+import logging
 import os
 
 import httpx
@@ -34,6 +35,7 @@ from agent.offer_extract import (
 from agent.schema import AgentOutput, InterviewPrep, Offer
 
 app = FastAPI(title="agent-langgraph", version="0.1.0")
+logger = logging.getLogger("agent")
 
 # Contexte (prompt + index CV) chargé une fois au démarrage.
 CONTEXT = load_context()
@@ -191,7 +193,7 @@ def offers_status(body: StatusIn) -> dict:
                     db.set_application_airtable_id(app_row["id"], rec)
             row["application_id"] = app_row["id"]
         except Exception:
-            pass
+            logger.warning("suivi/Airtable après « Postulé » échoué (hash=%s)", body.hash, exc_info=True)
     return row
 
 
@@ -205,7 +207,10 @@ def offers_reanalyze(body: HashIn) -> dict:
     if not offer:
         raise HTTPException(status_code=404, detail="offre introuvable")
     res = reanalyze_offer(offer, CONTEXT)
-    db.update_offer_score(body.hash, res["score"], res["reason"])
+    try:
+        db.update_offer_score(body.hash, res["score"], res["reason"])
+    except db.DbUnavailable as exc:
+        raise HTTPException(status_code=503, detail=f"Base indisponible : {exc}.")
     return res
 
 
@@ -259,7 +264,7 @@ def applications_update(body: AppUpdateIn) -> dict:
         try:
             airtable.update_record(row["airtable_id"], {"Statut": STATUS_FR.get(body.status, body.status)})
         except Exception:
-            pass
+            logger.warning("sync Airtable du statut échouée (app_id=%s)", body.id, exc_info=True)
     return row
 
 
@@ -298,7 +303,7 @@ def _spontaneous_and_track(company: dict) -> dict:
                 db.set_application_airtable_id(app_row["id"], rec)
         result["application_id"] = app_row["id"]
     except Exception:
-        pass
+        logger.warning("suivi/Airtable de la candidature spontanée échoué (%s)", company.get("name"), exc_info=True)
     return result
 
 

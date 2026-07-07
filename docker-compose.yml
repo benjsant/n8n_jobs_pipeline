@@ -31,8 +31,9 @@ services:
     container_name: job-hunter-n8n
     restart: unless-stopped
     ports:
-      # Port publié vers l'hôte (défaut 8978). Le port INTERNE n8n reste 5678.
-      - "${N8N_PORT:-8978}:5678"
+      # Publié sur 127.0.0.1 par défaut (local only). BIND_HOST=0.0.0.0 pour
+      # rouvrir (ou l'IP WireGuard sur VPS). Port INTERNE n8n = 5678.
+      - "${BIND_HOST:-127.0.0.1}:${N8N_PORT:-8978}:5678"
     environment:
       # --- Base de données ---
       DB_TYPE: postgresdb
@@ -131,9 +132,9 @@ services:
       AIRTABLE_TOKEN: ${AIRTABLE_TOKEN:-}
       AIRTABLE_BASE_ID: ${AIRTABLE_BASE_ID:-}
       AIRTABLE_TABLE: ${AIRTABLE_TABLE:-Candidatures}
-    # Port publié vers l'hôte pour ouvrir la mini-interface (défaut 8901).
+    # Mini-interface publiée sur 127.0.0.1 par défaut (local only, sans auth).
     ports:
-      - "${UI_PORT:-8901}:8001"
+      - "${BIND_HOST:-127.0.0.1}:${UI_PORT:-8901}:8001"
     volumes:
       - ./prompts:/prompts:ro
       - ./cv:/cv:ro
@@ -229,7 +230,7 @@ services:
       MB_DB_USER: ${POSTGRES_USER:-n8n}
       MB_DB_PASS: ${POSTGRES_PASSWORD:-}
     ports:
-      - "${METABASE_PORT:-8930}:3000"
+      - "${BIND_HOST:-127.0.0.1}:${METABASE_PORT:-8930}:3000"
 
 volumes:
   postgres_data:

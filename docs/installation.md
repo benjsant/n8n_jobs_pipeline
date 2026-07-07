@@ -84,6 +84,10 @@ init de la base vide.
 UI n8n : http://localhost:8978. Au premier démarrage, n8n 2.x fait créer un
 compte propriétaire (owner) ; renseigne-le.
 
+> Par défaut, les ports n'écoutent que sur `127.0.0.1` (accès local uniquement,
+> la mini-interface n'ayant pas d'authentification). Pour y accéder depuis un
+> autre poste du réseau, mets `BIND_HOST=0.0.0.0` dans `.env`.
+
 > Pour un usage à la demande sans n8n (URL d'offre vers CV + lettre), voir la
 > [mini-interface](interface.md) : `just ui` lance seulement `agent-langgraph` + `render`.
 
