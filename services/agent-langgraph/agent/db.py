@@ -175,6 +175,38 @@ def ensure_application_for_offer(offer_hash: str, status: str = "sent") -> dict:
         return {**row, "created": True}
 
 
+def ensure_spontaneous_application(company: dict) -> dict:
+    """Crée (si absente) la candidature spontanée liée à une entreprise."""
+    cid = company.get("id")
+    name = company.get("name", "") or ""
+    lien = company.get("apply_url") or company.get("website") or ""
+    with _connect() as conn, conn.cursor() as cur:
+        if cid:
+            cur.execute(
+                "SELECT id, airtable_id, poste, entreprise, lien, score, status "
+                "FROM applications WHERE kind = 'spontaneous' AND company_id = %s LIMIT 1",
+                (cid,),
+            )
+        else:
+            cur.execute(
+                "SELECT id, airtable_id, poste, entreprise, lien, score, status "
+                "FROM applications WHERE kind = 'spontaneous' AND entreprise = %s LIMIT 1",
+                (name,),
+            )
+        existing = cur.fetchone()
+        if existing:
+            return {**existing, "created": False}
+        cur.execute(
+            "INSERT INTO applications (company_id, kind, status, applied_at, poste, entreprise, lien) "
+            "VALUES (%s, 'spontaneous', 'sent', now(), 'Candidature spontanée', %s, %s) "
+            "RETURNING id, airtable_id, poste, entreprise, lien, score, status",
+            (cid, name, lien),
+        )
+        row = cur.fetchone()
+        conn.commit()
+        return {**row, "created": True}
+
+
 def list_applications(limit: int = 200) -> list[dict]:
     """Toutes les candidatures pour la page de suivi (les plus récentes d'abord)."""
     limit = max(1, min(int(limit), 500))

@@ -262,4 +262,15 @@ def companies_apply(body: CompanyIn) -> dict:
         raise HTTPException(status_code=503, detail=f"Base indisponible : {exc}.")
     if not company:
         raise HTTPException(status_code=404, detail="entreprise introuvable")
-    return generate_spontaneous(company, CONTEXT)
+    result = generate_spontaneous(company, CONTEXT)
+    # Enregistre la candidature spontanée (suivi + Airtable), comme pour une offre.
+    try:
+        app_row = db.ensure_spontaneous_application(company)
+        if airtable.enabled() and not app_row.get("airtable_id"):
+            rec = airtable.push_application(app_row, status="Postulé")
+            if rec:
+                db.set_application_airtable_id(app_row["id"], rec)
+        result["application_id"] = app_row["id"]
+    except Exception:
+        pass
+    return result

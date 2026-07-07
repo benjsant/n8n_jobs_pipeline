@@ -101,10 +101,15 @@ La page liste aussi les **entreprises à démarcher** (collectées via La Bonne
 Alternance, celles pour lesquelles un contact a été récupéré), façon *La Bonne
 Boîte* : nom, secteur, site, téléphone, email, lien de contact.
 
-Le bouton **✉️ Générer candidature spontanée** lance l'agent en mode spontané
+Le bouton **Générer candidature spontanée** lance l'agent en mode spontané
 (template `candidature-spontanee`) : il produit un **CV + une lettre spontanée**
 et **envoie le tout sur Discord** avec les **infos de contact** de l'entreprise,
 prêt à relire puis à envoyer toi-même. Même base Postgres requise.
+
+La candidature spontanée est aussi **enregistrée dans « Mes candidatures »**
+(marquée « spontanée ») et **poussée dans Airtable** si configuré, exactement
+comme une candidature sur offre. Régénérer pour la même entreprise ne crée pas
+de doublon.
 
 ## Mini-interface vs stack complète
 

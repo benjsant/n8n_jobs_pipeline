@@ -183,6 +183,7 @@
             <span class="st-tag" :class="'st-'+a.status" x-text="statusLabel(a.status)"></span>
             <span class="t" x-text="a.poste || 'Candidature'"></span>
             <span class="muted" x-text="a.entreprise || ''"></span>
+            <span class="muted" x-show="a.kind==='spontaneous'">(spontanée)</span>
           </div>
           <div class="m">
             <span>Postulé le <span x-text="a.applied || '?'"></span></span>
