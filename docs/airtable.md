@@ -19,8 +19,10 @@ répercuté quand tu fais avancer la candidature (Entretien, Refusé, Accepté).
 ## 1. Créer le jeton d'accès
 
 1. Va sur **https://airtable.com/create/tokens** puis « Create new token ».
-2. **Scopes** : ajoute `data.records:write` (et `data.records:read` si tu veux
-   relire plus tard).
+2. **Scopes** :
+   - `data.records:write` (obligatoire, l'app écrit les lignes) ;
+   - `schema.bases:read` + `schema.bases:write` (seulement si tu veux créer la
+     table automatiquement avec `just airtable-setup`, voir l'étape 3).
 3. **Access** : ajoute la **base** qui contiendra le suivi.
 4. Crée le jeton, copie-le (il commence par `pat…`). C'est `AIRTABLE_API_KEY`.
 
@@ -33,6 +35,22 @@ Ouvre ta base dans le navigateur. L'URL ressemble à
 `app…` est ton `AIRTABLE_BASE_ID`.
 
 ## 3. Créer la table et ses colonnes
+
+Deux options.
+
+### Option A : automatique (recommandé)
+
+Renseigne d'abord `.env` (étape 4), puis lance :
+
+```bash
+just airtable-setup
+```
+
+Le script crée la table et toutes les colonnes au bon type (idempotent : s'il
+manque juste une colonne, il l'ajoute). Nécessite les scopes
+`schema.bases:read` + `schema.bases:write` sur le jeton.
+
+### Option B : manuelle
 
 Crée une table nommée **`Candidatures`** (ou un autre nom, à reporter dans
 `AIRTABLE_TABLE`) avec **exactement** ces colonnes :

@@ -32,6 +32,11 @@ ui:
 ui-stop:
     docker compose stop agent-langgraph render
 
+# Crée/complète la table Airtable (colonnes) depuis les clés du .env.
+# Nécessite un jeton avec les scopes schema.bases:read + schema.bases:write.
+airtable-setup:
+    docker run --rm --env-file .env -v "$PWD/scripts":/s:ro python:3.12-alpine python /s/airtable_setup.py
+
 # Dashboards Metabase (opt-in, lourd). Crée la base metabase si besoin puis démarre.
 metabase:
     docker compose exec -T postgres sh -c 'psql -tc "SELECT 1 FROM pg_database WHERE datname='"'"'metabase'"'"'" -U "$POSTGRES_USER" -d "$POSTGRES_DB" | grep -q 1 || psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "CREATE DATABASE metabase"'
