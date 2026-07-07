@@ -232,6 +232,15 @@
     <div class="card">
       <p class="step">Entreprises à contacter</p>
       <p class="muted" style="margin-top:-4px">Entreprises collectées via La Bonne Alternance. « Générer » produit CV + lettre spontanée et envoie tout sur Discord avec le contact.</p>
+      <div class="m" style="margin:8px 0; padding:8px; background:#f9fafb; border:1px solid var(--bd); border-radius:8px">
+        Démarcher une entreprise précise :
+        <input placeholder="Nom (ex. Proxiad Nord)" x-model="newco.name" style="min-width:160px; font-size:12px; padding:3px 7px" />
+        <input placeholder="Site (optionnel)" x-model="newco.website" style="min-width:150px; font-size:12px; padding:3px 7px" />
+        <button class="act app" @click="applyManual()" :disabled="manualBusy || !newco.name">
+          <span x-show="!manualBusy">Générer candidature spontanée</span><span x-show="manualBusy">Génération…</span>
+        </button>
+        <span x-show="manualMsg" class="muted" x-text="manualMsg"></span>
+      </div>
       <p class="muted" x-show="coErr" x-text="coErr"></p>
       <p class="muted" x-show="!coErr && !companies.length">Aucune entreprise à contacter pour l'instant.</p>
       <template x-for="c in companies" :key="c.id">
@@ -342,7 +351,20 @@
           } catch(e){ a._msg = "Échec de la préparation d'entretien."; }
           a._prepBusy=false;
         },
-        companies:[], coErr:'',
+        companies:[], coErr:'', newco:{name:'',website:''}, manualBusy:false, manualMsg:'',
+        async applyManual(){
+          if (!this.newco.name) return;
+          this.manualBusy=true; this.manualMsg=''; this.coErr='';
+          try {
+            const r = await fetch('companies/manual',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:this.newco.name,website:this.newco.website})});
+            if (!r.ok) throw new Error('HTTP '+r.status);
+            const d = await r.json();
+            this.manualMsg = d.discord ? 'Envoyé sur Discord + suivi' : 'Généré (Discord non configuré)';
+            this.newco={name:'',website:''};
+            this.loadCompanies(); this.loadApplications();
+          } catch(e){ this.manualMsg = "Échec : " + e; }
+          this.manualBusy=false;
+        },
         async loadCompanies(){
           this.coErr='';
           try {

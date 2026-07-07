@@ -292,6 +292,27 @@ def set_application_airtable_id(app_id: int, record_id: str) -> None:
         conn.commit()
 
 
+def upsert_company(name: str, website: str = "", sector: str = "") -> dict:
+    """Crée ou met à jour une entreprise saisie à la main (démarchage ad hoc)."""
+    name = (name or "").strip()
+    if not name:
+        raise ValueError("nom d'entreprise requis")
+    with _connect() as conn, conn.cursor() as cur:
+        cur.execute(
+            "INSERT INTO companies (name, website, sector, last_updated) "
+            "VALUES (%s, NULLIF(%s,''), NULLIF(%s,''), now()) "
+            "ON CONFLICT (name) DO UPDATE SET "
+            "  website = COALESCE(NULLIF(EXCLUDED.website,''), companies.website), "
+            "  sector  = COALESCE(NULLIF(EXCLUDED.sector,''),  companies.sector), "
+            "  last_updated = now() "
+            "RETURNING id, name",
+            (name, website or "", sector or ""),
+        )
+        row = cur.fetchone()
+        conn.commit()
+    return row
+
+
 def get_company(name: str) -> dict | None:
     """Fiche entreprise complète (pour générer la candidature spontanée)."""
     with _connect() as conn, conn.cursor() as cur:

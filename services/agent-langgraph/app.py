@@ -55,6 +55,12 @@ class CompanyIn(BaseModel):
     name: str
 
 
+class ManualCompanyIn(BaseModel):
+    name: str
+    website: str = ""
+    sector: str = ""
+
+
 class HashIn(BaseModel):
     hash: str
 
@@ -278,8 +284,12 @@ def companies_apply(body: CompanyIn) -> dict:
         raise HTTPException(status_code=503, detail=f"Base indisponible : {exc}.")
     if not company:
         raise HTTPException(status_code=404, detail="entreprise introuvable")
+    return _spontaneous_and_track(company)
+
+
+def _spontaneous_and_track(company: dict) -> dict:
+    """Génère la candidature spontanée puis l'enregistre (suivi + Airtable)."""
     result = generate_spontaneous(company, CONTEXT)
-    # Enregistre la candidature spontanée (suivi + Airtable), comme pour une offre.
     try:
         app_row = db.ensure_spontaneous_application(company)
         if airtable.enabled() and not app_row.get("airtable_id"):
@@ -290,3 +300,18 @@ def companies_apply(body: CompanyIn) -> dict:
     except Exception:
         pass
     return result
+
+
+@app.post("/companies/manual")
+def companies_manual(body: ManualCompanyIn) -> dict:
+    """Candidature spontanée pour une entreprise saisie à la main (démarchage ad hoc)."""
+    try:
+        db.upsert_company(body.name, body.website, body.sector)
+        company = db.get_company(body.name)
+    except db.DbUnavailable as exc:
+        raise HTTPException(status_code=503, detail=f"Base indisponible : {exc}.")
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    if not company:
+        raise HTTPException(status_code=404, detail="entreprise introuvable")
+    return _spontaneous_and_track(company)

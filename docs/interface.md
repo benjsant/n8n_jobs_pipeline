@@ -114,6 +114,12 @@ La candidature spontanée est aussi **enregistrée dans « Mes candidatures »**
 comme une candidature sur offre. Régénérer pour la même entreprise ne crée pas
 de doublon.
 
+**Démarcher une entreprise précise** (hors liste LBA) : en haut de la section, un
+champ « Nom (+ site optionnel) » permet de générer une candidature spontanée pour
+**n'importe quelle entreprise** que tu saisis (ex. une ESN que tu vises).
+L'agent la grounde sur les infos réelles (registre INSEE + web) et le suivi se
+crée comme d'habitude.
+
 ## Mini-interface vs stack complète
 
 | Besoin | À lancer |
@@ -140,6 +146,7 @@ de doublon.
 | POST | `/applications/update` `{ id, status?, notes?, remind? }` | fait avancer une candidature (+ sync Airtable) |
 | GET | `/companies` `?limit=` | entreprises à contacter (avec moyen de contact) |
 | POST | `/companies/apply` `{ name }` | génère la candidature spontanée et la livre sur Discord |
+| POST | `/companies/manual` `{ name, website?, sector? }` | candidature spontanée pour une entreprise saisie à la main |
 
 ## Notes
 
