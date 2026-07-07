@@ -85,6 +85,9 @@ revoir une offre à laquelle tu as déjà répondu.
 Quand tu marques une offre « Postulé », une **candidature** est créée et apparaît
 dans la section « Mes candidatures ». Tu la fais avancer dans le temps :
 
+- **À relancer** : un badge signale les candidatures « Postulé » sans réponse
+  depuis plus de 7 jours (compteur en tête de section). Le bouton **Relancée**
+  note la relance et retire le badge.
 - **Relancée** : note une relance (date du jour).
 - **Entretien** / **Accepté** / **Refusé** : change le statut ; la date de réponse
   est enregistrée automatiquement au premier passage.

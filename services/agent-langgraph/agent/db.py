@@ -237,8 +237,12 @@ def ensure_spontaneous_application(company: dict) -> dict:
         return {**row, "created": True}
 
 
+# Une candidature « postulée » sans réponse est à relancer après ce délai.
+REMIND_AFTER_DAYS = 7
+
+
 def list_applications(limit: int = 200) -> list[dict]:
-    """Toutes les candidatures pour la page de suivi (les plus récentes d'abord)."""
+    """Candidatures pour le suivi. `to_remind` = postulée sans réponse depuis N jours."""
     limit = max(1, min(int(limit), 500))
     with _connect() as conn, conn.cursor() as cur:
         cur.execute(
@@ -246,9 +250,12 @@ def list_applications(limit: int = 200) -> list[dict]:
             "       to_char(applied_at, 'YYYY-MM-DD') AS applied, "
             "       to_char(response_at, 'YYYY-MM-DD') AS response, "
             "       to_char(reminded_at, 'YYYY-MM-DD') AS reminded, "
-            "       COALESCE(notes,'') AS notes, airtable_id "
-            "FROM applications ORDER BY applied_at DESC NULLS LAST, id DESC LIMIT %s",
-            (limit,),
+            "       COALESCE(notes,'') AS notes, airtable_id, "
+            "       (status = 'sent' AND response_at IS NULL "
+            "        AND COALESCE(reminded_at, applied_at) < now() - make_interval(days => %s)) AS to_remind "
+            "FROM applications "
+            "ORDER BY to_remind DESC, applied_at DESC NULLS LAST, id DESC LIMIT %s",
+            (REMIND_AFTER_DAYS, limit),
         )
         return cur.fetchall()
 
