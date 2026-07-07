@@ -58,6 +58,7 @@ nav:
       - Données & DeepSeek: donnees-et-deepseek.md
   - Projet:
       - Choix technologiques: choix-techniques.md
+      - Guide technique (mainteneur): architecture-technique.md
       - Évolution LangGraph: plan-langgraph.md
 
 markdown_extensions:
