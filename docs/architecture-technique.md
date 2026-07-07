@@ -21,12 +21,22 @@ Plus : **postgres** (source de vérité + persistance n8n), **embeddings**
 (vecteurs dédup), **jobspy** (collecte LinkedIn/Indeed), **metabase** (dashboards,
 opt-in), **cleanup** (purge de `./output`).
 
-```
-Sources --> n8n(01) --> Postgres --> Discord
-                 |          ^  |
-        embeddings|         |  +--> clic Discord --> n8n(03) --> agent(02) --> render --> Discord(04)
-                            |
-   mini-interface (agent-langgraph :8901) --> Postgres + render + Discord + Airtable
+```mermaid
+flowchart TD
+  SRC["Sources : FT, Adzuna, JobSpy, SerpApi, JSearch, LBA, WTTJ"] --> W01["n8n 01 : collecte"]
+  W01 <--> EMB["svc embeddings (fastembed)"]
+  W01 --> DB[("PostgreSQL + pgvector")]
+  W01 --> DISC["Discord (alertes)"]
+  DISC -->|"clic Generer / Ignorer"| W03["n8n 03 : statut"]
+  W03 --> W02["n8n 02 : agent"]
+  W02 --> AG["svc agent-langgraph"]
+  AG -->|grounding| GRND["INSEE + web"]
+  W02 --> RND["svc render : Astro -> PDF"]
+  W02 --> W04["n8n 04 : livraison Discord"]
+  UI["mini-interface :8901"] --> AG
+  UI --> DB
+  UI --> RND
+  UI -.optionnel.-> AIR["Airtable"]
 ```
 
 Deux points d'entrée utilisateur :
@@ -126,8 +136,13 @@ Le **jsCode des nœuds Code du `01` est généré** depuis `offer-utils.mjs` par
 
 Graphe principal (`graph.py`) :
 
-```
-analyze -> research -> accroche -> judge <-> (retry max 3) -> validate
+```mermaid
+flowchart LR
+  A["analyze<br/>(temp 0.2)"] --> R["research<br/>(INSEE + web)"]
+  R --> AC["accroche<br/>(temp 0.7)"]
+  AC --> J{"judge"}
+  J -->|OK| V["validate<br/>(sortie §6)"]
+  J -->|"rejet, max 3"| AC
 ```
 
 - **analyze** (temp 0.2) : score + sous-scores, matching/missing, personnalisation
@@ -169,6 +184,25 @@ des routes FastAPI de `app.py`.
 
 Pour ajouter une section : (1) une route dans `app.py` (+ fonction db si besoin) ;
 (2) une carte HTML + une méthode Alpine ; (3) l'appeler dans `x-init`.
+
+Flux type « générer une candidature depuis une URL » :
+
+```mermaid
+sequenceDiagram
+  participant U as Navigateur
+  participant API as agent-langgraph
+  participant LLM as DeepSeek
+  participant R as render
+  participant D as Discord
+  U->>API: POST /offer/extract {url}
+  API->>LLM: extraire titre / entreprise / lieu / desc
+  API-->>U: champs (à confirmer)
+  U->>API: POST /offer/generate {offre confirmée}
+  API->>API: run_agent (graphe : analyze..validate)
+  API->>R: POST /cv puis POST /letter
+  API->>D: CV + lettre (pièces jointes)
+  API-->>U: récap (score, accroche, liens)
+```
 
 ## 8. « Je veux changer X »
 
@@ -237,3 +271,31 @@ ou `agent/`), pas par du code copié dans un nœud n8n.
 | `/offers` ou `/applications` en 503 | Postgres pas lancé (mode `just ui` seul) |
 | Parité CI rouge | `offer-utils.mjs` modifié sans `just build-nodes` |
 | Schéma absent après un `ALTER` | base non vide : migration à appliquer à la main |
+
+## 12. Dette technique connue et limites
+
+À garder en tête avant de refactorer (rien de bloquant, mais autant le savoir) :
+
+- **`static/index.html` grossit** : la mini-interface porte beaucoup de sections
+  dans un seul fichier Alpine. Si on ajoute encore, envisager de découper le HTML
+  et le JS (ou passer à des composants). Seuil de gêne, pas d'urgence.
+- **Aucune authentification** sur la mini-interface (:8901) : réservé au local.
+  Ne jamais l'exposer publiquement sans reverse-proxy + auth.
+- **Chemins de génération réelle non testés automatiquement** : `run_agent`,
+  prépa entretien et spontanée appellent DeepSeek (coût + clé), donc les tests
+  couvrent les fonctions autour (db, airtable, validation) mais pas l'appel LLM
+  de bout en bout. Vérification manuelle recommandée après un changement de prompt.
+- **Duplication contrôlée** : le nœud `norm LBA recruteurs` du `01` est une copie
+  inline de `sources.mjs` (tenue synchro à la main pour le champ `email`). Le reste
+  des nœuds du `01` est généré (pas de duplication).
+- **Couplage aux API externes** : DeepSeek, LBA, INSEE, sources. Un changement de
+  leur format casse un maillon ; les normaliseurs isolent l'impact, mais surveiller.
+- **Multi-profils partiel côté interface** : `search_profiles` gère le multi-profil
+  côté collecte, mais la mini-interface ne l'expose pas encore.
+- **Un seul environnement de base Airtable** : `AIRTABLE_BASE_ID` unique ; pas de
+  multi-base.
+
+Idées d'évolution notées mais non faites : documents PDF liés à chaque candidature
+dans le suivi, recherche/filtre dans les listes, export CSV, relance Discord
+automatique (suppose la stack allumée en permanence, hors esprit « local à la
+demande »).
