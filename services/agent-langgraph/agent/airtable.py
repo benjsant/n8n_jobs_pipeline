@@ -11,14 +11,22 @@ Table attendue (nom par défaut « Candidatures ») avec les colonnes :
 from __future__ import annotations
 
 import os
+import re
 from datetime import date
 
 import httpx
 
 
+def _base_id(raw: str) -> str:
+    """Tolère une URL Airtable collée : extrait le segment app... si présent."""
+    raw = (raw or "").strip()
+    m = re.search(r"app[a-zA-Z0-9]{14,}", raw)
+    return m.group(0) if m else raw
+
+
 def _config() -> tuple[str, str, str]:
     key = os.environ.get("AIRTABLE_TOKEN", "").strip()
-    base = os.environ.get("AIRTABLE_BASE_ID", "").strip()
+    base = _base_id(os.environ.get("AIRTABLE_BASE_ID", ""))
     table = os.environ.get("AIRTABLE_TABLE", "Candidatures").strip() or "Candidatures"
     return key, base, table
 

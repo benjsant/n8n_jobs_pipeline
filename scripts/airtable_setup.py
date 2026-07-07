@@ -9,12 +9,21 @@ Le jeton doit avoir les scopes : schema.bases:read + schema.bases:write
 """
 import json
 import os
+import re
 import sys
 import urllib.error
 import urllib.request
 
+
+def _base_id(raw: str) -> str:
+    """Tolère une URL Airtable collée : extrait le segment app... si présent."""
+    raw = (raw or "").strip()
+    m = re.search(r"app[a-zA-Z0-9]{14,}", raw)
+    return m.group(0) if m else raw
+
+
 KEY = os.environ.get("AIRTABLE_TOKEN", "").strip()
-BASE = os.environ.get("AIRTABLE_BASE_ID", "").strip()
+BASE = _base_id(os.environ.get("AIRTABLE_BASE_ID", ""))
 TABLE = os.environ.get("AIRTABLE_TABLE", "Candidatures").strip() or "Candidatures"
 
 if not (KEY and BASE):
