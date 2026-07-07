@@ -19,7 +19,7 @@ PostgreSQL est la **seule source de vérité**. n8n orchestre ; l'intelligence
 <div class="grid cards" markdown>
 
 - :material-rocket-launch: **[Mini-interface](interface.md)**
-  Usage à la demande, sans déployer : colle une URL d'offre, récupère CV + lettre.
+  Sans déployer : générer depuis une URL, trier les offres, suivre les réponses.
 
 - :material-download: **[Installation](installation.md)**
   Lancer la stack complète (Docker Compose) sur une nouvelle machine.
@@ -27,8 +27,8 @@ PostgreSQL est la **seule source de vérité**. n8n orchestre ; l'intelligence
 - :material-key: **[Clés & sources](cles-sources.md)**
   Quelles clés créer (DeepSeek, France Travail, Discord…) et où les coller.
 
-- :material-server: **[Déploiement VPS](deploiement-vps.md)**
-  VPS privé durci (WireGuard + SSH), optionnel, pas nécessaire pour un usage local.
+- :material-lightbulb-on: **[Choix technologiques](choix-techniques.md)**
+  Pourquoi chaque brique (n8n, Postgres, LangGraph, DeepSeek…) a été retenue.
 
 </div>
 
@@ -45,6 +45,8 @@ PostgreSQL est la **seule source de vérité**. n8n orchestre ; l'intelligence
 | **Lettre** | Corps figé validé + accroche LLM, assemblage déterministe (5 templates). |
 | **Entretien** | Dossier de prépa (faits entreprise, atouts, questions probables + réponses). |
 | **Livraison** | CV + lettre livrés sur Discord. Validation humaine avant envoi. |
+| **Suivi** | Page « Mes candidatures » : statuts, relances, notes ; miroir Airtable optionnel. |
+| **Démarchage** | Entreprises à contacter (façon La Bonne Boîte) + candidature spontanée. |
 
 ## Le graphe de l'agent
 

@@ -61,18 +61,32 @@ Index : unique sur `hash`, index sur `status`.
 | sector | text | |
 | description | text | |
 | ai_summary | text | résumé généré (V2) |
+| apply_url | text | lien de contact LBA (candidature spontanée) |
+| phone | text | téléphone de contact (LBA, si fourni) |
+| email | text | email de contact (source officielle, si fourni) |
 | last_updated | timestamptz | |
 
 ### Table `applications`
+Peuplée quand on marque une offre « Postulé » ou qu'on génère une candidature
+spontanée depuis la mini-interface. Champs **dénormalisés** (poste, entreprise,
+lien, score) pour que le suivi **survive à la suppression de l'offre**
+(`offer_id` passe alors en NULL, pas de perte d'historique).
+
 | Colonne | Type | Notes |
 |---|---|---|
 | id | serial PK | |
-| offer_id | int FK → offers.id, **nullable** | NULL = candidature **spontanée** |
-| company_id | int FK → companies.id | |
+| offer_id | int FK → offers.id **ON DELETE SET NULL**, nullable | NULL = spontanée ou offre purgée |
+| company_id | int FK → companies.id ON DELETE SET NULL | |
 | kind | text | `offer` (défaut) / `spontaneous` |
 | status | text | `draft` / `sent` / `interview` / `rejected` / `accepted` |
 | applied_at | timestamptz | |
-| response_at | timestamptz | null tant que pas de réponse (relances V2) |
+| response_at | timestamptz | posé au 1er passage à un statut de réponse |
+| reminded_at | timestamptz | date de relance (« Relancée ») |
+| poste | text | snapshot de l'intitulé |
+| entreprise | text | snapshot du nom d'entreprise |
+| lien | text | snapshot du lien vers l'offre |
+| score | int | snapshot du score |
+| airtable_id | text | id de la ligne miroir Airtable (sync du statut) |
 | notes | text | |
 
 ### Table `generated_documents`

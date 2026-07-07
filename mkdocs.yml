@@ -57,6 +57,7 @@ nav:
       - API & schéma SQL: reference.md
       - Données & DeepSeek: donnees-et-deepseek.md
   - Projet:
+      - Choix technologiques: choix-techniques.md
       - Évolution LangGraph: plan-langgraph.md
 
 markdown_extensions:
