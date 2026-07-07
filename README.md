@@ -13,6 +13,10 @@ agent LLM, prépare la candidature et un **dossier d'entretien**.
 PostgreSQL est la **seule source de vérité**. n8n orchestre ; l'intelligence
 (scoring, accroche, prépa entretien) vit dans un micro-service Python **LangGraph**.
 
+📖 **Documentation complète** : **<https://benjsant.github.io/n8n_jobs_pipeline/>**
+(installation, mini-interface, clés & sources, historique Airtable, choix
+technologiques, référence API + schéma SQL).
+
 ---
 
 ## ✨ Ce que ça fait
@@ -31,6 +35,8 @@ PostgreSQL est la **seule source de vérité**. n8n orchestre ; l'intelligence
 | **Spontané** | Entreprises LBA sans offre → alerte avec lien + génération de lettre spontanée. |
 | **Entretien** | Webhook → dossier de prépa (faits entreprise, atouts, écarts à anticiper, questions probables + réponses). |
 | **Livraison** | CV + lettre livrés sur Discord. Validation humaine. (Gmail brouillon + Drive optionnels.) |
+| **Suivi** | Page « Mes candidatures » : statuts (postulé → entretien → refus/accepté), relances, notes, prépa entretien en un clic. |
+| **Historique** | Miroir **Airtable** optionnel quand on marque « Postulé » ; **Metabase** (opt-in) pour les dashboards. |
 
 ---
 
@@ -90,8 +96,9 @@ START -> analyze -> research -> accroche -> judge <-> (retry max 3) -> validate 
 
 n8n (Docker) · **PostgreSQL + pgvector** · Python **LangGraph** + FastAPI ·
 **fastembed** (embeddings locaux) · DeepSeek (LLM) · Astro → PDF (Playwright) ·
-Discord · APIs France Travail / Adzuna / JobSpy / WTTJ / SerpApi / JSearch / LBA /
-INSEE · Gmail + Drive (optionnels).
+mini-interface **Alpine.js** · Discord · APIs France Travail / Adzuna / JobSpy /
+WTTJ / SerpApi / JSearch / LBA / INSEE · **Airtable** + **Metabase** (optionnels) ·
+Gmail + Drive (optionnels). Détail et justification : [`docs/choix-techniques.md`](docs/choix-techniques.md).
 
 ---
 
@@ -113,10 +120,15 @@ docker compose up -d          # ou : just up
 just test                     # suites JS + garde-fou de parité des nœuds
 ```
 
-> **Usage à la demande (sans déployer)** : `just ui` lance la mini-interface web
-> (agent + render seulement) sur http://localhost:8901 — colle l'URL d'une offre,
-> confirme, récupère CV + lettre (téléchargement + Discord). Voir
-> [`docs/interface.md`](docs/interface.md).
+> **Usage à la demande (sans déployer)** : `just ui` (ou `./start.sh --ui`) lance
+> la mini-interface web sur http://localhost:8901 — générer depuis une URL, **trier
+> les offres** (postulé / ignoré / réanalyser / supprimer / purge), **suivre les
+> candidatures**, préparer un entretien, démarcher les entreprises (spontanée).
+> Voir [`docs/interface.md`](docs/interface.md).
+
+> **Lanceur tout-en-un** : `./start.sh` démarre toute la stack (vérifie Docker,
+> crée le `.env` au besoin), affiche les URLs et s'arrête proprement au Ctrl-C.
+> Options `--ui` (mode léger) et `--metabase` (dashboards).
 
 > Première install / déploiement VPS : voir [`docs/installation.md`](docs/installation.md)
 > et [`docs/deploiement-vps.md`](docs/deploiement-vps.md) (WireGuard + SSH durci).
@@ -135,8 +147,10 @@ services/
 cv/               # CV maître Astro (2 styles) + données *.json + service de rendu
 assets/letters/   # 5 templates de lettres (corps figé)
 db/               # schéma SQL (source de vérité)
-docs/             # référence API, déploiement, décisions (contexte-claude.md)
+docs/             # documentation MkDocs (publiée sur GitHub Pages)
 ```
+
+Le dossier `docs/` est publié en site : **<https://benjsant.github.io/n8n_jobs_pipeline/>**.
 
 | Workflow | Rôle | Déclencheur |
 |---|---|---|
