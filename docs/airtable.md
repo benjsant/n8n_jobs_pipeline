@@ -12,7 +12,7 @@ répercuté quand tu fais avancer la candidature (Entretien, Refusé, Accepté).
 
 | Élément | Où | Variable `.env` |
 |---|---|---|
-| Jeton d'accès personnel | airtable.com/create/tokens | `AIRTABLE_API_KEY` |
+| Jeton d'accès personnel | airtable.com/create/tokens | `AIRTABLE_TOKEN` |
 | Identifiant de base | URL de la base (commence par `app…`) | `AIRTABLE_BASE_ID` |
 | Table (nom) | ta base Airtable | `AIRTABLE_TABLE` (défaut `Candidatures`) |
 
@@ -24,7 +24,7 @@ répercuté quand tu fais avancer la candidature (Entretien, Refusé, Accepté).
    - `schema.bases:read` + `schema.bases:write` (seulement si tu veux créer la
      table automatiquement avec `just airtable-setup`, voir l'étape 3).
 3. **Access** : ajoute la **base** qui contiendra le suivi.
-4. Crée le jeton, copie-le (il commence par `pat…`). C'est `AIRTABLE_API_KEY`.
+4. Crée le jeton, copie-le (il commence par `pat…`). C'est `AIRTABLE_TOKEN`.
 
 > Le jeton n'est affiché qu'une fois. Garde-le hors de Git (il va dans `.env`).
 
@@ -72,7 +72,7 @@ Crée une table nommée **`Candidatures`** (ou un autre nom, à reporter dans
 ## 4. Renseigner `.env` et redémarrer
 
 ```bash
-AIRTABLE_API_KEY=pat_ton_jeton
+AIRTABLE_TOKEN=pat_ton_jeton
 AIRTABLE_BASE_ID=appTonIdDeBase
 AIRTABLE_TABLE=Candidatures
 ```
@@ -101,7 +101,7 @@ docker compose up -d --build agent-langgraph
 
 | Symptôme | Piste |
 |---|---|
-| Aucune ligne créée | `AIRTABLE_API_KEY` **et** `AIRTABLE_BASE_ID` renseignés ? service rebuild ? |
+| Aucune ligne créée | `AIRTABLE_TOKEN` **et** `AIRTABLE_BASE_ID` renseignés ? service rebuild ? |
 | `403` / rien ne se passe | le jeton a-t-il le scope `data.records:write` **et** accès à cette base ? |
 | `422` (champ inconnu) | un nom de colonne ne correspond pas (respecte la casse) |
 | Statut non mis à jour | la ligne doit exister (créée au « Postulé ») pour être suivie |

@@ -2,7 +2,7 @@
 """Crée (ou complète) la table Airtable « Candidatures » et ses colonnes.
 
 Idempotent : si la table existe, on n'ajoute que les colonnes manquantes.
-Lit AIRTABLE_API_KEY, AIRTABLE_BASE_ID, AIRTABLE_TABLE dans l'environnement.
+Lit AIRTABLE_TOKEN, AIRTABLE_BASE_ID, AIRTABLE_TABLE dans l'environnement.
 
 Le jeton doit avoir les scopes : schema.bases:read + schema.bases:write
 (en plus de data.records:write utilisé par l'application). Stdlib uniquement.
@@ -13,12 +13,12 @@ import sys
 import urllib.error
 import urllib.request
 
-KEY = os.environ.get("AIRTABLE_API_KEY", "").strip()
+KEY = os.environ.get("AIRTABLE_TOKEN", "").strip()
 BASE = os.environ.get("AIRTABLE_BASE_ID", "").strip()
 TABLE = os.environ.get("AIRTABLE_TABLE", "Candidatures").strip() or "Candidatures"
 
 if not (KEY and BASE):
-    sys.exit("AIRTABLE_API_KEY et AIRTABLE_BASE_ID requis (dans .env).")
+    sys.exit("AIRTABLE_TOKEN et AIRTABLE_BASE_ID requis (dans .env).")
 
 META = f"https://api.airtable.com/v0/meta/bases/{BASE}/tables"
 

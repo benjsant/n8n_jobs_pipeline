@@ -84,7 +84,7 @@ Accès Postgres pour `/offers` (optionnel, seulement pour le tri des offres) :
 `POSTGRES_USER`, `POSTGRES_PASSWORD` — ou `DATABASE_URL`. Absents/injoignables =
 `/offers` renvoie 503, le reste du service fonctionne.
 
-Historique Airtable (optionnel) : `AIRTABLE_API_KEY`, `AIRTABLE_BASE_ID`,
+Historique Airtable (optionnel) : `AIRTABLE_TOKEN`, `AIRTABLE_BASE_ID`,
 `AIRTABLE_TABLE` (défaut `Candidatures`). Vides = fonctionnalité inactive.
 
 ## Dév (conteneur)

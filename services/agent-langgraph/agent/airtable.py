@@ -2,7 +2,7 @@
 
 Postgres reste la source de vérité (cf. CLAUDE.md) ; Airtable n'est qu'une vue
 d'historique pratique. Quand tu marques une offre « Postulé », on y ajoute une
-ligne. Désactivé tant que AIRTABLE_API_KEY + AIRTABLE_BASE_ID ne sont pas définis.
+ligne. Désactivé tant que AIRTABLE_TOKEN + AIRTABLE_BASE_ID ne sont pas définis.
 
 Table attendue (nom par défaut « Candidatures ») avec les colonnes :
   Poste (text), Entreprise (text), Lieu (text), Lien (url), Score (number),
@@ -17,7 +17,7 @@ import httpx
 
 
 def _config() -> tuple[str, str, str]:
-    key = os.environ.get("AIRTABLE_API_KEY", "").strip()
+    key = os.environ.get("AIRTABLE_TOKEN", "").strip()
     base = os.environ.get("AIRTABLE_BASE_ID", "").strip()
     table = os.environ.get("AIRTABLE_TABLE", "Candidatures").strip() or "Candidatures"
     return key, base, table

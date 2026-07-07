@@ -67,7 +67,7 @@ Une offre `applied` ou `ignored` ne réapparaît plus dans les **alertes Discord
 du workflow `01` (qui n'alerte que les offres `new`). C'est le moyen d'éviter de
 revoir une offre à laquelle tu as déjà répondu.
 
-> **Historique Airtable (optionnel)** : si `AIRTABLE_API_KEY` + `AIRTABLE_BASE_ID`
+> **Historique Airtable (optionnel)** : si `AIRTABLE_TOKEN` + `AIRTABLE_BASE_ID`
 > sont renseignés dans `.env`, marquer une offre « Postulé » ajoute une ligne dans
 > ta base Airtable (Poste, Entreprise, Lieu, Lien, Score, Statut, Date). Postgres
 > reste la source de vérité ; Airtable n'est qu'une vue d'historique.
