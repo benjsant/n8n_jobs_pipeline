@@ -243,7 +243,14 @@
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ { \"content\": `🏢 **Candidature spontanée (alternance)** — ${$json.name}${$json.sector ? ' · ' + $json.sector : ''}\\n[${$('Boucle profils').first().json.name}]${$json.website ? '\\n🌐 ' + $json.website : ''}${$json.apply_url ? '\\n🔗 Entreprise: ' + $json.apply_url : ''}${$json.phone ? '\\n☎️ ' + $json.phone : ''}${$json.email ? '\\n✉️ ' + $json.email : ''}\\n✅ Postuler: ${$env.WEBHOOK_URL}webhook/spontaneous-apply?company=${encodeURIComponent($json.name)}${$env.WEBHOOK_SECRET ? '&token=' + encodeURIComponent($env.WEBHOOK_SECRET) : ''}` } }}",
-        "options": {}
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 2000
+            }
+          }
+        }
       },
       "id": "a1000000-0000-4000-8000-000000000064",
       "name": "Discord spontanée",
@@ -252,7 +259,10 @@
       "position": [
         900,
         1120
-      ]
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
     },
     {
       "parameters": {
@@ -330,7 +340,14 @@
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ { content: $json.logMsg } }}",
-        "options": {}
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 2000
+            }
+          }
+        }
       },
       "id": "a1000000-0000-4000-8000-000000000067",
       "name": "Discord jobs-log",
@@ -340,7 +357,10 @@
         1670,
         520
       ],
-      "onError": "continueRegularOutput"
+      "onError": "continueRegularOutput",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
     },
     {
       "parameters": {
@@ -482,7 +502,14 @@
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ { \"content\": `🆕 **${$json.title}** — ${$json.company || 'Entreprise inconnue'}\\n[${$('Boucle profils').first().json.name}] Score ${$json.score} · ${$json.location} · ${$json.source}${$json.score_reason ? '\\n💡 ' + $json.score_reason : ''}\\n${$json.url}\\n✅ Générer: ${$env.WEBHOOK_URL}webhook/offer-status?hash=${$json.hash}&action=selected${$env.WEBHOOK_SECRET ? '&token=' + encodeURIComponent($env.WEBHOOK_SECRET) : ''}\\n🚫 Ignorer: ${$env.WEBHOOK_URL}webhook/offer-status?hash=${$json.hash}&action=ignored${$env.WEBHOOK_SECRET ? '&token=' + encodeURIComponent($env.WEBHOOK_SECRET) : ''}` } }}",
-        "options": {}
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 2000
+            }
+          }
+        }
       },
       "id": "a1000000-0000-4000-8000-000000000055",
       "name": "Discord jobs-alerts",
@@ -491,7 +518,10 @@
       "position": [
         2880,
         260
-      ]
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
     }
   ],
   "connections": {
@@ -787,6 +817,6 @@
   },
   "active": false,
   "meta": {
-    "note": "01 multi-profils — sources retenues : France Travail (officiel, géoloc INSEE+rayon) + JobSpy (LinkedIn/Indeed FR/Glassdoor) + La Bonne Alternance (offres alternance + recruteurs spontanés). Adzuna/SerpApi/JSearch/WTTJ retirés (doublons/obsolètes). Boucle profils -> 3 collectes -> Merge(3) -> score -> hash -> INSERT (dédup hash + dédup sémantique inter-runs via pgvector, RETURNING only-new) -> affinage DeepSeek -> seuil -> Discord alerts ; LBA recruteurs -> upsert companies + Discord candidature spontanée. credentials Postgres = pgjobhunter0001. Liens d'action Discord signés par WEBHOOK_SECRET (optionnel, vérifié par 03/05/06)."
+    "note": "01 multi-profils — sources retenues : France Travail (officiel, géoloc INSEE+rayon) + JobSpy (LinkedIn/Indeed FR/Glassdoor) + La Bonne Alternance (offres alternance + recruteurs spontanés). Adzuna/SerpApi/JSearch/WTTJ retirés (doublons/obsolètes). Boucle profils -> 3 collectes -> Merge(3) -> score -> hash -> INSERT (dédup hash + dédup sémantique inter-runs via pgvector, RETURNING only-new) -> affinage DeepSeek -> seuil -> Discord alerts ; LBA recruteurs -> upsert companies + Discord candidature spontanée. credentials Postgres = pgjobhunter0001. Liens d'action Discord signés par WEBHOOK_SECRET (optionnel, vérifié par 03/05/06). Nœuds Discord : throttle 1 msg/2 s + retry (le webhook Discord limite le débit, 429 sinon)."
   }
 }
