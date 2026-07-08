@@ -10,10 +10,13 @@ cleanup() { docker rm -f "$CT" >/dev/null 2>&1 || true; }
 trap cleanup EXIT
 
 echo "── démarrage Postgres jetable"
+# Même image que la stack (docker-compose) : le schéma exige l'extension vector.
 docker run --rm -d --name "$CT" -e POSTGRES_PASSWORD=test -e POSTGRES_DB=testdb \
-  postgres:16-alpine >/dev/null
-for _ in $(seq 1 20); do
-  docker exec "$CT" pg_isready -U postgres -d testdb >/dev/null 2>&1 && break; sleep 1
+  pgvector/pgvector:pg16 >/dev/null
+# psql (pas pg_isready) : le serveur temporaire d'initdb répond à pg_isready
+# avant que la base testdb existe.
+for _ in $(seq 1 30); do
+  docker exec "$CT" psql -U postgres -d testdb -c "SELECT 1" >/dev/null 2>&1 && break; sleep 1
 done
 
 echo "── application du schéma"
