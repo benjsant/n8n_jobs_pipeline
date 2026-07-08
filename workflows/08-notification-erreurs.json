@@ -46,6 +46,6 @@
   "settings": { "executionOrder": "v1" },
   "active": false,
   "meta": {
-    "note": "Error Workflow global : déclaré dans les settings (errorWorkflow) des workflows 01 à 07, il reçoit chaque exécution en échec et poste workflow/nœud/message sur jobs-log (fallback jobs-alerts). Sans lui, un échec (ex. 429 Discord du 2026-07-07) est invisible hors de l'UI n8n. Pas besoin de l'activer : n8n l'invoque automatiquement. Aucune credential requise."
+    "note": "Error Workflow global : déclaré dans les settings (errorWorkflow) des workflows 01 à 07, il reçoit chaque exécution en échec et poste workflow/nœud/message sur jobs-log (fallback jobs-alerts). Sans lui, un échec (ex. 429 Discord du 2026-07-07) est invisible hors de l'UI n8n. ⚠️ Doit être ACTIF : n8n 2.x refuse d'exécuter un error workflow inactif (vérifié en réel, message « is not active and cannot be executed »). Aucune credential requise."
   }
 }

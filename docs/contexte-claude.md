@@ -262,8 +262,10 @@ variante ATS strictement noir/blanc si un parser très ancien le justifie (trivi
     `settings.errorWorkflow` des workflows 01→07 : tout échec d'exécution poste
     workflow + nœud + message sur jobs-log (fallback alerts). Motivation : le
     run du 2026-07-07 avait échoué en silence (429 Discord), invisible hors UI.
-    Pas d'activation nécessaire (n8n l'invoque). Au passage : throttle 1 msg/2 s
-    + retry sur les 3 nœuds Discord du 01 (cause du 429 : limite webhook).
+    ⚠️ Le 08 doit être ACTIF : n8n 2.x refuse d'exécuter un error workflow
+    inactif (constaté en réel). Testé de bout en bout : erreur provoquée sur
+    le 03 → exécution wf08 en succès → message posté sur jobs-log. Au passage :
+    throttle 1 msg/2 s + retry sur les 3 nœuds Discord du 01 (cause du 429).
 30. **`just deploy-workflows`** (2026-07-08). Déploiement en une commande :
     substitue `REMPLACER` par l'id réel de la credential Postgres (lu dans
     `credentials_entity`), importe chaque `NN-*.json`, réactive tout sauf le 08,

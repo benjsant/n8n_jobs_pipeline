@@ -83,7 +83,8 @@ elle, testée hors stack — voir `lib/` et `scripts/run-tests.sh`.
 > **Erreurs visibles** : le `08` est déclaré comme *Error Workflow* dans les
 > settings des workflows `01` à `07`. Tout échec d'exécution poste sur jobs-log
 > (fallback jobs-alerts) le workflow, le nœud fautif et le message d'erreur.
-> Il n'a pas besoin d'être activé : n8n l'invoque automatiquement.
+> ⚠️ Il doit être **actif** : n8n 2.x refuse d'exécuter un error workflow
+> inactif (`just deploy-workflows` l'active comme les autres).
 
 > **Fuseau horaire** : les crons (`01` à 8h, `07` dimanche 18h) suivent
 > `GENERIC_TIMEZONE` (Europe/Paris par défaut dans le compose). Sans cette
@@ -113,8 +114,8 @@ just deploy-workflows
 
 La recette remplace `REMPLACER` par l'id réel de la credential Postgres de
 l'instance (créée une fois dans l'UI), importe chaque `NN-*.json`, réactive
-tout (un import désactive les workflows ; `02` inactif ferait échouer `03`/`05`)
-sauf le `08` (error workflow, pas d'activation), puis redémarre n8n.
+tout (un import désactive les workflows ; `02` inactif ferait échouer `03`/`05`,
+et le `08` inactif ne serait jamais invoqué), puis redémarre n8n.
 
 Au premier démarrage seulement, avant la commande :
 1. Créer la **credential Postgres** (« Postgres job-hunter ») dans l'UI n8n.

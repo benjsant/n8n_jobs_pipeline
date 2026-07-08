@@ -75,17 +75,15 @@ deploy-workflows:
       echo "❌ Aucune credential Postgres dans n8n : créer « Postgres job-hunter » dans l'UI d'abord." >&2
       exit 1
     fi
+    # Tout est activé, y compris le 08 : n8n 2.x REFUSE d'exécuter un error
+    # workflow inactif (« is not active and cannot be executed »).
     for f in workflows/[0-9][0-9]-*.json; do
       name=$(basename "$f" .json)
       wfid=$(sed -n 's/^  "id": "\([^"]*\)".*/\1/p' "$f" | head -1)
       docker exec job-hunter-n8n sh -c "sed 's/REMPLACER/$CRED/g' /workflows/$name.json > /tmp/wf-deploy.json \
         && n8n import:workflow --input=/tmp/wf-deploy.json && rm /tmp/wf-deploy.json" >/dev/null 2>&1
-      if grep -q errorTrigger "$f"; then
-        echo "  ✓ $name importé (error workflow, pas d'activation)"
-      else
-        docker exec job-hunter-n8n n8n update:workflow --id="$wfid" --active=true >/dev/null 2>&1
-        echo "  ✓ $name importé + activé ($wfid)"
-      fi
+      docker exec job-hunter-n8n n8n update:workflow --id="$wfid" --active=true >/dev/null 2>&1
+      echo "  ✓ $name importé + activé ($wfid)"
     done
     docker compose restart n8n >/dev/null 2>&1
     echo "✅ Workflows déployés, n8n redémarré."
