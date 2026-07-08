@@ -46,6 +46,10 @@ services:
       N8N_HOST: ${N8N_HOST:-localhost}
       N8N_PORT: 5678
       N8N_PROTOCOL: http
+      # Fuseau des crons : sans lui n8n retombe sur America/New_York (le « 8h »
+      # du workflow 01 partait en réalité à 14h heure de Paris).
+      GENERIC_TIMEZONE: ${GENERIC_TIMEZONE:-Europe/Paris}
+      TZ: ${GENERIC_TIMEZONE:-Europe/Paris}
       WEBHOOK_URL: ${WEBHOOK_URL:-http://localhost:8978/}
       # Jeton des liens d'action Discord (vérifié par les workflows 03/05/06).
       WEBHOOK_SECRET: ${WEBHOOK_SECRET:-}
