@@ -10,9 +10,22 @@
 
 ---
 
-## 🔄 REPRISE DE SESSION — handoff (2026-06-28)
+## 🔄 REPRISE DE SESSION — handoff (2026-07-08)
 
 > À lire en premier pour reprendre. Résume l'état exact et le travail en cours.
+
+**Durcissement + dédup + digest (2026-07-08, suite audit Claude)** : (1) liens
+d'action Discord **signés** par `WEBHOOK_SECRET` (optionnel, vérifié par
+`03`/`05`/`06`, vide = rétro-compatible) ; (2) l'INSERT du `01` **persiste enfin
+les embeddings** (`offers.embedding` + nouvelle colonne `company_canon`) et fait
+la **dédup sémantique inter-runs** (anti-join pgvector, SQL validé sur Postgres
+jetable) — sur une base existante, appliquer `db/schema.sql` à la main ; (3)
+nouveau workflow **`07-digest-hebdo`** (dimanche 18h : récap offres/candidatures
++ à relancer → jobs-alerts) ; (4) docs resynchronisées avec le code
+(`workflows/README.md` : 3 sources réelles, `04` = livraison Discord ;
+`CLAUDE.md` : stack/pipeline/arborescence actuels) ; (5) fix `db/queries.test.sh`
+(image pgvector + attente robuste — il échouait sur main). Après réimport des
+workflows dans n8n : réactiver, et renseigner `WEBHOOK_SECRET` dans `.env`.
 
 **MVP n8n = TERMINÉ et déployé sur `main`**. Chaîne complète
 **sans Google** : `01` (cron 8h, sources **France Travail réparé + JobSpy**) → Discord
@@ -216,6 +229,25 @@ variante ATS strictement noir/blanc si un parser très ancien le justifie (trivi
     `CV_STYLE` (`ats` défaut / `design`). Mêmes données `cv/*.json` + personnalisation pour
     les deux ; `<style is:inline>` + couleurs hex (rendu PDF en `file://`). Archi inchangée :
     DeepSeek = données, Astro = rendu.
+26. **Webhooks d'action signés** (2026-07-08). Les liens ✅/🚫/spontanée/entretien
+    des messages Discord sont des GET **mutables** : un robot de prévisualisation
+    de liens peut les visiter. `WEBHOOK_SECRET` (`.env`, passé à n8n) est ajouté
+    en `&token=` par le `01` et vérifié par `03`/`05`/`06` (throw si mismatch).
+    Vide = désactivé (aucune rupture). La vraie solution long terme reste un bot
+    Discord à boutons natifs (interactions signées).
+27. **Dédup sémantique inter-runs + embeddings persistés** (2026-07-08). Avant :
+    embeddings calculés par le `01` mais jamais insérés (colonne pgvector vide,
+    index HNSW inutile) ; dédup limitée au lot du jour. Maintenant : le nœud
+    généré « Dédup sémantique » attache `embedding` + `company_canon` (nouvelle
+    colonne `offers`), et l'INSERT (executeQuery) fait un anti-join
+    (`embedding <=> $vec <= 0.20` + même `company_canon`) avant insertion.
+    Seuil = 1 - SEMANTIC_DUP_THRESHOLD (0.80, offer-utils.mjs). Comportement
+    validé par un test SQL réel (quasi-doublon rejeté, autre entreprise passe,
+    sans embedding passe). ⚠️ Migration : base existante → rejouer schema.sql.
+28. **Workflow 07 digest hebdo** (2026-07-08). Cron dimanche 18h → une requête
+    stats (offres 7 j par statut, totaux candidatures, top 5 « à relancer » :
+    sent sans réponse > 7 j, non relancées récemment) → message jobs-alerts.
+    Lecture seule, garde si webhook absent.
 
 ## ⏳ En attente de l'utilisateur
 

@@ -29,9 +29,9 @@ orienté IA / développement logiciel. Le système doit :
 5. Notifier l'utilisateur via Discord.
 6. Générer un CV personnalisé à partir d'un CV maître Astro.
 7. Générer une lettre de motivation personnalisée.
-8. Préparer un brouillon Gmail prêt à être envoyé.
-9. Archiver les documents générés (Google Drive).
-10. Suivre les candidatures et les réponses.
+8. Livrer CV + lettre en pièces jointes sur Discord, prêts à relire (la
+   variante brouillon Gmail + archivage Google Drive est dans l'historique git).
+9. Suivre les candidatures et les réponses (mini-interface web + digest hebdo).
 
 **Validation humaine obligatoire avant tout envoi.**
 
@@ -52,22 +52,32 @@ Une relecture humaine reste obligatoire avant chaque envoi.
 - **Source de vérité** : **PostgreSQL** (le même conteneur sert aussi la
   persistance interne de n8n). Notion/Airtable ne sont PAS le stockage
   principal — au plus une interface de consultation ultérieure.
+- **Intelligence** : service `agent-langgraph` (Python, FastAPI + LangGraph) —
+  scoring fin, grounding entreprise (INSEE + web), accroche de lettre, prépa
+  entretien. Sert aussi la **mini-interface web** (:8901, Alpine.js).
 - **LLM de l'agent** : DeepSeek (API compatible OpenAI, base URL
   `https://api.deepseek.com`, modèle `deepseek-chat` par défaut).
-- **Génération CV** : Astro (template HTML/CSS fixe) → export PDF.
-- **Sources d'offres** : API France Travail, Adzuna, JobSpy
-  (LinkedIn/Indeed/Glassdoor), RSS Welcome to the Jungle.
-- **Notifications** : Discord (webhook, deux canaux).
-- **Email** : Gmail (brouillon uniquement, jamais d'envoi auto).
-- **Stockage documents** : Google Drive.
+- **Génération CV/lettre** : service `render` (Astro + Playwright, template
+  HTML/CSS fixe) → PDF dans `./output`. Deux styles (`CV_STYLE` : ats/design).
+- **Sources d'offres câblées** : API France Travail, JobSpy
+  (LinkedIn/Indeed/Glassdoor), La Bonne Alternance (offres + entreprises à
+  démarcher). Normaliseurs Adzuna/SerpApi/JSearch/WTTJ disponibles dans
+  `workflows/lib/sources.mjs` (réactivables).
+- **Dédup sémantique** : service `embeddings` (fastembed local) + pgvector.
+- **Notifications et livraison** : Discord (webhook, deux canaux) — les PDF
+  arrivent en pièces jointes ; envoi final toujours humain.
 - **Dev assistant** : Claude Code.
 
 ## Architecture (pipeline)
 
 ```
-Sources d'offres → Collecte → Déduplication → Scoring → PostgreSQL → Discord
-→ Validation humaine → Agent candidature → CV personnalisé (Astro/PDF)
-→ Lettre de motivation → Brouillon Gmail → Google Drive
+Sources d'offres → 01 Collecte → Dédup (hash + sémantique) → Scoring hybride
+→ PostgreSQL → Discord jobs-alerts → clic humain (03) → 02 Agent
+(service LangGraph : analyze → research → accroche → judge → validate)
+→ render (CV + lettre Astro → PDF) → 04 Livraison Discord → relecture humaine
+Branches : 05 candidature spontanée (entreprises LBA) · 06 prépa entretien ·
+07 digest hebdo. Mini-interface (:8901) : candidater depuis une URL, trier,
+suivre, relancer. Détails : docs/architecture-technique.md.
 ```
 
 ## Source de vérité : PostgreSQL
@@ -129,25 +139,31 @@ l'entreprise. Templates dans `assets/letters/` :
 
 ```
 n8n_jobs_pipeline/          # racine du projet
-├── docker-compose.yml      # n8n + Postgres (+ micro-service JobSpy)
+├── docker-compose.yml      # postgres, n8n, jobspy, agent-langgraph,
+│                           # embeddings, render, cleanup (+ metabase opt-in)
 ├── .env                    # secrets (JAMAIS commité)
 ├── .env.example            # template documenté
-├── .gitignore
+├── Justfile                # toutes les commandes (just up / ui / test / …)
 ├── CLAUDE.md               # ce fichier
-├── README.md
 ├── TASKS.md                # plan de build ordonné
-├── db/                     # schéma SQL (init des tables PostgreSQL)
-├── workflows/              # exports JSON des workflows n8n
-│   └── 02-agent-candidature.json
+├── db/                     # schéma SQL, seed profils, test d'intégration
+├── workflows/              # exports JSON des workflows n8n (01 → 07)
+│   └── lib/                # logique métier testée, source des nœuds Code
+│                           # (build-nodes.mjs génère 2 nœuds du 01)
 ├── prompts/
 │   └── agent-system-prompt.md   # system prompt de l'agent (cœur du projet)
-├── cv/                     # CV maître Astro + données structurées
-│   ├── template.astro
+├── services/
+│   ├── agent-langgraph/    # agent (graphe LangGraph) + mini-interface web
+│   ├── embeddings/         # vecteurs locaux (fastembed) pour la dédup
+│   └── jobspy/             # collecte LinkedIn/Indeed/Glassdoor
+├── cv/                     # CV maître Astro + données + service render
+│   ├── template-ats.astro  # style par défaut (1 colonne, sans photo)
+│   ├── template.astro      # style design
+│   ├── server.mjs          # POST /cv, POST /letter → PDF
 │   └── *.json
 ├── assets/
-│   └── letters/                 # modèles de lettres typés
-└── docs/
-    └── reference.md             # toutes les infos API + schéma SQL exacts
+│   └── letters/                 # modèles de lettres typés (corps figé)
+└── docs/                   # MkDocs : architecture-technique.md, reference.md…
 ```
 
 ## Conventions

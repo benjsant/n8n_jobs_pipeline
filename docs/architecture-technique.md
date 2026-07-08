@@ -101,7 +101,7 @@ Tables clés (schéma exact : [reference.md](reference.md)) :
 
 - **offers** : `hash` = `SHA256(title+company+location)` canonicalisé, unique
   (dédup exacte). `status` dans `new/reviewed/selected/ignored/applied`. `embedding`
-  (pgvector) pour la dédup sémantique.
+  (pgvector) + `company_canon` pour la dédup sémantique (intra-lot et inter-runs).
 - **companies** : `name` unique. Contact LBA : `apply_url`, `phone`, `email`.
 - **applications** : le suivi. **Champs dénormalisés** (`poste`, `entreprise`,
   `lien`, `score`) pour **survivre à la suppression d'une offre** (`offer_id` est
@@ -125,6 +125,18 @@ Invariants à ne pas casser :
 | `04-candidature-finalisation` | livraison Discord (Gmail/Drive optionnels) | Execute |
 | `05-candidature-spontanee` | entreprise LBA sans offre -> `02` en mode spontané | webhook |
 | `06-prepa-entretien` | offre -> dossier d'entretien (agent) | webhook |
+| `07-digest-hebdo` | récap hebdo (offres, candidatures, à relancer) -> Discord | cron (dimanche 18h) |
+
+Deux garde-fous transverses :
+
+- **Webhooks signés** : si `WEBHOOK_SECRET` est renseigné, les webhooks `03`/`05`/`06`
+  rejettent tout appel sans `?token=<valeur>` (les liens Discord générés par le `01`
+  l'incluent). Vide = comportement historique. Protège des robots de prévisualisation
+  de liens et des URL devinées.
+- **Dédup sémantique inter-runs** : l'INSERT du `01` persiste `embedding` (pgvector)
+  et `company_canon`, et écarte via un anti-join (`<=>`, distance <= 0.20) les
+  quasi-doublons déjà en base pour la même entreprise canonique. La dédup intra-lot
+  reste dans le nœud Code généré.
 
 Le **jsCode des nœuds Code du `01` est généré** depuis `offer-utils.mjs` par
 `build-nodes.mjs`. Ne modifie **jamais** ce jsCode dans le JSON à la main : change
@@ -299,6 +311,6 @@ ou `agent/`), pas par du code copié dans un nœud n8n.
   multi-base.
 
 Idées d'évolution notées mais non faites : documents PDF liés à chaque candidature
-dans le suivi, recherche/filtre dans les listes, export CSV, relance Discord
-automatique (suppose la stack allumée en permanence, hors esprit « local à la
-demande »).
+dans le suivi, recherche/filtre dans les listes, export CSV. Le rappel des
+candidatures à relancer existe désormais côté interface (badge) **et** via le
+workflow `07-digest-hebdo` (récap Discord du dimanche, si la stack tourne).
