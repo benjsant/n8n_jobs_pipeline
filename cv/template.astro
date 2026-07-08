@@ -217,7 +217,7 @@ const icons = {
                     <div class="cvd-tl-head">
                       <div>
                         <span class="cvd-tl-org">{ed.degree}</span>
-                        <span class="cvd-tl-role">{ed.school}{ed.location ? `, ${ed.location}` : ""}</span>
+                        <span class="cvd-tl-role">{ed.school}{ed.location ? `, ${ed.location}` : ""}{ed.details ? ` · ${ed.details}` : ""}</span>
                       </div>
                       {ed.date && <span class="cvd-tl-date">{ed.date}</span>}
                     </div>

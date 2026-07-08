@@ -84,7 +84,8 @@ chiffré n'est fourni, ne pas en inventer)
   monitoring Prometheus/Grafana.
 
 **Formation**
-- Formation Développeur IA — RNCP niveau 6 (bac+3/4), Simplon, Lille (2025-26).
+- Certification Développeur IA, RNCP niveau 6 (bac+3/4), Simplon, Lille,
+  obtenue en mars 2026.
 - Licence Pro SIO, option Développement, ISTV de Valenciennes (UVHC) (2018-19).
 - BTS SIO, option SLAM, Lycée Henri Wallon, Valenciennes (2015-17).
 

@@ -167,7 +167,7 @@ if (profile.location || profile.mobility_label) meta.push({ label: "Mobilité", 
         <section>
           <h2>Formation</h2>
           {education.map((ed) => (
-            <p class="line"><strong>{clean(ed.degree)}</strong>, {clean(ed.school)}{ed.location ? `, ${clean(ed.location)}` : ""}{ed.date ? ` (${clean(ed.date)})` : ""}</p>
+            <p class="line"><strong>{clean(ed.degree)}</strong>, {clean(ed.school)}{ed.location ? `, ${clean(ed.location)}` : ""}{ed.date ? ` (${clean(ed.date)})` : ""}{ed.details ? ` : ${clean(ed.details)}` : ""}</p>
           ))}
         </section>
       )}
