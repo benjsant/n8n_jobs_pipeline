@@ -53,6 +53,8 @@ services:
       WEBHOOK_URL: ${WEBHOOK_URL:-http://localhost:8978/}
       # Jeton des liens d'action Discord (vérifié par les workflows 03/05/06).
       WEBHOOK_SECRET: ${WEBHOOK_SECRET:-}
+      # Jeton de la mini-interface : les workflows 02/06 l'envoient au service agent.
+      UI_TOKEN: ${UI_TOKEN:-}
       N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY}
       # --- Authentification basique de l'UI ---
       N8N_BASIC_AUTH_ACTIVE: "true"
@@ -138,6 +140,8 @@ services:
       AIRTABLE_TOKEN: ${AIRTABLE_TOKEN:-}
       AIRTABLE_BASE_ID: ${AIRTABLE_BASE_ID:-}
       AIRTABLE_TABLE: ${AIRTABLE_TABLE:-Candidatures}
+      # Jeton d'accès opt-in de la mini-interface (requis avant d'ouvrir BIND_HOST).
+      UI_TOKEN: ${UI_TOKEN:-}
     # Mini-interface publiée sur 127.0.0.1 par défaut (local only, sans auth).
     ports:
       - "${BIND_HOST:-127.0.0.1}:${UI_PORT:-8901}:8001"

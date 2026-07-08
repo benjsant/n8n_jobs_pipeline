@@ -68,8 +68,8 @@
         "headerParameters": {
           "parameters": [
             {
-              "name": "Content-Type",
-              "value": "application/json"
+              "name": "X-UI-Token",
+              "value": "={{ $env.UI_TOKEN || '' }}"
             }
           ]
         },

@@ -17,10 +17,11 @@ from __future__ import annotations
 import glob
 import logging
 import os
+import secrets
 
 import httpx
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse, HTMLResponse
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from pydantic import BaseModel
 
 from agent import airtable, db
@@ -42,6 +43,35 @@ CONTEXT = load_context()
 _STATIC = os.path.join(os.path.dirname(__file__), "static", "index.html")
 _OUTPUT = os.environ.get("OUTPUT_DIR", "/output")
 _RENDER = os.environ.get("RENDER_API_URL", "http://render:8000")
+
+
+# Jeton d'accès opt-in (UI_TOKEN dans .env) : indispensable avant d'ouvrir la
+# mini-interface au-delà de 127.0.0.1 (BIND_HOST). Vide = pas d'authentification
+# (comportement historique, usage local). Trois porteurs acceptés : header
+# X-UI-Token (appels serveur, ex. workflows n8n), ?token= (première visite du
+# navigateur, posé ensuite en cookie), cookie ui_token (navigation courante).
+_UI_TOKEN = os.environ.get("UI_TOKEN", "").strip()
+
+
+@app.middleware("http")
+async def _ui_auth(request: Request, call_next):
+    if _UI_TOKEN and request.url.path != "/health":
+        supplied = (
+            request.headers.get("x-ui-token")
+            or request.query_params.get("token")
+            or request.cookies.get("ui_token")
+            or ""
+        ).strip()
+        if not secrets.compare_digest(supplied, _UI_TOKEN):
+            return JSONResponse(
+                {"detail": "jeton d'accès requis : ouvre /?token=<UI_TOKEN> (cf. .env)"},
+                status_code=401,
+            )
+    response = await call_next(request)
+    # Première visite avec ?token= : on pose le cookie pour la suite de la session.
+    if _UI_TOKEN and request.query_params.get("token", "").strip() == _UI_TOKEN:
+        response.set_cookie("ui_token", _UI_TOKEN, httponly=True, samesite="lax")
+    return response
 
 
 class UrlIn(BaseModel):
@@ -266,6 +296,15 @@ def applications_update(body: AppUpdateIn) -> dict:
         except Exception:
             logger.warning("sync Airtable du statut échouée (app_id=%s)", body.id, exc_info=True)
     return row
+
+
+@app.get("/stats")
+def stats() -> dict:
+    """Taux de réponse par type, tranche de score et source (hors brouillons)."""
+    try:
+        return db.response_stats()
+    except db.DbUnavailable as exc:
+        raise HTTPException(status_code=503, detail=f"Base indisponible : {exc}. Lance la stack complète (just up).")
 
 
 # --- Entreprises à contacter (candidature spontanée, façon La Bonne Boîte) -----

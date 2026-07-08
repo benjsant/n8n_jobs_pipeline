@@ -305,12 +305,16 @@ ou `agent/`), pas par du code copié dans un nœud n8n.
 - **`static/index.html` grossit** : la mini-interface porte beaucoup de sections
   dans un seul fichier Alpine. Si on ajoute encore, envisager de découper le HTML
   et le JS (ou passer à des composants). Seuil de gêne, pas d'urgence.
-- **Aucune authentification** sur la mini-interface (:8901) : réservé au local.
-  Ne jamais l'exposer publiquement sans reverse-proxy + auth.
-- **Chemins de génération réelle non testés automatiquement** : `run_agent`,
-  prépa entretien et spontanée appellent DeepSeek (coût + clé), donc les tests
-  couvrent les fonctions autour (db, airtable, validation) mais pas l'appel LLM
-  de bout en bout. Vérification manuelle recommandée après un changement de prompt.
+- ~~Aucune authentification sur la mini-interface~~ **atténuée (2026-07-08)** :
+  auth opt-in par jeton (`UI_TOKEN` dans `.env`, cookie côté navigateur, header
+  `X-UI-Token` pour les workflows `02`/`06`). Vide = local sans auth (défaut).
+  Un reverse-proxy reste préférable pour une exposition publique réelle.
+- ~~Chemins de génération réelle non testés automatiquement~~ **atténuée
+  (2026-07-08)** : les tests « cassette » (`tests/test_cassettes.py` + fixtures
+  `tests/cassettes/*.json`, réponses LLM réalistes rejouées) couvrent le graphe
+  complet analyze → research → accroche → judge → validate, la boucle de rejet
+  du juge, la spontanée et l'entretien, sans clé ni coût. Reste hors tests :
+  l'appel DeepSeek réseau réel (vérif manuelle après changement de prompt).
 - ~~Duplication contrôlée~~ **résolue (2026-07-08)** : les nœuds Code des
   workflows `01` (8 nœuds) et `02` (4 nœuds) sont désormais **générés** depuis
   leurs modules `lib/` par `build-nodes.mjs`, parité vérifiée en CI. Restent

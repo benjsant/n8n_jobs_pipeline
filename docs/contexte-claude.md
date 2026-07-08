@@ -275,6 +275,26 @@ variante ATS strictement noir/blanc si un parser très ancien le justifie (trivi
     (défaut Europe/Paris) ajoutés au service n8n : sans eux, n8n tournait en
     America/New_York et le cron « 8h » du 01 partait à **14h heure de Paris**
     (vérifié sur les startedAt réels : 12:00 UTC = 8:00 New York).
+32. **Parité totale nœuds ↔ lib** (2026-07-08). `build-nodes.mjs` génère
+    désormais **12 nœuds** (8 du 01 : scorer, dédup, 4 normaliseurs, scoring
+    LLM ×2 ; 4 du 02 : enrichissement ×2, payloads de rendu ×2) depuis
+    sources/llm-scoring/company-enrichment/render-payloads. Les copies
+    manuelles avaient déjà dérivé (prompts condensés) ; les libs testées
+    redeviennent l'unique source. Restent manuels : la pure glu n8n.
+33. **Tests cassette** (2026-07-08). `tests/test_cassettes.py` + 5 fixtures
+    `tests/cassettes/*.json` (réponses LLM réalistes, forme du run réel
+    Proxiad) : chemin nominal §6, rejet du juge puis correction (feedback
+    vérifié dans le prompt), épuisement des 3 tentatives (validate nettoie),
+    spontanée (template forcé), entretien. 31 tests pytest verts.
+34. **Stats de taux de réponse** (2026-07-08). `db.response_stats()` +
+    `GET /stats` + carte « Statistiques de réponse » dans l'interface :
+    par type (offre/spontanée, délai moyen), par tranche de score, par source
+    (hors brouillons). Pour calibrer le scoring sur du réel.
+35. **Auth opt-in de la mini-interface** (2026-07-08). `UI_TOKEN` (vide =
+    comportement historique) : middleware FastAPI (401 sans jeton, sauf
+    /health), cookie posé via `/?token=`, header `X-UI-Token` envoyé par les
+    workflows 02/06 (câblé compose + .env.example). Préalable à toute
+    ouverture de `BIND_HOST`.
 
 ## ⏳ En attente de l'utilisateur
 

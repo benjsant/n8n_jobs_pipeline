@@ -54,12 +54,16 @@
     .prep ul { margin:4px 0; padding-left:18px; } .prep li { margin:2px 0; }
     .prep .q { font-weight:600; color:var(--fg); margin-top:6px; }
     .prep .a { color:var(--mut); margin:2px 0 0; }
+    .stt { width:100%; border-collapse:collapse; font-size:13px; margin:2px 0 12px; }
+    .stt th, .stt td { text-align:left; padding:4px 8px; border-top:1px solid var(--bd); }
+    .stt th { color:var(--mut); font-size:11px; text-transform:uppercase; letter-spacing:.04em; border-top:0; }
+    .stt td.n { font-variant-numeric:tabular-nums; }
     .foot { color:var(--mut); font-size:12px; text-align:center; margin-top:10px; }
     .foot a { color:var(--b7); }
   </style>
 </head>
 <body>
-  <div class="wrap" x-data="app()" x-init="loadStatus(); loadHistory(); loadOffers(); loadCompanies(); loadApplications()">
+  <div class="wrap" x-data="app()" x-init="loadStatus(); loadHistory(); loadOffers(); loadCompanies(); loadApplications(); loadStats()">
 
     <header class="hero">
       <div>
@@ -232,6 +236,51 @@
       </template>
     </div>
 
+    <!-- Statistiques de réponse -->
+    <div class="card">
+      <p class="step">Statistiques de réponse</p>
+      <p class="muted" style="margin-top:-4px">Sur les candidatures parties (hors brouillons). De quoi calibrer le scoring sur des résultats réels.</p>
+      <p class="muted" x-show="stErr" x-text="stErr"></p>
+      <p class="muted" x-show="!stErr && stats && !stats.par_kind.length">Aucune candidature partie pour l'instant.</p>
+      <template x-if="stats && stats.par_kind.length">
+        <div>
+          <table class="stt">
+            <tr><th>Type</th><th>Envoyées</th><th>Réponses</th><th>Entretiens</th><th>Délai moyen</th></tr>
+            <template x-for="k in stats.par_kind" :key="k.kind">
+              <tr>
+                <td x-text="kindLabel(k.kind)"></td>
+                <td class="n" x-text="k.total"></td>
+                <td class="n" x-text="k.reponses + ' (' + pct(k.reponses, k.total) + ')'"></td>
+                <td class="n" x-text="k.entretiens"></td>
+                <td class="n" x-text="k.delai_moyen_jours != null ? k.delai_moyen_jours + ' j' : '-'"></td>
+              </tr>
+            </template>
+          </table>
+          <table class="stt" x-show="stats.par_score.length">
+            <tr><th>Score de l'offre</th><th>Envoyées</th><th>Réponses</th><th>Positifs (entretien/accepté)</th></tr>
+            <template x-for="s in stats.par_score" :key="s.tranche">
+              <tr>
+                <td x-text="s.tranche"></td>
+                <td class="n" x-text="s.total"></td>
+                <td class="n" x-text="s.reponses + ' (' + pct(s.reponses, s.total) + ')'"></td>
+                <td class="n" x-text="s.positifs"></td>
+              </tr>
+            </template>
+          </table>
+          <table class="stt" x-show="stats.par_source.length">
+            <tr><th>Source de l'offre</th><th>Envoyées</th><th>Réponses</th></tr>
+            <template x-for="s in stats.par_source" :key="s.source">
+              <tr>
+                <td x-text="s.source"></td>
+                <td class="n" x-text="s.total"></td>
+                <td class="n" x-text="s.reponses + ' (' + pct(s.reponses, s.total) + ')'"></td>
+              </tr>
+            </template>
+          </table>
+        </div>
+      </template>
+    </div>
+
     <!-- Entreprises à contacter (candidature spontanée) -->
     <div class="card">
       <p class="step">Entreprises à contacter</p>
@@ -327,6 +376,17 @@
           this.purgeBusy=false;
         },
         applications:[], apErr:'',
+        stats:null, stErr:'',
+        kindLabel(k){ return {offer:'Sur offre', spontaneous:'Spontanée'}[k] || k; },
+        pct(n, d){ return d ? Math.round(100*n/d) + ' %' : '-'; },
+        async loadStats(){
+          this.stErr='';
+          try {
+            const r = await fetch('stats');
+            if (r.status===503){ this.stats=null; this.stErr="Base non lancée : démarre la stack complète (just up)."; return; }
+            this.stats = await r.json();
+          } catch(e){ this.stErr = "Erreur de chargement des statistiques."; }
+        },
         statusLabel(s){ return {draft:'Brouillon',sent:'Postulé',interview:'Entretien',accepted:'Accepté',rejected:'Refusé'}[s] || s; },
         remindCount(){ return this.applications.filter(a=>a.to_remind).length; },
         async loadApplications(){
@@ -343,7 +403,7 @@
           try {
             const r = await fetch('applications/update',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:a.id,...patch})});
             if (!r.ok) throw new Error('HTTP '+r.status);
-            a._msg = 'Enregistré'; await this.loadApplications();
+            a._msg = 'Enregistré'; await this.loadApplications(); this.loadStats();
             const again=this.applications.find(x=>x.id===a.id); if(again) again._prep=prep;
           } catch(e){ a._msg = "Échec de la mise à jour."; a._busy=false; }
         },

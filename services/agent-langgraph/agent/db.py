@@ -320,6 +320,49 @@ def upsert_company(name: str, website: str = "", sector: str = "") -> dict:
     return row
 
 
+def response_stats() -> dict:
+    """Statistiques de taux de réponse, pour calibrer le scoring sur du réel.
+
+    Ne compte que les candidatures réellement parties (status <> 'draft').
+    Trois découpages : par type (offre/spontanée), par tranche de score de
+    l'offre, par source de collecte (via l'offre liée, si encore présente).
+    """
+    with _connect() as conn, conn.cursor() as cur:
+        cur.execute(
+            "SELECT kind, count(*) AS total, "
+            "       count(*) FILTER (WHERE response_at IS NOT NULL) AS reponses, "
+            "       count(*) FILTER (WHERE status = 'interview') AS entretiens, "
+            "       count(*) FILTER (WHERE status = 'accepted') AS acceptees, "
+            "       count(*) FILTER (WHERE status = 'rejected') AS refusees, "
+            "       round(avg(EXTRACT(epoch FROM (response_at - applied_at)) / 86400) "
+            "             FILTER (WHERE response_at IS NOT NULL AND applied_at IS NOT NULL))::int "
+            "         AS delai_moyen_jours "
+            "FROM applications WHERE status <> 'draft' GROUP BY kind ORDER BY kind"
+        )
+        par_kind = cur.fetchall()
+        cur.execute(
+            "SELECT CASE WHEN score >= 80 THEN '80-100' "
+            "            WHEN score >= 60 THEN '60-79' "
+            "            WHEN score IS NOT NULL THEN '0-59' "
+            "            ELSE 'sans score' END AS tranche, "
+            "       count(*) AS total, "
+            "       count(*) FILTER (WHERE response_at IS NOT NULL) AS reponses, "
+            "       count(*) FILTER (WHERE status IN ('interview','accepted')) AS positifs "
+            "FROM applications WHERE status <> 'draft' "
+            "GROUP BY 1 ORDER BY 1"
+        )
+        par_score = cur.fetchall()
+        cur.execute(
+            "SELECT o.source, count(*) AS total, "
+            "       count(*) FILTER (WHERE a.response_at IS NOT NULL) AS reponses "
+            "FROM applications a JOIN offers o ON o.id = a.offer_id "
+            "WHERE a.status <> 'draft' "
+            "GROUP BY o.source ORDER BY total DESC, o.source"
+        )
+        par_source = cur.fetchall()
+    return {"par_kind": par_kind, "par_score": par_score, "par_source": par_source}
+
+
 def get_company(name: str) -> dict | None:
     """Fiche entreprise complète (pour générer la candidature spontanée)."""
     with _connect() as conn, conn.cursor() as cur:

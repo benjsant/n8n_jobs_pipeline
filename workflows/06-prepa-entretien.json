@@ -61,7 +61,16 @@
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ { title: $json.title, company: $json.company, description: $json.description, location: $json.location, company_info: '' } }}",
-        "options": {}
+        "options": {},
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-UI-Token",
+              "value": "={{ $env.UI_TOKEN || '' }}"
+            }
+          ]
+        }
       },
       "id": "d6000000-0000-4000-8000-000000000004",
       "name": "Appel /interview/prep",

@@ -101,6 +101,24 @@ Les candidatures sont **dénormalisées** (poste, entreprise, lien, score copié
 elles **survivent à la suppression de l'offre** périmée, tu gardes ton historique.
 Si Airtable est configuré, le statut y est répercuté.
 
+## Statistiques de réponse
+
+La page affiche aussi un tableau de bord des **taux de réponse** sur les
+candidatures parties (hors brouillons) : par type (sur offre / spontanée, avec
+délai moyen de réponse), par **tranche de score** de l'offre et par **source de
+collecte**. Objectif : calibrer le scoring sur des résultats réels (si les
+offres 60-79 répondent mieux que les 80-100, le barème mérite un ajustement).
+Nécessite la base Postgres (503 explicite sinon).
+
+## Protéger l'accès (réseau local ou VPS)
+
+Par défaut l'interface écoute sur `127.0.0.1` **sans authentification**. Pour
+l'ouvrir au réseau (`BIND_HOST`), renseigne d'abord `UI_TOKEN` dans `.env`
+(`openssl rand -hex 16`) : toutes les routes (sauf `/health`) exigent alors le
+jeton. Première visite : `http://<hôte>:8901/?token=<valeur>` (un cookie prend
+le relais ensuite). Les workflows n8n `02`/`06` envoient automatiquement le
+jeton en header `X-UI-Token`. Vide = comportement historique sans auth.
+
 ## Entreprises à contacter (candidature spontanée)
 
 La page liste aussi les **entreprises à démarcher** (collectées via La Bonne
@@ -147,6 +165,7 @@ crée comme d'habitude.
 | POST | `/offers/purge` `{ days?, status? }` | supprime en masse par âge et/ou statut |
 | GET | `/applications` | candidatures suivies (statut, dates, notes) |
 | POST | `/applications/update` `{ id, status?, notes?, remind? }` | fait avancer une candidature (+ sync Airtable) |
+| GET | `/stats` | taux de réponse par type, tranche de score et source (hors brouillons) |
 | GET | `/companies` `?limit=` | entreprises à contacter (avec moyen de contact) |
 | POST | `/companies/apply` `{ name }` | génère la candidature spontanée et la livre sur Discord |
 | POST | `/companies/manual` `{ name, website?, sector? }` | candidature spontanée pour une entreprise saisie à la main |
