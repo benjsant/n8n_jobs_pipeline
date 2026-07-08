@@ -1,0 +1,71 @@
+{
+  "id": "wf07digesthebdo",
+  "name": "07 - Digest hebdomadaire (Discord)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 18 * * 0"
+            }
+          ]
+        }
+      },
+      "id": "e7000000-0000-4000-8000-000000000001",
+      "name": "Dimanche 18h",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [-300, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n  (SELECT count(*) FROM offers WHERE created_at >= now() - interval '7 days') AS offres_7j,\n  (SELECT count(*) FROM offers WHERE created_at >= now() - interval '7 days' AND status = 'new') AS nouvelles_7j,\n  (SELECT count(*) FROM offers WHERE created_at >= now() - interval '7 days' AND status = 'applied') AS postulees_7j,\n  (SELECT count(*) FROM offers WHERE created_at >= now() - interval '7 days' AND status = 'ignored') AS ignorees_7j,\n  (SELECT count(*) FROM applications) AS cand_total,\n  (SELECT count(*) FROM applications WHERE response_at IS NOT NULL) AS reponses,\n  (SELECT count(*) FROM applications WHERE status = 'interview') AS entretiens,\n  (SELECT coalesce(json_agg(r), '[]'::json) FROM (\n     SELECT poste, entreprise, (extract(epoch FROM (now() - applied_at)) / 86400)::int AS jours\n     FROM applications\n     WHERE status = 'sent' AND response_at IS NULL\n       AND applied_at <= now() - interval '7 days'\n       AND (reminded_at IS NULL OR reminded_at <= now() - interval '7 days')\n     ORDER BY applied_at ASC LIMIT 5) r) AS relances;",
+        "options": {}
+      },
+      "id": "e7000000-0000-4000-8000-000000000002",
+      "name": "Stats de la semaine",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [-80, 300],
+      "credentials": { "postgres": { "id": "REMPLACER", "name": "Postgres job-hunter" } }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Digest hebdo -> canal jobs-alerts (récap + candidatures à relancer).\n// Garde : si le webhook alerts n'est pas configuré, on ne poste rien.\nif (!$env.DISCORD_WEBHOOK_ALERTS) return [];\nconst s = $input.first().json;\nconst relances = Array.isArray(s.relances) ? s.relances : JSON.parse(s.relances || '[]');\nconst lignes = [\n  '📬 **Digest hebdo candidatures**',\n  `Offres (7 j) : ${s.offres_7j} collectées · ${s.nouvelles_7j} à trier · ${s.postulees_7j} postulées · ${s.ignorees_7j} ignorées`,\n  `Candidatures : ${s.cand_total} au total · ${s.reponses} réponse(s) · ${s.entretiens} entretien(s)`\n];\nif (relances.length) {\n  lignes.push(`⏰ **À relancer** (${relances.length}) :`);\n  for (const r of relances) lignes.push(`• ${r.poste || '?'} · ${r.entreprise || '?'} (postulé il y a ${r.jours} j)`);\n} else {\n  lignes.push('✅ Rien à relancer cette semaine.');\n}\nreturn [{ json: { content: lignes.join('\\n').slice(0, 1900) } }];"
+      },
+      "id": "e7000000-0000-4000-8000-000000000003",
+      "name": "Formater digest",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [140, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.DISCORD_WEBHOOK_ALERTS }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { content: $json.content } }}",
+        "options": {}
+      },
+      "id": "e7000000-0000-4000-8000-000000000004",
+      "name": "Discord digest",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [360, 300]
+    }
+  ],
+  "connections": {
+    "Dimanche 18h": { "main": [[{ "node": "Stats de la semaine", "type": "main", "index": 0 }]] },
+    "Stats de la semaine": { "main": [[{ "node": "Formater digest", "type": "main", "index": 0 }]] },
+    "Formater digest": { "main": [[{ "node": "Discord digest", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "active": false,
+  "meta": {
+    "note": "Digest hebdomadaire (dimanche 18h) sur le canal jobs-alerts : offres collectées/triées/postulées/ignorées de la semaine, totaux candidatures (réponses, entretiens) et top 5 des candidatures à relancer (statut sent, sans réponse depuis plus de 7 jours, non relancées récemment). Lecture seule (aucune écriture en base). credential Postgres à associer (REMPLACER), workflow à ACTIVER après import."
+  }
+}
