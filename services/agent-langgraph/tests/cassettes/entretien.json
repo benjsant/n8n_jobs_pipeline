@@ -1,0 +1,28 @@
+{
+  "note": "Préparation d'entretien : une seule réponse LLM (nœud prep), forme InterviewPrep complète avec tirets cadratins à nettoyer par validate.",
+  "responses": [
+    {
+      "entreprise": {
+        "resume": "ESN implantée à Lille depuis 1997 — elle accompagne des projets digitaux variés en région.",
+        "points_cles": ["Agence lilloise", "Projets digitaux variés", "Accompagnement de proximité"]
+      },
+      "match": {
+        "atouts": ["Socle Python, FastAPI et PostgreSQL", "Pipeline MLOps complet sur PredictionDex", "Reconversion structurée (RNCP 6)"],
+        "a_anticiper": ["Première expérience en ESN", "Peu de pratique Kubernetes"]
+      },
+      "questions_probables": [
+        { "question": "Pourquoi une ESN plutôt qu'un éditeur ?", "angle_reponse": "La variété des missions accélère la montée en compétence d'un profil en début de parcours." },
+        { "question": "Parlez-moi d'un projet dont vous êtes fier.", "angle_reponse": "PredictionDex : pipeline MLOps de bout en bout, XGBoost, MLflow, API FastAPI." },
+        { "question": "Comment gérez-vous une mission avec une stack inconnue ?", "angle_reponse": "Méthode éprouvée en reconversion : documentation officielle, projet minimal, itérations." },
+        { "question": "Quelles sont vos attentes salariales ?", "angle_reponse": "Rester sur une fourchette junior cohérente avec le marché lillois, à discuter." },
+        { "question": "Où vous voyez-vous dans deux ans ?", "angle_reponse": "Développeur backend confirmé, avec une spécialisation IA appliquée consolidée en mission." }
+      ],
+      "questions_a_poser": [
+        "Quel est le processus d'affectation en mission pour un junior ?",
+        "Comment l'agence accompagne-t-elle la montée en compétence ?",
+        "Quelles technologies dominent chez vos clients actuels ?"
+      ],
+      "langue": "fr"
+    }
+  ]
+}

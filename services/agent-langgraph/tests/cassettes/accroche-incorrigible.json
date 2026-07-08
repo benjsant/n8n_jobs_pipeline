@@ -1,0 +1,32 @@
+{
+  "note": "Épuisement des tentatives : les 3 accroches gardent un tiret cadratin. Le graphe s'arrête à MAX_ACCROCHE_ATTEMPTS et validate nettoie quand même les tirets (garde-fou final). Réponse 1 = analyze, réponses 2-4 = accroches toutes rejetées.",
+  "responses": [
+    {
+      "score": 65,
+      "skills_score": 70,
+      "experience_score": 55,
+      "location_score": 80,
+      "salary_score": 50,
+      "recommandation": "postuler_si_peu_options",
+      "justification_score": "Correspondance partielle.",
+      "matching_skills": ["Python"],
+      "missing_skills": ["Java"],
+      "competences_a_ameliorer": [],
+      "conseils": "",
+      "adaptation_cv": "",
+      "personnalisation_cv": {
+        "cv_title": "Développeur Python",
+        "summary": "",
+        "highlight_skills": [],
+        "highlight_projects": [],
+        "highlight_experiences": [],
+        "hidden_sections": []
+      },
+      "objet_email": "Candidature",
+      "langue": "fr"
+    },
+    { "lettre": { "template": "backend", "accroche": "Votre équipe construit des API — et c'est mon terrain." } },
+    { "lettre": { "template": "backend", "accroche": "Vos projets data — bien connus en région — m'intéressent." } },
+    { "lettre": { "template": "backend", "accroche": "Votre stack Python — décrite dans l'offre — correspond à mon profil." } }
+  ]
+}

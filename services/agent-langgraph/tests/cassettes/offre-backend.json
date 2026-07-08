@@ -1,0 +1,37 @@
+{
+  "note": "Chemin nominal : offre backend Lille, forme calquée sur un run DeepSeek réel (2026-07-08, candidature Proxiad Nord : score 85, template backend, accroche groundée sur l'implantation lilloise). Réponse 1 = nœud analyze, réponse 2 = nœud accroche.",
+  "responses": [
+    {
+      "score": 85,
+      "skills_score": 90,
+      "experience_score": 70,
+      "location_score": 95,
+      "salary_score": 60,
+      "recommandation": "postuler",
+      "justification_score": "Stack Python/FastAPI/PostgreSQL en correspondance directe avec le profil, poste ouvert aux juniors, Lille dans la zone cible.",
+      "matching_skills": ["Python", "FastAPI", "PostgreSQL"],
+      "missing_skills": ["Kubernetes"],
+      "competences_a_ameliorer": [
+        { "competence": "Kubernetes", "conseil": "Déployer un projet personnel sur un cluster k3s pour pratiquer." }
+      ],
+      "conseils": "Mettre en avant le pipeline MLOps de PredictionDex dès l'accroche.",
+      "adaptation_cv": "Prioriser les projets API et la maîtrise PostgreSQL.",
+      "personnalisation_cv": {
+        "cv_title": "Développeur Backend Python",
+        "summary": "Développeur backend Python orienté API et IA appliquée.",
+        "highlight_skills": ["Python", "FastAPI"],
+        "highlight_projects": ["infinidex"],
+        "highlight_experiences": [],
+        "hidden_sections": []
+      },
+      "objet_email": "Candidature Développeur Backend Python, Proxiad Nord",
+      "langue": "fr"
+    },
+    {
+      "lettre": {
+        "template": "backend",
+        "accroche": "Implantée à Lille depuis 1997, votre agence accompagne des projets digitaux variés en région. Mon socle Python, FastAPI et PostgreSQL, construit sur des projets aboutis comme un pipeline MLOps complet, correspond directement aux missions backend que vous confiez à vos équipes."
+      }
+    }
+  ]
+}

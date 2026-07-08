@@ -1,0 +1,41 @@
+{
+  "note": "Boucle d'auto-correction : la première accroche cumule cliché « passionné », « candidat idéal » et tiret cadratin ; le juge la rejette et la seconde tentative (avec feedback) passe. Réponse 1 = analyze, réponse 2 = accroche rejetée, réponse 3 = accroche corrigée.",
+  "responses": [
+    {
+      "score": 72,
+      "skills_score": 75,
+      "experience_score": 60,
+      "location_score": 90,
+      "salary_score": 50,
+      "recommandation": "postuler",
+      "justification_score": "Bonne correspondance technique, expérience à consolider.",
+      "matching_skills": ["Python", "PostgreSQL"],
+      "missing_skills": ["Airflow"],
+      "competences_a_ameliorer": [],
+      "conseils": "",
+      "adaptation_cv": "",
+      "personnalisation_cv": {
+        "cv_title": "Développeur Backend Python",
+        "summary": "",
+        "highlight_skills": ["Python"],
+        "highlight_projects": [],
+        "highlight_experiences": [],
+        "hidden_sections": []
+      },
+      "objet_email": "Candidature Développeur Python",
+      "langue": "fr"
+    },
+    {
+      "lettre": {
+        "template": "backend",
+        "accroche": "Passionné par l'informatique — je suis le candidat idéal pour ce poste."
+      }
+    },
+    {
+      "lettre": {
+        "template": "backend",
+        "accroche": "Votre pipeline de traitement de données décrit dans l'offre ressemble à ce que je construis sur PredictionDex. J'aimerais y appliquer mon socle Python et PostgreSQL au sein de votre équipe."
+      }
+    }
+  ]
+}

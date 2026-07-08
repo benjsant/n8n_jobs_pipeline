@@ -1,0 +1,35 @@
+{
+  "note": "Candidature spontanée (entreprise sans offre publiée) : le message utilisateur doit imposer le template candidature-spontanee et la sortie doit le porter. Réponse 1 = analyze, réponse 2 = accroche.",
+  "responses": [
+    {
+      "score": 70,
+      "skills_score": 75,
+      "experience_score": 60,
+      "location_score": 90,
+      "salary_score": 50,
+      "recommandation": "postuler",
+      "justification_score": "Entreprise du secteur cible en zone de mobilité, profil pertinent pour une spontanée.",
+      "matching_skills": ["Python", "FastAPI"],
+      "missing_skills": [],
+      "competences_a_ameliorer": [],
+      "conseils": "",
+      "adaptation_cv": "",
+      "personnalisation_cv": {
+        "cv_title": "Développeur Backend Python & IA",
+        "summary": "",
+        "highlight_skills": ["Python"],
+        "highlight_projects": ["predictiondex"],
+        "highlight_experiences": [],
+        "hidden_sections": []
+      },
+      "objet_email": "Candidature spontanée, Développeur Backend Python",
+      "langue": "fr"
+    },
+    {
+      "lettre": {
+        "template": "candidature-spontanee",
+        "accroche": "Votre activité de services numériques en région lilloise correspond au terrain où je veux construire mon parcours. Je vous propose ma candidature spontanée, appuyée sur un socle Python et des projets IA aboutis."
+      }
+    }
+  ]
+}
