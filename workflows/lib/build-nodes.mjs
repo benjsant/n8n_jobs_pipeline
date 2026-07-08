@@ -45,15 +45,21 @@ return $input.all().map(({ json: o }) => o)
 
 const DEDUP_DRIVER = `
 // --- driver: Dédup sémantique intra-lot (embeddings + cosinus, tolérant) ---
+// Attache aussi embedding + company_canon à chaque offre retenue : l'INSERT
+// aval les persiste (pgvector) et écarte les quasi-doublons DÉJÀ EN BASE
+// (anti-join sur distance cosinus <= 1 - SEMANTIC_DUP_THRESHOLD, même entreprise).
 const items = $input.all().map((i) => i.json);
 if (!items.length) return [];
+const withMeta = (o, v) => ({ ...o,
+  company_canon: canonCompany(o.company || ''),
+  embedding: Array.isArray(v) ? '[' + v.join(',') + ']' : '' });
 const url = ($env.EMBEDDINGS_API_URL || 'http://embeddings:8002') + '/embed';
 let vecs;
 try {
   const resp = await this.helpers.httpRequest({ method: 'POST', url, body: { texts: items.map(embeddingText) }, json: true });
   vecs = resp.embeddings;
-} catch (e) { return items.map((json) => ({ json })); }
-if (!Array.isArray(vecs) || vecs.length !== items.length) return items.map((json) => ({ json }));
+} catch (e) { return items.map((json) => ({ json: withMeta(json) })); }
+if (!Array.isArray(vecs) || vecs.length !== items.length) return items.map((json) => ({ json: withMeta(json) }));
 const kept = [], keptVecs = [];
 let dropped = 0;
 for (let i = 0; i < items.length; i++) {
@@ -66,7 +72,7 @@ for (let i = 0; i < items.length; i++) {
   kept.push(items[i]); keptVecs.push(v);
 }
 console.log(\`Dedup semantique : \${dropped} quasi-doublon(s) ecarte(s) sur \${items.length}.\`);
-return kept.map((json) => ({ json }));`.trim();
+return kept.map((json, k) => ({ json: withMeta(json, keptVecs[k]) }));`.trim();
 
 const HEADER =
   "// ⚠️ AUTO-GÉNÉRÉ par workflows/lib/build-nodes.mjs depuis offer-utils.mjs.\n" +

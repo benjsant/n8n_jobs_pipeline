@@ -20,7 +20,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Hash de l'offre depuis la query string (lien Discord « Préparer l'entretien »).\nconst q = $input.first().json.query || {};\nconst hash = String(q.hash || '').trim();\nif (!hash) throw new Error('paramètre hash manquant');\nreturn [{ json: { hash } }];"
+        "jsCode": "// Hash de l'offre depuis la query string (lien Discord « Préparer l'entretien »).\nconst q = $input.first().json.query || {};\nconst hash = String(q.hash || '').trim();\nconst secret = String($env.WEBHOOK_SECRET || '').trim();\nif (secret && String(q.token || '').trim() !== secret) throw new Error('token invalide ou manquant');\nif (!hash) throw new Error('paramètre hash manquant');\nreturn [{ json: { hash } }];"
       },
       "id": "d6000000-0000-4000-8000-000000000002",
       "name": "Valider offre",

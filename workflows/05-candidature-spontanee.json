@@ -13,7 +13,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Nom d'entreprise depuis la query string (lien Discord de l'alerte spontanée).\nconst q = $input.first().json.query || {};\nconst company = String(q.company || '').trim();\nif (!company) throw new Error('paramètre company manquant');\nreturn [{ json: { company } }];"
+        "jsCode": "// Nom d'entreprise depuis la query string (lien Discord de l'alerte spontanée).\nconst q = $input.first().json.query || {};\nconst company = String(q.company || '').trim();\nconst secret = String($env.WEBHOOK_SECRET || '').trim();\nif (secret && String(q.token || '').trim() !== secret) throw new Error('token invalide ou manquant');\nif (!company) throw new Error('paramètre company manquant');\nreturn [{ json: { company } }];"
       },
       "id": "d5000000-0000-4000-8000-000000000002",
       "name": "Valider entreprise",

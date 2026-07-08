@@ -77,9 +77,14 @@ ALTER TABLE offers ADD COLUMN IF NOT EXISTS profile_id INTEGER REFERENCES search
 -- Embedding pour la dédup sémantique (384 dims = modèle
 -- paraphrase-multilingual-MiniLM-L12-v2 du service `embeddings`).
 ALTER TABLE offers ADD COLUMN IF NOT EXISTS embedding vector(384);
+-- Entreprise canonicalisée (canonCompany d'offer-utils.mjs), écrite par l'INSERT
+-- du workflow 01 : garde-fou de la dédup sémantique INTER-RUNS (un quasi-doublon
+-- déjà en base n'est écarté que si l'entreprise canonique correspond).
+ALTER TABLE offers ADD COLUMN IF NOT EXISTS company_canon TEXT;
 
 CREATE INDEX IF NOT EXISTS idx_offers_status ON offers (status);
 CREATE INDEX IF NOT EXISTS idx_offers_created_at ON offers (created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_offers_company_canon ON offers (company_canon);
 -- Index ANN cosinus (HNSW) : recherche du plus proche voisin pour la dédup
 -- sémantique (ORDER BY embedding <=> $1). Ne couvre que les lignes embedded.
 CREATE INDEX IF NOT EXISTS idx_offers_embedding ON offers USING hnsw (embedding vector_cosine_ops);

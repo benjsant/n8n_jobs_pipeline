@@ -47,6 +47,8 @@ services:
       N8N_PORT: 5678
       N8N_PROTOCOL: http
       WEBHOOK_URL: ${WEBHOOK_URL:-http://localhost:8978/}
+      # Jeton des liens d'action Discord (vérifié par les workflows 03/05/06).
+      WEBHOOK_SECRET: ${WEBHOOK_SECRET:-}
       N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY}
       # --- Authentification basique de l'UI ---
       N8N_BASIC_AUTH_ACTIVE: "true"
