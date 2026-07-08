@@ -8,46 +8,89 @@
       "name": "Déclencheur (appelé par l'orchestration)",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1,
-      "position": [-220, 300]
+      "position": [
+        -220,
+        300
+      ]
     },
     {
       "parameters": {
-        "assignments": { "assignments": [
-          { "id": "i1", "name": "company", "value": "={{ $json.company }}", "type": "string" },
-          { "id": "i2", "name": "cv_path", "value": "={{ $json.cv_path }}", "type": "string" },
-          { "id": "i3", "name": "letter_path", "value": "={{ $json.letter_path }}", "type": "string" },
-          { "id": "i5", "name": "subject", "value": "={{ $json.subject }}", "type": "string" },
-          { "id": "i6", "name": "body", "value": "={{ $json.body }}", "type": "string" }
-        ] },
+        "assignments": {
+          "assignments": [
+            {
+              "id": "i1",
+              "name": "company",
+              "value": "={{ $json.company }}",
+              "type": "string"
+            },
+            {
+              "id": "i2",
+              "name": "cv_path",
+              "value": "={{ $json.cv_path }}",
+              "type": "string"
+            },
+            {
+              "id": "i3",
+              "name": "letter_path",
+              "value": "={{ $json.letter_path }}",
+              "type": "string"
+            },
+            {
+              "id": "i5",
+              "name": "subject",
+              "value": "={{ $json.subject }}",
+              "type": "string"
+            },
+            {
+              "id": "i6",
+              "name": "body",
+              "value": "={{ $json.body }}",
+              "type": "string"
+            }
+          ]
+        },
         "options": {}
       },
       "id": "b4000000-0000-4000-8000-000000000002",
       "name": "Entrées candidature",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [0, 300]
+      "position": [
+        0,
+        300
+      ]
     },
     {
       "parameters": {
         "fileSelector": "={{ $('Entrées candidature').first().json.cv_path }}",
-        "options": { "dataPropertyName": "cv" }
+        "options": {
+          "dataPropertyName": "cv"
+        }
       },
       "id": "b4000000-0000-4000-8000-000000000003",
       "name": "Lire CV (PDF)",
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1,
-      "position": [220, 300]
+      "position": [
+        220,
+        300
+      ]
     },
     {
       "parameters": {
         "fileSelector": "={{ $('Entrées candidature').first().json.letter_path }}",
-        "options": { "dataPropertyName": "letter" }
+        "options": {
+          "dataPropertyName": "letter"
+        }
       },
       "id": "b4000000-0000-4000-8000-000000000004",
       "name": "Lire lettre (PDF)",
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1,
-      "position": [440, 300]
+      "position": [
+        440,
+        300
+      ]
     },
     {
       "parameters": {
@@ -57,7 +100,10 @@
       "name": "Fusionner pièces jointes",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [660, 300]
+      "position": [
+        660,
+        300
+      ]
     },
     {
       "parameters": {
@@ -71,8 +117,16 @@
               "name": "payload_json",
               "value": "={{ JSON.stringify({ content: `🎯 **Candidature prête : ${$json.company || 'Entreprise'}**\\n📨 Objet : ${$json.subject || ''}\\n📎 CV + lettre ci-joints — à toi de postuler quand tu veux (relecture/envoi humain).` }) }}"
             },
-            { "parameterType": "formBinaryData", "name": "files[0]", "inputDataFieldName": "cv" },
-            { "parameterType": "formBinaryData", "name": "files[1]", "inputDataFieldName": "letter" }
+            {
+              "parameterType": "formBinaryData",
+              "name": "files[0]",
+              "inputDataFieldName": "cv"
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "files[1]",
+              "inputDataFieldName": "letter"
+            }
           ]
         },
         "options": {}
@@ -81,17 +135,73 @@
       "name": "Discord: livraison (CV + lettre)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [900, 300]
+      "position": [
+        900,
+        300
+      ]
     }
   ],
   "connections": {
-    "Déclencheur (appelé par l'orchestration)": { "main": [[{ "node": "Entrées candidature", "type": "main", "index": 0 }]] },
-    "Entrées candidature": { "main": [[{ "node": "Lire CV (PDF)", "type": "main", "index": 0 }]] },
-    "Lire CV (PDF)": { "main": [[{ "node": "Lire lettre (PDF)", "type": "main", "index": 0 }]] },
-    "Lire lettre (PDF)": { "main": [[{ "node": "Fusionner pièces jointes", "type": "main", "index": 0 }]] },
-    "Fusionner pièces jointes": { "main": [[{ "node": "Discord: livraison (CV + lettre)", "type": "main", "index": 0 }]] }
+    "Déclencheur (appelé par l'orchestration)": {
+      "main": [
+        [
+          {
+            "node": "Entrées candidature",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Entrées candidature": {
+      "main": [
+        [
+          {
+            "node": "Lire CV (PDF)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lire CV (PDF)": {
+      "main": [
+        [
+          {
+            "node": "Lire lettre (PDF)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lire lettre (PDF)": {
+      "main": [
+        [
+          {
+            "node": "Fusionner pièces jointes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fusionner pièces jointes": {
+      "main": [
+        [
+          {
+            "node": "Discord: livraison (CV + lettre)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
   },
-  "settings": { "executionOrder": "v1" },
+  "settings": {
+    "executionOrder": "v1",
+    "errorWorkflow": "wf08notiferreurs"
+  },
   "active": false,
   "meta": {
     "note": "Livraison SANS Google : lit CV+lettre depuis ./output, regroupe les 2 binaires, et POST multipart vers le webhook Discord ALERTS (files[0]=cv, files[1]=lettre, payload_json=message). Les PDF arrivent en pièces jointes dans le salon, prêts à télécharger. GARDE-FOU : aucune candidature n'est envoyée — relecture/envoi humain. (Variante Google Gmail/Drive disponible dans l'historique git si OAuth voulu plus tard.)"

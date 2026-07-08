@@ -3,12 +3,20 @@
   "name": "05 - Candidature spontanée (entreprise LBA)",
   "nodes": [
     {
-      "parameters": { "httpMethod": "GET", "path": "spontaneous-apply", "responseMode": "responseNode", "options": {} },
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "spontaneous-apply",
+        "responseMode": "responseNode",
+        "options": {}
+      },
       "id": "d5000000-0000-4000-8000-000000000001",
       "name": "Webhook spontané",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [-300, 300],
+      "position": [
+        -300,
+        300
+      ],
       "webhookId": "spontaneous-apply"
     },
     {
@@ -19,47 +27,95 @@
       "name": "Valider entreprise",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [-80, 300]
+      "position": [
+        -80,
+        300
+      ]
     },
     {
       "parameters": {
         "operation": "executeQuery",
         "query": "SELECT id, name, sector, ai_summary, website FROM companies WHERE name = $1 LIMIT 1;",
-        "options": { "queryReplacement": "={{ $('Valider entreprise').first().json.company }}" }
+        "options": {
+          "queryReplacement": "={{ $('Valider entreprise').first().json.company }}"
+        }
       },
       "id": "d5000000-0000-4000-8000-000000000003",
       "name": "Charger entreprise",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
-      "position": [140, 300],
-      "credentials": { "postgres": { "id": "REMPLACER", "name": "Postgres job-hunter" } }
+      "position": [
+        140,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "REMPLACER",
+          "name": "Postgres job-hunter"
+        }
+      }
     },
     {
       "parameters": {
-        "assignments": { "assignments": [
-          { "id": "s1", "name": "spontaneous", "value": "={{ true }}", "type": "boolean" },
-          { "id": "s2", "name": "company", "value": "={{ $json.name }}", "type": "string" },
-          { "id": "s3", "name": "description", "value": "={{ $json.ai_summary || $json.sector || '' }}", "type": "string" },
-          { "id": "s4", "name": "company_info", "value": "={{ $json.website || '' }}", "type": "string" }
-        ] },
+        "assignments": {
+          "assignments": [
+            {
+              "id": "s1",
+              "name": "spontaneous",
+              "value": "={{ true }}",
+              "type": "boolean"
+            },
+            {
+              "id": "s2",
+              "name": "company",
+              "value": "={{ $json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "s3",
+              "name": "description",
+              "value": "={{ $json.ai_summary || $json.sector || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "s4",
+              "name": "company_info",
+              "value": "={{ $json.website || '' }}",
+              "type": "string"
+            }
+          ]
+        },
         "options": {}
       },
       "id": "d5000000-0000-4000-8000-000000000004",
       "name": "Préparer entrée spontanée",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [360, 300]
+      "position": [
+        360,
+        300
+      ]
     },
     {
       "parameters": {
-        "workflowId": { "__rl": true, "mode": "list", "value": "wf02agentcandid", "cachedResultName": "02 - Agent candidature DeepSeek" },
-        "options": { "waitForSubWorkflow": false }
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "wf02agentcandid",
+          "cachedResultName": "02 - Agent candidature DeepSeek"
+        },
+        "options": {
+          "waitForSubWorkflow": false
+        }
       },
       "id": "d5000000-0000-4000-8000-000000000005",
       "name": "Lancer agent (02)",
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.2,
-      "position": [580, 300]
+      "position": [
+        580,
+        300
+      ]
     },
     {
       "parameters": {
@@ -71,17 +127,73 @@
       "name": "Répondre",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [800, 300]
+      "position": [
+        800,
+        300
+      ]
     }
   ],
   "connections": {
-    "Webhook spontané": { "main": [[{ "node": "Valider entreprise", "type": "main", "index": 0 }]] },
-    "Valider entreprise": { "main": [[{ "node": "Charger entreprise", "type": "main", "index": 0 }]] },
-    "Charger entreprise": { "main": [[{ "node": "Préparer entrée spontanée", "type": "main", "index": 0 }]] },
-    "Préparer entrée spontanée": { "main": [[{ "node": "Lancer agent (02)", "type": "main", "index": 0 }]] },
-    "Lancer agent (02)": { "main": [[{ "node": "Répondre", "type": "main", "index": 0 }]] }
+    "Webhook spontané": {
+      "main": [
+        [
+          {
+            "node": "Valider entreprise",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Valider entreprise": {
+      "main": [
+        [
+          {
+            "node": "Charger entreprise",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Charger entreprise": {
+      "main": [
+        [
+          {
+            "node": "Préparer entrée spontanée",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Préparer entrée spontanée": {
+      "main": [
+        [
+          {
+            "node": "Lancer agent (02)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lancer agent (02)": {
+      "main": [
+        [
+          {
+            "node": "Répondre",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
   },
-  "settings": { "executionOrder": "v1" },
+  "settings": {
+    "executionOrder": "v1",
+    "errorWorkflow": "wf08notiferreurs"
+  },
   "active": false,
   "meta": {
     "note": "Candidature SPONTANÉE (entreprise à contacter, sans offre). Déclenché par le lien de l'alerte Discord 'candidature spontanée' du 01 : webhook spontaneous-apply?company=<nom> -> charge l'entreprise (companies) -> appelle le 02 en mode spontané (spontaneous=true, offer_id NULL). Le 02 force le template candidature-spontanee, écrit une application kind=spontaneous, génère CV+lettre et lance le 04. credential Postgres + workflowId du 02 à associer. Webhook actif requis."

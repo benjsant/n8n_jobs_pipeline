@@ -595,7 +595,8 @@
     }
   },
   "settings": {
-    "executionOrder": "v1"
+    "executionOrder": "v1",
+    "errorWorkflow": "wf08notiferreurs"
   },
   "active": false,
   "meta": {

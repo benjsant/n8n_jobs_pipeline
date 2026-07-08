@@ -189,7 +189,8 @@
   },
   "active": false,
   "settings": {
-    "executionOrder": "v1"
+    "executionOrder": "v1",
+    "errorWorkflow": "wf08notiferreurs"
   },
   "id": "wf06prepaentre",
   "tags": []

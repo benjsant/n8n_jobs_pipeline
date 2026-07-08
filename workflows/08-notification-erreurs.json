@@ -1,0 +1,51 @@
+{
+  "id": "wf08notiferreurs",
+  "name": "08 - Notification d'erreurs (Discord)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "f8000000-0000-4000-8000-000000000001",
+      "name": "Erreur de workflow",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [-300, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Échec d'un workflow -> message jobs-log (fallback jobs-alerts).\n// Payload du nœud Error Trigger n8n : { workflow: {id, name}, execution: {id, url, mode, lastNodeExecuted, error: {message}} }.\nconst url = $env.DISCORD_WEBHOOK_LOG || $env.DISCORD_WEBHOOK_ALERTS;\nif (!url) return [];\nconst j = $input.first().json;\nconst wf = j.workflow || {};\nconst ex = j.execution || {};\nconst err = (ex.error && ex.error.message) || (j.trigger && j.trigger.error && j.trigger.error.message) || 'erreur inconnue';\nconst lignes = [\n  `⚠️ **Échec du workflow « ${wf.name || wf.id || '?'} »**`,\n  `Nœud : ${ex.lastNodeExecuted || '?'} · mode : ${ex.mode || '?'}`,\n  `Erreur : ${String(err).slice(0, 500)}`\n];\nif (ex.url) lignes.push(`Exécution : ${ex.url}`);\nreturn [{ json: { webhookUrl: url, content: lignes.join('\\n').slice(0, 1900) } }];"
+      },
+      "id": "f8000000-0000-4000-8000-000000000002",
+      "name": "Formater erreur",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-80, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.webhookUrl }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { content: $json.content } }}",
+        "options": {}
+      },
+      "id": "f8000000-0000-4000-8000-000000000003",
+      "name": "Discord erreur",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [140, 300],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    }
+  ],
+  "connections": {
+    "Erreur de workflow": { "main": [[{ "node": "Formater erreur", "type": "main", "index": 0 }]] },
+    "Formater erreur": { "main": [[{ "node": "Discord erreur", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "active": false,
+  "meta": {
+    "note": "Error Workflow global : déclaré dans les settings (errorWorkflow) des workflows 01 à 07, il reçoit chaque exécution en échec et poste workflow/nœud/message sur jobs-log (fallback jobs-alerts). Sans lui, un échec (ex. 429 Discord du 2026-07-07) est invisible hors de l'UI n8n. Pas besoin de l'activer : n8n l'invoque automatiquement. Aucune credential requise."
+  }
+}

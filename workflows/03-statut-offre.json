@@ -3,12 +3,20 @@
   "name": "03 - Statut offre (depuis Discord)",
   "nodes": [
     {
-      "parameters": { "httpMethod": "GET", "path": "offer-status", "responseMode": "responseNode", "options": {} },
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "offer-status",
+        "responseMode": "responseNode",
+        "options": {}
+      },
       "id": "c3000000-0000-4000-8000-000000000001",
       "name": "Webhook statut",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [-300, 300],
+      "position": [
+        -300,
+        300
+      ],
       "webhookId": "offer-status"
     },
     {
@@ -19,78 +27,160 @@
       "name": "Valider hash + action",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [-80, 300]
+      "position": [
+        -80,
+        300
+      ]
     },
     {
       "parameters": {
         "operation": "executeQuery",
         "query": "UPDATE offers SET status = $1 WHERE hash = $2 RETURNING id, title, status;",
-        "options": { "queryReplacement": "={{ $json.action }},{{ $json.hash }}" }
+        "options": {
+          "queryReplacement": "={{ $json.action }},{{ $json.hash }}"
+        }
       },
       "id": "c3000000-0000-4000-8000-000000000003",
       "name": "MAJ statut offre",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
-      "position": [140, 300],
-      "credentials": { "postgres": { "id": "REMPLACER", "name": "Postgres job-hunter" } }
+      "position": [
+        140,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "REMPLACER",
+          "name": "Postgres job-hunter"
+        }
+      }
     },
     {
       "parameters": {
-        "conditions": { "options": { "caseSensitive": true, "version": 2 }, "combinator": "and",
-          "conditions": [ {
-            "leftValue": "={{ $('Valider hash + action').first().json.action }}",
-            "rightValue": "selected",
-            "operator": { "type": "string", "operation": "equals" }
-          } ] },
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "version": 2
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $('Valider hash + action').first().json.action }}",
+              "rightValue": "selected",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ]
+        },
         "options": {}
       },
       "id": "c3000000-0000-4000-8000-000000000004",
       "name": "Sélectionnée ?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
-      "position": [360, 300]
+      "position": [
+        360,
+        300
+      ]
     },
     {
       "parameters": {
         "operation": "executeQuery",
         "query": "SELECT id, title, company, location, description FROM offers WHERE hash = $1;",
-        "options": { "queryReplacement": "={{ $('Valider hash + action').first().json.hash }}" }
+        "options": {
+          "queryReplacement": "={{ $('Valider hash + action').first().json.hash }}"
+        }
       },
       "id": "c3000000-0000-4000-8000-000000000005",
       "name": "Charger offre",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
-      "position": [580, 200],
-      "credentials": { "postgres": { "id": "REMPLACER", "name": "Postgres job-hunter" } }
+      "position": [
+        580,
+        200
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "REMPLACER",
+          "name": "Postgres job-hunter"
+        }
+      }
     },
     {
       "parameters": {
-        "assignments": { "assignments": [
-          { "id": "o1", "name": "offer_id", "value": "={{ $json.id }}", "type": "number" },
-          { "id": "o2", "name": "title", "value": "={{ $json.title }}", "type": "string" },
-          { "id": "o3", "name": "company", "value": "={{ $json.company }}", "type": "string" },
-          { "id": "o4", "name": "location", "value": "={{ $json.location }}", "type": "string" },
-          { "id": "o5", "name": "description", "value": "={{ $json.description }}", "type": "string" },
-          { "id": "o6", "name": "company_info", "value": "", "type": "string" }
-        ] },
+        "assignments": {
+          "assignments": [
+            {
+              "id": "o1",
+              "name": "offer_id",
+              "value": "={{ $json.id }}",
+              "type": "number"
+            },
+            {
+              "id": "o2",
+              "name": "title",
+              "value": "={{ $json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "o3",
+              "name": "company",
+              "value": "={{ $json.company }}",
+              "type": "string"
+            },
+            {
+              "id": "o4",
+              "name": "location",
+              "value": "={{ $json.location }}",
+              "type": "string"
+            },
+            {
+              "id": "o5",
+              "name": "description",
+              "value": "={{ $json.description }}",
+              "type": "string"
+            },
+            {
+              "id": "o6",
+              "name": "company_info",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
         "options": {}
       },
       "id": "c3000000-0000-4000-8000-000000000006",
       "name": "Préparer entrée agent",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [800, 200]
+      "position": [
+        800,
+        200
+      ]
     },
     {
       "parameters": {
-        "workflowId": { "__rl": true, "mode": "list", "value": "wf02agentcandid", "cachedResultName": "02 - Agent candidature DeepSeek" },
-        "options": { "waitForSubWorkflow": false }
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "wf02agentcandid",
+          "cachedResultName": "02 - Agent candidature DeepSeek"
+        },
+        "options": {
+          "waitForSubWorkflow": false
+        }
       },
       "id": "c3000000-0000-4000-8000-000000000007",
       "name": "Lancer agent (02)",
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.2,
-      "position": [1020, 200]
+      "position": [
+        1020,
+        200
+      ]
     },
     {
       "parameters": {
@@ -102,22 +192,102 @@
       "name": "Répondre",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [1240, 300]
+      "position": [
+        1240,
+        300
+      ]
     }
   ],
   "connections": {
-    "Webhook statut": { "main": [[{ "node": "Valider hash + action", "type": "main", "index": 0 }]] },
-    "Valider hash + action": { "main": [[{ "node": "MAJ statut offre", "type": "main", "index": 0 }]] },
-    "MAJ statut offre": { "main": [[{ "node": "Sélectionnée ?", "type": "main", "index": 0 }]] },
-    "Sélectionnée ?": { "main": [
-      [{ "node": "Charger offre", "type": "main", "index": 0 }],
-      [{ "node": "Répondre", "type": "main", "index": 0 }]
-    ] },
-    "Charger offre": { "main": [[{ "node": "Préparer entrée agent", "type": "main", "index": 0 }]] },
-    "Préparer entrée agent": { "main": [[{ "node": "Lancer agent (02)", "type": "main", "index": 0 }]] },
-    "Lancer agent (02)": { "main": [[{ "node": "Répondre", "type": "main", "index": 0 }]] }
+    "Webhook statut": {
+      "main": [
+        [
+          {
+            "node": "Valider hash + action",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Valider hash + action": {
+      "main": [
+        [
+          {
+            "node": "MAJ statut offre",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MAJ statut offre": {
+      "main": [
+        [
+          {
+            "node": "Sélectionnée ?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sélectionnée ?": {
+      "main": [
+        [
+          {
+            "node": "Charger offre",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Répondre",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Charger offre": {
+      "main": [
+        [
+          {
+            "node": "Préparer entrée agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Préparer entrée agent": {
+      "main": [
+        [
+          {
+            "node": "Lancer agent (02)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lancer agent (02)": {
+      "main": [
+        [
+          {
+            "node": "Répondre",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
   },
-  "settings": { "executionOrder": "v1" },
+  "settings": {
+    "executionOrder": "v1",
+    "errorWorkflow": "wf08notiferreurs"
+  },
   "active": false,
   "meta": {
     "note": "BROUILLON à vérifier à l'import. Orchestration : action=selected -> charge l'offre -> lance le workflow 02 (Execute Workflow, à relier à l'id réel de 02). action=ignored -> simple réponse. credential Postgres à associer. Suite (02 -> rendu CV/lettre -> 04) reste à brancher : le rendu PDF est conteneurisé (cv-render) et Gmail/Drive exige les credentials OAuth Google."

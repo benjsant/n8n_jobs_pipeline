@@ -17,7 +17,10 @@
       "name": "Dimanche 18h",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
-      "position": [-300, 300]
+      "position": [
+        -300,
+        300
+      ]
     },
     {
       "parameters": {
@@ -29,8 +32,16 @@
       "name": "Stats de la semaine",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
-      "position": [-80, 300],
-      "credentials": { "postgres": { "id": "REMPLACER", "name": "Postgres job-hunter" } }
+      "position": [
+        -80,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "REMPLACER",
+          "name": "Postgres job-hunter"
+        }
+      }
     },
     {
       "parameters": {
@@ -40,7 +51,10 @@
       "name": "Formater digest",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [140, 300]
+      "position": [
+        140,
+        300
+      ]
     },
     {
       "parameters": {
@@ -55,15 +69,51 @@
       "name": "Discord digest",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [360, 300]
+      "position": [
+        360,
+        300
+      ]
     }
   ],
   "connections": {
-    "Dimanche 18h": { "main": [[{ "node": "Stats de la semaine", "type": "main", "index": 0 }]] },
-    "Stats de la semaine": { "main": [[{ "node": "Formater digest", "type": "main", "index": 0 }]] },
-    "Formater digest": { "main": [[{ "node": "Discord digest", "type": "main", "index": 0 }]] }
+    "Dimanche 18h": {
+      "main": [
+        [
+          {
+            "node": "Stats de la semaine",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Stats de la semaine": {
+      "main": [
+        [
+          {
+            "node": "Formater digest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Formater digest": {
+      "main": [
+        [
+          {
+            "node": "Discord digest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
   },
-  "settings": { "executionOrder": "v1" },
+  "settings": {
+    "executionOrder": "v1",
+    "errorWorkflow": "wf08notiferreurs"
+  },
   "active": false,
   "meta": {
     "note": "Digest hebdomadaire (dimanche 18h) sur le canal jobs-alerts : offres collectées/triées/postulées/ignorées de la semaine, totaux candidatures (réponses, entretiens) et top 5 des candidatures à relancer (statut sent, sans réponse depuis plus de 7 jours, non relancées récemment). Lecture seule (aucune écriture en base). credential Postgres à associer (REMPLACER), workflow à ACTIVER après import."
