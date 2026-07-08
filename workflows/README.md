@@ -135,10 +135,12 @@ Au premier démarrage seulement, avant la commande :
   seul texte de l'offre, sans invention) → `companies.sector` / `ai_summary`.
 - `render-payloads.mjs` : corps des requêtes vers le service render (`/cv`,
   `/letter`) + entrée du `04`.
-- `build-nodes.mjs` : **génère** le jsCode des nœuds « Scorer + hashSource » et
-  « Dédup sémantique » du `01` depuis `offer-utils.mjs` (`just build-nodes`) ;
-  la CI vérifie la parité (`--check`).
+- `build-nodes.mjs` : **génère** le jsCode de 12 nœuds Code (8 dans le `01` :
+  scorer, dédup, les 4 normaliseurs, scoring LLM ; 4 dans le `02` :
+  enrichissement, parsing, payloads de rendu) depuis leurs modules `lib/`
+  (`just build-nodes`) ; la CI vérifie la parité (`--check`).
 - Tests : `node workflows/lib/*.test.mjs` (ou `just test`).
 
-> Les autres nœuds Code recopient cette logique manuellement (n8n n'importe pas
-> de fichier externe). Garder en parité — les tests verrouillent l'équivalence.
+> Les rares nœuds Code restants (token FT, appel LBA, récap log, glu d'entrée
+> du 02, validations des webhooks) sont de la glu n8n sans lib source : ils
+> restent manuels.

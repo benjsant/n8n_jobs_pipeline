@@ -311,9 +311,12 @@ ou `agent/`), pas par du code copié dans un nœud n8n.
   prépa entretien et spontanée appellent DeepSeek (coût + clé), donc les tests
   couvrent les fonctions autour (db, airtable, validation) mais pas l'appel LLM
   de bout en bout. Vérification manuelle recommandée après un changement de prompt.
-- **Duplication contrôlée** : le nœud `norm LBA recruteurs` du `01` est une copie
-  inline de `sources.mjs` (tenue synchro à la main pour le champ `email`). Le reste
-  des nœuds du `01` est généré (pas de duplication).
+- ~~Duplication contrôlée~~ **résolue (2026-07-08)** : les nœuds Code des
+  workflows `01` (8 nœuds) et `02` (4 nœuds) sont désormais **générés** depuis
+  leurs modules `lib/` par `build-nodes.mjs`, parité vérifiée en CI. Restent
+  manuels : les nœuds sans lib source (`FT - token`, `LBA - search`,
+  `Récap jobs-log`, `Normaliser entrée`, `Parser sortie agent`, validations
+  des webhooks), qui sont de la pure glu n8n.
 - **Couplage aux API externes** : DeepSeek, LBA, INSEE, sources. Un changement de
   leur format casse un maillon ; les normaliseurs isolent l'impact, mais surveiller.
 - **Multi-profils partiel côté interface** : `search_profiles` gère le multi-profil
