@@ -1,5 +1,5 @@
 {
-  "_sample": "Exemple de sortie d'agent pour une offre 'Dev Python / IA' — sert à tester le rendu CV. En prod, ce JSON est produit par DeepSeek par offre. Les ids/noms doivent exister dans cv/*.json.",
+  "_sample": "Exemple de sortie d'agent pour une offre 'Dev Python / IA' - sert à tester le rendu CV. En prod, ce JSON est produit par DeepSeek par offre. Les ids/noms doivent exister dans cv/*.json.",
   "summary": "Développeur Python backend orienté IA appliquée : agents LLM, pipelines MLOps et APIs FastAPI déployées. Je cherche une équipe technique exigeante pour livrer concrètement.",
   "highlight_skills": ["Python", "FastAPI", "RAG", "Agents IA (ReAct, tool-calling)"],
   "highlight_projects": ["infinidex", "predictiondex"],

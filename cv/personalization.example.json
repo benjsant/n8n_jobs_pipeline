@@ -1,5 +1,5 @@
 {
-  "_comment": "Contrat de SORTIE de l'agent DeepSeek. Pour chaque offre, l'agent produit un objet de cette forme. Astro l'utilise pour réordonner / mettre en avant / masquer — JAMAIS pour inventer. Tous les ids référencés doivent exister dans projects.json / experiences.json.",
+  "_comment": "Contrat de SORTIE de l'agent DeepSeek. Pour chaque offre, l'agent produit un objet de cette forme. Astro l'utilise pour réordonner / mettre en avant / masquer - JAMAIS pour inventer. Tous les ids référencés doivent exister dans projects.json / experiences.json.",
   "summary": "",
   "highlight_skills": [],
   "highlight_projects": [],

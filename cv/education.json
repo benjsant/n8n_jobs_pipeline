@@ -2,12 +2,12 @@
   "education": [
     {
       "id": "formation-developpeur-ia",
-      "degree": "Formation Développeur IA – RNCP niveau 6 (bac+3/4)",
+      "degree": "Formation Développeur IA - RNCP niveau 6 (bac+3/4)",
       "school": "Simplon, Lille",
       "location": "",
       "start": "2025",
       "end": "2026",
-      "date": "2025–26",
+      "date": "2025-26",
       "details": ""
     },
     {
@@ -17,7 +17,7 @@
       "location": "",
       "start": "2018",
       "end": "2019",
-      "date": "2018–19",
+      "date": "2018-19",
       "details": ""
     },
     {
@@ -27,7 +27,7 @@
       "location": "",
       "start": "2015",
       "end": "2017",
-      "date": "2015–17",
+      "date": "2015-17",
       "details": ""
     }
   ]

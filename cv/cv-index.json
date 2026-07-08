@@ -53,22 +53,22 @@
   "projects": [
     {
       "id": "infinidex",
-      "name": "InfiniDex – Pokédex augmenté par IA"
+      "name": "InfiniDex - Pokédex augmenté par IA"
     },
     {
       "id": "predictiondex",
-      "name": "PredictionDex – prédiction de combats Pokémon"
+      "name": "PredictionDex - prédiction de combats Pokémon"
     },
     {
       "id": "audiomancy",
-      "name": "Audiomancy – génération de playlists assistée par IA"
+      "name": "Audiomancy - génération de playlists assistée par IA"
     }
   ],
   "experiences": [
     {
       "id": "caf-du-nord",
-      "role": "Développeur Web Symfony – Stages successifs",
-      "company": "CAF du Nord – Agence de Valenciennes"
+      "role": "Développeur Web Symfony - Stages successifs",
+      "company": "CAF du Nord - Agence de Valenciennes"
     }
   ]
 }

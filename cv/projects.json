@@ -2,8 +2,8 @@
   "projects": [
     {
       "id": "infinidex",
-      "name": "InfiniDex – Pokédex augmenté par IA",
-      "period": "Avril 2026 – en cours",
+      "name": "InfiniDex - Pokédex augmenté par IA",
+      "period": "Avril 2026 - en cours",
       "description": "Agent LLM multi-provider à 9 outils (DeepSeek/OpenRouter/Ollama, sans LangChain) avec streaming SSE temps réel. Pipeline ETL Prefect automatisé (orchestration, détection de changements par SHA, alertes Discord) sur 572 Pokémon et 168 000+ fusions.",
       "tech": [
         "Python",
@@ -17,8 +17,8 @@
     },
     {
       "id": "predictiondex",
-      "name": "PredictionDex – prédiction de combats Pokémon",
-      "period": "Janvier – Mars 2026",
+      "name": "PredictionDex - prédiction de combats Pokémon",
+      "period": "Janvier - Mars 2026",
       "description": "Modèle XGBoost entraîné sur un dataset de combats simulés. Pipeline MLOps end-to-end : tracking MLflow, promotion auto en production, API FastAPI + interface Streamlit.",
       "tech": [
         "Python",
@@ -31,8 +31,8 @@
     },
     {
       "id": "audiomancy",
-      "name": "Audiomancy – génération de playlists assistée par IA",
-      "period": "Juillet 2025 – Mars 2026",
+      "name": "Audiomancy - génération de playlists assistée par IA",
+      "period": "Juillet 2025 - Mars 2026",
       "description": "Projet en équipe. Agent ReAct DeepSeek (boucle Thought/Action/Observation) + API Jamendo pour générer des playlists musicales. Stack monitoring Prometheus/Grafana, déploiement Azure (anciennement).",
       "tech": [
         "Python",
