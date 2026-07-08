@@ -74,10 +74,20 @@ elle, testée hors stack — voir `lib/` et `scripts/run-tests.sh`.
 | `05-candidature-spontanee.json` | entreprise LBA (sans offre) → `02` mode spontané | Webhook (`spontaneous-apply`) |
 | `06-prepa-entretien.json` | offre → agent `/interview/prep` → dossier Discord | Webhook (`interview-prep?hash=`) |
 | `07-digest-hebdo.json` | récap hebdo + candidatures à relancer → Discord | Schedule (cron dimanche 18h) |
+| `08-notification-erreurs.json` | tout workflow en échec → alerte jobs-log | Error Trigger (automatique) |
 
 > **Webhooks protégés** : si `WEBHOOK_SECRET` est renseigné dans `.env`, les
 > workflows `03`/`05`/`06` rejettent tout appel sans `?token=<valeur>` (les liens
 > générés par le `01` l'incluent automatiquement). Vide = comportement historique.
+
+> **Erreurs visibles** : le `08` est déclaré comme *Error Workflow* dans les
+> settings des workflows `01` à `07`. Tout échec d'exécution poste sur jobs-log
+> (fallback jobs-alerts) le workflow, le nœud fautif et le message d'erreur.
+> Il n'a pas besoin d'être activé : n8n l'invoque automatiquement.
+
+> **Fuseau horaire** : les crons (`01` à 8h, `07` dimanche 18h) suivent
+> `GENERIC_TIMEZONE` (Europe/Paris par défaut dans le compose). Sans cette
+> variable, n8n utilise America/New_York et les horaires sont décalés de 6 h.
 
 > **Candidature spontanée** : l'alerte Discord « candidature spontanée » du `01`
 > (entreprises LBA à contacter) porte un lien `…/webhook/spontaneous-apply?company=<nom>`.
@@ -95,24 +105,22 @@ Chaque workflow porte un **`id` racine stable** (`wf01rechercheoff`, …) et les
 appels croisés (`03 → 02`, `02 → 04`) pointent déjà sur ces ids — **aucun
 rebranchement manuel** des `executeWorkflow`. Import vérifié sur **n8n 2.26.7** :
 
+**Une seule commande** (import + credential réelle + réactivation + restart) :
+
 ```bash
-# tous sont montés dans le conteneur sous /workflows
-for f in 01-recherche-offres 02-agent-candidature 03-statut-offre \
-         04-candidature-finalisation 05-candidature-spontanee \
-         06-prepa-entretien 07-digest-hebdo; do
-  docker exec job-hunter-n8n n8n import:workflow --input=/workflows/$f.json
-done
+just deploy-workflows
 ```
 
-Restent à faire **dans l'UI n8n** après import :
-1. Associer la **credential Postgres** (« Postgres job-hunter ») à chaque nœud
-   Postgres (ils portent `id: REMPLACER`).
-2. Renseigner `.env` (clés sources + `DISCORD_WEBHOOK_ALERTS/LOG`, `RENDER_API_URL`,
-   `DEEPSEEK_API_KEY`, et `WEBHOOK_SECRET` recommandé) puis tester `01` en exécution
-   manuelle. Les services `agent-langgraph` et `render` doivent tourner pour que
-   le `02` génère les PDF.
-3. Activer les workflows voulus (ils sont importés **inactifs** ; un réimport les
-   repasse inactifs — réactiver `02`, sinon `03`/`05` échouent).
+La recette remplace `REMPLACER` par l'id réel de la credential Postgres de
+l'instance (créée une fois dans l'UI), importe chaque `NN-*.json`, réactive
+tout (un import désactive les workflows ; `02` inactif ferait échouer `03`/`05`)
+sauf le `08` (error workflow, pas d'activation), puis redémarre n8n.
+
+Au premier démarrage seulement, avant la commande :
+1. Créer la **credential Postgres** (« Postgres job-hunter ») dans l'UI n8n.
+2. Renseigner `.env` (clés sources + `DISCORD_WEBHOOK_ALERTS/LOG`,
+   `DEEPSEEK_API_KEY`, et `WEBHOOK_SECRET` recommandé). Les services
+   `agent-langgraph` et `render` doivent tourner pour que le `02` génère les PDF.
 
 ## lib/ (logique testée, source des nœuds Code)
 

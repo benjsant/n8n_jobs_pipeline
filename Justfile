@@ -63,6 +63,33 @@ schema:
 seed:
     docker compose exec -T postgres psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" < db/seed-profiles.sql
 
+# Déploie les exports workflows/*.json dans n8n en une commande : associe la
+# credential Postgres réelle (les JSON portent REMPLACER), importe, réactive
+# (un import désactive les workflows) et redémarre n8n. Idempotent.
+deploy-workflows:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    CRED=$(docker compose exec -T postgres psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" \
+      -tAc "SELECT id FROM credentials_entity WHERE type='postgres' ORDER BY id LIMIT 1")
+    if [ -z "$CRED" ]; then
+      echo "❌ Aucune credential Postgres dans n8n : créer « Postgres job-hunter » dans l'UI d'abord." >&2
+      exit 1
+    fi
+    for f in workflows/[0-9][0-9]-*.json; do
+      name=$(basename "$f" .json)
+      wfid=$(sed -n 's/^  "id": "\([^"]*\)".*/\1/p' "$f" | head -1)
+      docker exec job-hunter-n8n sh -c "sed 's/REMPLACER/$CRED/g' /workflows/$name.json > /tmp/wf-deploy.json \
+        && n8n import:workflow --input=/tmp/wf-deploy.json && rm /tmp/wf-deploy.json" >/dev/null 2>&1
+      if grep -q errorTrigger "$f"; then
+        echo "  ✓ $name importé (error workflow, pas d'activation)"
+      else
+        docker exec job-hunter-n8n n8n update:workflow --id="$wfid" --active=true >/dev/null 2>&1
+        echo "  ✓ $name importé + activé ($wfid)"
+      fi
+    done
+    docker compose restart n8n >/dev/null 2>&1
+    echo "✅ Workflows déployés, n8n redémarré."
+
 # ────────────────────────── Qualité ──────────────────────────
 # Régénère le jsCode des nœuds Code du 01 depuis offer-utils.mjs (source unique).
 # À lancer après toute modif de offer-utils.mjs.

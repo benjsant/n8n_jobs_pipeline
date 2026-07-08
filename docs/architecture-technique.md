@@ -126,8 +126,12 @@ Invariants à ne pas casser :
 | `05-candidature-spontanee` | entreprise LBA sans offre -> `02` en mode spontané | webhook |
 | `06-prepa-entretien` | offre -> dossier d'entretien (agent) | webhook |
 | `07-digest-hebdo` | récap hebdo (offres, candidatures, à relancer) -> Discord | cron (dimanche 18h) |
+| `08-notification-erreurs` | tout workflow en échec -> alerte jobs-log | Error Trigger |
 
-Deux garde-fous transverses :
+Le déploiement se fait en une commande : `just deploy-workflows` (credential
+réelle substituée à `REMPLACER`, import, réactivation, restart n8n).
+
+Trois garde-fous transverses :
 
 - **Webhooks signés** : si `WEBHOOK_SECRET` est renseigné, les webhooks `03`/`05`/`06`
   rejettent tout appel sans `?token=<valeur>` (les liens Discord générés par le `01`
@@ -137,6 +141,10 @@ Deux garde-fous transverses :
   et `company_canon`, et écarte via un anti-join (`<=>`, distance <= 0.20) les
   quasi-doublons déjà en base pour la même entreprise canonique. La dédup intra-lot
   reste dans le nœud Code généré.
+- **Erreurs visibles** : le `08` est l'*Error Workflow* des workflows `01` à `07`
+  (clé `settings.errorWorkflow`). Tout échec poste workflow + nœud + message sur
+  jobs-log. Sans lui, un échec (ex. 429 Discord du 2026-07-07) n'était visible
+  que dans l'UI n8n.
 
 Le **jsCode des nœuds Code du `01` est généré** depuis `offer-utils.mjs` par
 `build-nodes.mjs`. Ne modifie **jamais** ce jsCode dans le JSON à la main : change
@@ -250,6 +258,9 @@ docker compose up -d --force-recreate --no-deps agent-langgraph
 - **Ports : interne vs hôte.** n8n écoute **5678** dans le conteneur ; l'hôte publie
   **8978** (`N8N_PORT`). Idem interface **8001**->**8901** (`UI_PORT`). Si tu changes
   `N8N_PORT`, aligne `WEBHOOK_URL`.
+- **Fuseau des crons.** Sans `GENERIC_TIMEZONE`, n8n utilise **America/New_York** :
+  le cron « 8h » du `01` partait à 14h heure de Paris (constaté sur les exécutions
+  réelles). Le compose fixe Europe/Paris par défaut ; ne pas retirer la variable.
 - **Écoute locale par défaut.** Les ports sont publiés sur `127.0.0.1` (`BIND_HOST`),
   car la mini-interface n'a **pas d'authentification**. Pour ouvrir au réseau local
   (ou binder l'IP WireGuard sur VPS), mets `BIND_HOST=0.0.0.0` (ou l'IP voulue).

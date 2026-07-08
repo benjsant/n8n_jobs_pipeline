@@ -27,6 +27,16 @@ nouveau workflow **`07-digest-hebdo`** (dimanche 18h : récap offres/candidature
 (image pgvector + attente robuste — il échouait sur main). Après réimport des
 workflows dans n8n : réactiver, et renseigner `WEBHOOK_SECRET` dans `.env`.
 
+**Exploitation du même jour (2ᵉ vague)** : tout est **déployé et vérifié en
+réel** (WEBHOOK_SECRET dans le .env local, migration appliquée, 8 workflows
+importés/actifs, run du 01 en succès : 14 offres insérées AVEC embeddings).
+En opérant : throttle + retry sur les nœuds Discord du 01 (le run du
+2026-07-07 était mort en 429), **workflow `08-notification-erreurs`** (Error
+Workflow des 01→07 : échec → jobs-log), **`just deploy-workflows`** (credential
++ import + réactivation + restart en une commande), et **fuseau corrigé**
+(`GENERIC_TIMEZONE=Europe/Paris` ; sans lui n8n était en America/New_York et
+le « 8h » partait à 14h Paris — constaté sur les exécutions).
+
 **MVP n8n = TERMINÉ et déployé sur `main`**. Chaîne complète
 **sans Google** : `01` (cron 8h, sources **France Travail réparé + JobSpy**) → Discord
 → clic Générer → `03 → 02` (agent → **CV ATS par défaut** + **lettre
@@ -248,6 +258,21 @@ variante ATS strictement noir/blanc si un parser très ancien le justifie (trivi
     stats (offres 7 j par statut, totaux candidatures, top 5 « à relancer » :
     sent sans réponse > 7 j, non relancées récemment) → message jobs-alerts.
     Lecture seule, garde si webhook absent.
+29. **Workflow 08 = Error Workflow global** (2026-07-08). Déclaré dans
+    `settings.errorWorkflow` des workflows 01→07 : tout échec d'exécution poste
+    workflow + nœud + message sur jobs-log (fallback alerts). Motivation : le
+    run du 2026-07-07 avait échoué en silence (429 Discord), invisible hors UI.
+    Pas d'activation nécessaire (n8n l'invoque). Au passage : throttle 1 msg/2 s
+    + retry sur les 3 nœuds Discord du 01 (cause du 429 : limite webhook).
+30. **`just deploy-workflows`** (2026-07-08). Déploiement en une commande :
+    substitue `REMPLACER` par l'id réel de la credential Postgres (lu dans
+    `credentials_entity`), importe chaque `NN-*.json`, réactive tout sauf le 08,
+    redémarre n8n. Remplace la procédure manuelle en 4 étapes piégeuse
+    (credential perdue à l'import, workflows désactivés).
+31. **Fuseau horaire des crons fixé** (2026-07-08). `GENERIC_TIMEZONE` + `TZ`
+    (défaut Europe/Paris) ajoutés au service n8n : sans eux, n8n tournait en
+    America/New_York et le cron « 8h » du 01 partait à **14h heure de Paris**
+    (vérifié sur les startedAt réels : 12:00 UTC = 8:00 New York).
 
 ## ⏳ En attente de l'utilisateur
 

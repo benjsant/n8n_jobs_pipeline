@@ -147,7 +147,7 @@ n8n_jobs_pipeline/          # racine du projet
 ├── CLAUDE.md               # ce fichier
 ├── TASKS.md                # plan de build ordonné
 ├── db/                     # schéma SQL, seed profils, test d'intégration
-├── workflows/              # exports JSON des workflows n8n (01 → 07)
+├── workflows/              # exports JSON des workflows n8n (01 → 08)
 │   └── lib/                # logique métier testée, source des nœuds Code
 │                           # (build-nodes.mjs génère 2 nœuds du 01)
 ├── prompts/
