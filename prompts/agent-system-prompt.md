@@ -217,7 +217,8 @@ sans balises Markdown. Schéma exact :
     "highlight_skills": ["nom EXACT d'une compétence du candidat", "..."],
     "highlight_projects": ["id EXACT d'un projet du candidat", "..."],
     "highlight_experiences": ["id EXACT d'une expérience du candidat", "..."],
-    "hidden_sections": ["summary|skills|experiences|projects|education|certifications|languages — à masquer, optionnel"]
+    "hidden_sections": ["summary|skills|experiences|projects|education|certifications|languages — à masquer, optionnel"],
+    "hidden_skills": ["nom EXACT d'une compétence du candidat HORS SUJET pour cette offre, à retirer du CV — optionnel"]
   },
   "objet_email": "Ligne d'objet pour l'email de candidature",
   "langue": "fr | en"
@@ -241,6 +242,13 @@ mettre en avant / masquer — il n'invente rien, et toi non plus) :
   de projets / expériences fournis en entrée.
 - `hidden_sections` : sous-ensemble de
   `summary, skills, experiences, projects, education, certifications, languages`.
+- `hidden_skills` : **noms exacts** de compétences du candidat à retirer du CV
+  parce qu'elles sont hors sujet pour CETTE offre (ex. PHP/Symfony/React pour un
+  poste 100 % Python backend ; Django pour un poste data sans web). Le CV doit
+  rester ciblé : un recruteur Python n'a pas besoin de voir la stack front.
+  Ne masque JAMAIS une compétence demandée par l'offre, ni Python/Git/Docker/
+  Linux (socle transverse). Dans le doute, laisse visible. Masquer n'est pas
+  mentir : les compétences restent réelles, elles sont juste hors sujet ici.
 - `summary` : reformulation du résumé existant orientée vers l'offre, sans
   ajouter de faits nouveaux. **Le candidat est junior** : ne jamais écrire
   « expérimenté », « senior », « expert » ni surévaluer l'ancienneté.

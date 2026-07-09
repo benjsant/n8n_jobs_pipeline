@@ -22,7 +22,8 @@
         "highlight_skills": ["Python", "FastAPI"],
         "highlight_projects": ["infinidex"],
         "highlight_experiences": [],
-        "hidden_sections": []
+        "hidden_sections": [],
+        "hidden_skills": ["React", "Symfony"]
       },
       "objet_email": "Candidature Développeur Backend Python, Proxiad Nord",
       "langue": "fr"

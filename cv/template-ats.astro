@@ -27,6 +27,7 @@ const {
   highlight_projects = [],
   highlight_experiences = [],
   hidden_sections = [],
+  hidden_skills = [],
 } = personalization;
 const isHidden = (key) => hidden_sections.includes(key);
 const summary = clean(customSummary || profile.summary);
@@ -67,10 +68,12 @@ const languages = (languagesData.languages || []).filter((l) => l.name);
 const interests = (interestsData.interests || []).filter((i) => i.title)
   .map((i) => ({ title: clean(i.title), description: clean(i.description) }));
 
+// hidden_skills : compétences réelles mais hors sujet pour CETTE offre (choisies
+// par l'agent) — retirées du rendu. Une catégorie vidée disparaît entièrement.
 const skillRows = skillsData.categories
   .map((cat) => ({
     name: clean(cat.name),
-    items: reorder(cat.items.filter((s) => s.name), highlight_skills, (s) => s.name)
+    items: reorder(cat.items.filter((s) => s.name && !hidden_skills.includes(s.name)), highlight_skills, (s) => s.name)
       .map((s) => ({ label: clean(s.level ? `${s.name} (${s.level})` : s.name), hl: highlight_skills.includes(s.name) })),
   }))
   .filter((c) => c.items.length > 0);

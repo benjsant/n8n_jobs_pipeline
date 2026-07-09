@@ -42,6 +42,9 @@ class PersonnalisationCv(BaseModel):
     highlight_projects: list[str] = Field(default_factory=list)
     highlight_experiences: list[str] = Field(default_factory=list)
     hidden_sections: list[str] = Field(default_factory=list)
+    # Compétences réelles mais hors sujet pour CETTE offre (noms exacts),
+    # retirées du rendu (ex. PHP/Symfony pour un poste 100 % Python).
+    hidden_skills: list[str] = Field(default_factory=list)
 
 
 class AgentOutput(BaseModel):

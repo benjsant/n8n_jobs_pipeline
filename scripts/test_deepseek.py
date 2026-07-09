@@ -76,7 +76,8 @@ def cv_valid_values() -> tuple[set, set, set]:
 def validate_personalization(p: dict) -> list[str]:
     """Vérifie la structure ET que les highlights référencent du réel (anti-invention)."""
     errors: list[str] = []
-    for key in ("highlight_skills", "highlight_projects", "highlight_experiences", "hidden_sections"):
+    for key in ("highlight_skills", "highlight_projects", "highlight_experiences",
+                "hidden_sections", "hidden_skills"):
         if key in p and not isinstance(p[key], list):
             errors.append(f"personnalisation_cv.{key} doit être une liste")
     bad_hidden = set(p.get("hidden_sections", [])) - ALLOWED_HIDDEN
@@ -89,6 +90,9 @@ def validate_personalization(p: dict) -> list[str]:
         unknown = set(p.get("highlight_skills", [])) - skill_names
         if unknown:
             errors.append(f"highlight_skills inventées (absentes du profil) : {sorted(unknown)}")
+        unknown = set(p.get("hidden_skills", [])) - skill_names
+        if unknown:
+            errors.append(f"hidden_skills inconnues (absentes du profil) : {sorted(unknown)}")
     if project_ids:
         unknown = set(p.get("highlight_projects", [])) - project_ids
         if unknown:

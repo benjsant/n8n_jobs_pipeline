@@ -15,6 +15,7 @@ const AGENT = {
     highlight_projects: ["rag-assistant"],
     highlight_experiences: ["stage-data"],
     hidden_sections: [],
+    hidden_skills: ["Symfony", "React"],
   },
 };
 
@@ -22,6 +23,7 @@ t("buildCvPayload recopie la personnalisation, application_id en string", () => 
   const out = buildCvPayload({ application_id: 7, personnalisation_cv: AGENT.personnalisation_cv });
   assert.equal(out.application_id, "7");
   assert.deepEqual(out.personalization.highlight_skills, ["Python", "RAG / LLM"]);
+  assert.deepEqual(out.personalization.hidden_skills, ["Symfony", "React"]);
   assert.equal(out.personalization.summary, "Dev IA junior orienté RAG.");
 });
 
@@ -29,14 +31,14 @@ t("buildCvPayload tolère une personnalisation absente/partielle", () => {
   const out = buildCvPayload({ application_id: 1 });
   assert.deepEqual(out.personalization, {
     summary: "", highlight_skills: [], highlight_projects: [],
-    highlight_experiences: [], hidden_sections: [],
+    highlight_experiences: [], hidden_sections: [], hidden_skills: [],
   });
 });
 
 t("buildCvPayload n'invente rien : aucune clé hors contrat", () => {
   const out = buildCvPayload({ application_id: 1, personnalisation_cv: { foo: "bar", highlight_skills: ["X"] } });
   assert.deepEqual(Object.keys(out.personalization).sort(), [
-    "hidden_sections", "highlight_experiences", "highlight_projects", "highlight_skills", "summary",
+    "hidden_sections", "hidden_skills", "highlight_experiences", "highlight_projects", "highlight_skills", "summary",
   ]);
 });
 

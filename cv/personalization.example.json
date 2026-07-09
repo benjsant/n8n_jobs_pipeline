@@ -1,8 +1,9 @@
 {
-  "_comment": "Contrat de SORTIE de l'agent DeepSeek. Pour chaque offre, l'agent produit un objet de cette forme. Astro l'utilise pour réordonner / mettre en avant / masquer - JAMAIS pour inventer. Tous les ids référencés doivent exister dans projects.json / experiences.json.",
+  "_comment": "Contrat de SORTIE de l'agent DeepSeek. Pour chaque offre, l'agent produit un objet de cette forme. Astro l'utilise pour réordonner / mettre en avant / masquer - JAMAIS pour inventer. Tous les ids référencés doivent exister dans projects.json / experiences.json. hidden_skills : compétences réelles mais hors sujet pour l'offre (noms exacts de skills.json), retirées du rendu.",
   "summary": "",
   "highlight_skills": [],
   "highlight_projects": [],
   "highlight_experiences": [],
-  "hidden_sections": []
+  "hidden_sections": [],
+  "hidden_skills": []
 }

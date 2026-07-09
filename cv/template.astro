@@ -30,6 +30,7 @@ const {
   highlight_projects = [],
   highlight_experiences = [],
   hidden_sections = [],
+  hidden_skills = [],
 } = personalization;
 const isHidden = (key) => hidden_sections.includes(key);
 // Anti-IA : retire tiret cadratin/demi-cadratin (— –) -> '-' et point médian (·) -> ', '.
@@ -78,7 +79,7 @@ const interests = (interestsData.interests || []).filter((i) => i.title)
 const skillRows = skillsData.categories
   .map((cat) => ({
     name: clean(cat.name),
-    items: reorder(cat.items.filter((s) => s.name), highlight_skills, (s) => s.name)
+    items: reorder(cat.items.filter((s) => s.name && !hidden_skills.includes(s.name)), highlight_skills, (s) => s.name)
       .map((s) => ({ label: clean(s.level ? `${s.name} (${s.level})` : s.name), hl: highlight_skills.includes(s.name) })),
   }))
   .filter((c) => c.items.length > 0);

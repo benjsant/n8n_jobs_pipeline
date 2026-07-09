@@ -295,6 +295,19 @@ variante ATS strictement noir/blanc si un parser très ancien le justifie (trivi
     /health), cookie posé via `/?token=`, header `X-UI-Token` envoyé par les
     workflows 02/06 (câblé compose + .env.example). Préalable à toute
     ouverture de `BIND_HOST`.
+36. **CV ciblé : `hidden_skills`** (2026-07-09, demande utilisateur). La
+    personnalisation ne faisait que réordonner/mettre en gras : toutes les
+    compétences (dont Java/JEE/Hibernate hérités du portfolio) partaient sur
+    chaque CV. Nouveau champ §6 `personnalisation_cv.hidden_skills` (noms
+    exacts, validés contre le profil) : les deux templates retirent ces
+    compétences du bloc Compétences (catégorie vidée = supprimée). Les stacks
+    des expériences/projets restent (des faits, pas la liste ciblée). Règle
+    prompt : masquer le hors-sujet, jamais une compétence demandée ni le socle
+    (Python/Git/Docker/Linux) ; dans le doute, laisser. Vérifié en réel :
+    l'agent masque PHP/Symfony/React/Java/réseaux pour un poste backend
+    Python. Chaîne complète : schema.py, prompt, render-payloads (+ nœud 02
+    régénéré), templates, validateur test_deepseek, cassette. Le CV racine
+    (`CV_Benjamin_Santrisse.pdf`) a été régénéré (certification mars 2026).
 
 ## ⏳ En attente de l'utilisateur
 
