@@ -81,8 +81,9 @@ def test_offre_backend_bout_en_bout(monkeypatch):
     assert out["lettre"]["template"] == "backend"
     assert "1997" in out["lettre"]["accroche"]  # accroche groundée conservée
     assert out["personnalisation_cv"]["cv_title"] == "Développeur Backend Python"
-    # Les compétences hors sujet à masquer traversent le contrat jusqu'au rendu.
+    # Les compétences et projets hors sujet à masquer traversent le contrat.
     assert out["personnalisation_cv"]["hidden_skills"] == ["React", "Symfony"]
+    assert out["personnalisation_cv"]["hidden_projects"] == ["audiomancy"]
     assert "—" not in json.dumps(out, ensure_ascii=False)  # aucun marqueur IA
     assert not remaining  # exactement 2 appels LLM (analyze + accroche)
     # Le grounding web du nœud research est injecté dans le prompt de l'accroche.

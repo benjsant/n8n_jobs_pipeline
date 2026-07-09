@@ -327,6 +327,18 @@ variante ATS strictement noir/blanc si un parser très ancien le justifie (trivi
     rayon 20, puis seed pour les 6 variantes Lille). La dédup absorbe les
     recouvrements. Les offres déjà en base collectées à 50 km peuvent être
     purgées depuis l'interface si elles polluent.
+39. **CV patron + projets adaptables, Job Hunter au CV** (2026-07-09, idée
+    utilisateur). Le portfolio (source de vérité) remplace la fiche projet
+    MintyForge par `n8n-jobs-pipeline` et le projet « Job Hunter » entre dans
+    `cv.ts` (+ certification obtenue mars 2026) ; resync local OK (4 projets,
+    id `job-hunter`). Nouveau champ §6 `hidden_projects` (symétrique de
+    hidden_skills, chaîne complète). **Garde-fou déterministe anti
+    sur-masquage** dans `validate` (`sanitize_personalisation`) après constat
+    réel (LLM masquait 40/49 compétences et 2/4 projets) : jamais masquer un
+    highlight, au plus 1/3 des compétences, au moins 3 projets visibles.
+    `interests` ajouté aux sections masquables. Template ATS resserré
+    (line-height 1.38, marges) : 3 projets + intérêts = 1 page, patron 4
+    projets = 2 pages. CV racine local régénéré (1 page, Job Hunter en tête).
 
 ## ⏳ En attente de l'utilisateur
 

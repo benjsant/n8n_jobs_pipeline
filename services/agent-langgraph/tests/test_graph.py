@@ -135,3 +135,25 @@ def test_message_spontane(monkeypatch):
     msg = G.build_user_message({"title": "Candidature spontanée", "company": "Acme",
                                 "description": "", "spontaneous": True}, "idx")
     assert "candidature-spontanee" in msg.lower()
+
+
+def test_sanitize_personalisation_bornes():
+    """Garde-fous déterministes anti sur-masquage (constaté en réel : 40/49
+    compétences et 2/4 projets masqués par le LLM sur un CV backend/IA)."""
+    idx = json.dumps({
+        "skills": [f"s{i}" for i in range(12)],
+        "projects": [{"id": p} for p in ("a", "b", "c", "d")],
+    })
+    pc = {
+        "highlight_skills": ["s0"], "highlight_projects": ["a"],
+        "hidden_skills": [f"s{i}" for i in range(12)],  # contradiction (s0) + excès
+        "hidden_projects": ["a", "b", "c"],             # contradiction (a) + excès
+    }
+    out = G.sanitize_personalisation(pc, idx)
+    assert "s0" not in out["hidden_skills"]   # jamais masquer un highlight
+    assert len(out["hidden_skills"]) == 4     # au plus un tiers (12 // 3)
+    assert out["hidden_projects"] == ["b"]    # 4 projets -> au moins 3 visibles
+    # Index illisible : seule la règle de contradiction s'applique (tolérant).
+    out2 = G.sanitize_personalisation(dict(pc), "pas du json")
+    assert "s0" not in out2["hidden_skills"]
+    assert len(out2["hidden_skills"]) == 11

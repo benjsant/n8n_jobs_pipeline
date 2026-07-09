@@ -31,6 +31,7 @@ const {
   highlight_experiences = [],
   hidden_sections = [],
   hidden_skills = [],
+  hidden_projects = [],
 } = personalization;
 const isHidden = (key) => hidden_sections.includes(key);
 // Anti-IA : retire tiret cadratin/demi-cadratin (— –) -> '-' et point médian (·) -> ', '.
@@ -44,7 +45,10 @@ function reorder(items, highlights, keyFn) {
   return [...hi, ...rest];
 }
 
-const projects = reorder(projectsData.projects.filter((p) => p.name), highlight_projects, (p) => p.id).map((p) => ({
+// hidden_projects : projets réels mais hors sujet pour CETTE offre (ids choisis
+// par l'agent), retirés du rendu. Le CV patron peut porter plus de projets que
+// le CV envoyé n'en montre.
+const projects = reorder(projectsData.projects.filter((p) => p.name && !hidden_projects.includes(p.id)), highlight_projects, (p) => p.id).map((p) => ({
   ...p,
   name: clean(p.name),
   period: clean(p.period),

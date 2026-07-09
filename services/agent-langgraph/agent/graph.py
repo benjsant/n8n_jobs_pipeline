@@ -190,6 +190,38 @@ def route_after_judge(state: AgentState) -> str:
     return "ok"
 
 
+def sanitize_personalisation(pc: object, cv_index_text: str = "") -> object:
+    """Garde-fous déterministes sur le masquage (le LLM a tendance à sur-masquer) :
+    - jamais masquer ce qui est mis en avant (contradiction highlight/hidden) ;
+    - au plus un tiers des compétences masquées ;
+    - au moins 3 projets visibles (si le profil en compte autant).
+    Tolérant : si l'index CV est illisible, seule la règle de contradiction s'applique.
+    """
+    if not isinstance(pc, dict):
+        return pc
+    pc = dict(pc)
+    for hidden_key, highlight_key in (
+        ("hidden_skills", "highlight_skills"),
+        ("hidden_projects", "highlight_projects"),
+    ):
+        highlights = set(pc.get(highlight_key) or [])
+        pc[hidden_key] = [
+            x for x in (pc.get(hidden_key) or []) if isinstance(x, str) and x not in highlights
+        ]
+    try:
+        idx = json.loads(cv_index_text or "")
+    except Exception:
+        idx = {}
+    skills = idx.get("skills") if isinstance(idx, dict) else None
+    if isinstance(skills, list) and skills:
+        pc["hidden_skills"] = pc["hidden_skills"][: len(skills) // 3]
+    projects = idx.get("projects") if isinstance(idx, dict) else None
+    if isinstance(projects, list) and projects:
+        max_hidden = max(0, len(projects) - min(3, len(projects)))
+        pc["hidden_projects"] = pc["hidden_projects"][:max_hidden]
+    return pc
+
+
 def validate_node(state: AgentState) -> dict:
     """Fusion déterministe + garde-fous. Aucun LLM."""
     merged = dict(state.get("analysis") or {})
@@ -199,6 +231,9 @@ def validate_node(state: AgentState) -> dict:
         lettre["template"] = "ia-junior"
     merged["lettre"] = lettre
     merged["conseils"] = no_dash(merged.get("conseils") or "")
+    merged["personnalisation_cv"] = sanitize_personalisation(
+        merged.get("personnalisation_cv"), state.get("cv_index", "")
+    )
     return {"output": coerce_output(merged)}
 
 

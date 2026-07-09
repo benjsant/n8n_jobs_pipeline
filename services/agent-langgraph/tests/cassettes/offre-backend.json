@@ -23,7 +23,8 @@
         "highlight_projects": ["infinidex"],
         "highlight_experiences": [],
         "hidden_sections": [],
-        "hidden_skills": ["React", "Symfony"]
+        "hidden_skills": ["React", "Symfony"],
+        "hidden_projects": ["audiomancy"]
       },
       "objet_email": "Candidature Développeur Backend Python, Proxiad Nord",
       "langue": "fr"

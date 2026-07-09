@@ -49,7 +49,7 @@ ALLOWED_TEMPLATES = {"ia-junior", "backend", "frontend", "alternance", "candidat
 SUBSCORES = ("skills_score", "experience_score", "location_score", "salary_score")
 ALLOWED_RECO = {"postuler", "postuler_si_peu_options", "ne_pas_postuler"}
 ALLOWED_HIDDEN = {"summary", "skills", "experiences", "projects", "education",
-                  "certifications", "languages"}
+                  "certifications", "languages", "interests"}
 
 
 def _load_json(name: str) -> dict:
@@ -78,7 +78,7 @@ def validate_personalization(p: dict) -> list[str]:
     """Vérifie la structure ET que les highlights référencent du réel (anti-invention)."""
     errors: list[str] = []
     for key in ("highlight_skills", "highlight_projects", "highlight_experiences",
-                "hidden_sections", "hidden_skills"):
+                "hidden_sections", "hidden_skills", "hidden_projects"):
         if key in p and not isinstance(p[key], list):
             errors.append(f"personnalisation_cv.{key} doit être une liste")
     bad_hidden = set(p.get("hidden_sections", [])) - ALLOWED_HIDDEN
@@ -98,6 +98,9 @@ def validate_personalization(p: dict) -> list[str]:
         unknown = set(p.get("highlight_projects", [])) - project_ids
         if unknown:
             errors.append(f"highlight_projects inconnus : {sorted(unknown)}")
+        unknown = set(p.get("hidden_projects", [])) - project_ids
+        if unknown:
+            errors.append(f"hidden_projects inconnus : {sorted(unknown)}")
     if exp_ids:
         unknown = set(p.get("highlight_experiences", [])) - exp_ids
         if unknown:

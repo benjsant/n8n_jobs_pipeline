@@ -26,6 +26,7 @@ export function buildCvPayload({ application_id, personnalisation_cv } = {}) {
       highlight_experiences: asArray(p.highlight_experiences),
       hidden_sections: asArray(p.hidden_sections),
       hidden_skills: asArray(p.hidden_skills),
+      hidden_projects: asArray(p.hidden_projects),
     },
   };
 }

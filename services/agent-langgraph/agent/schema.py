@@ -46,6 +46,10 @@ class PersonnalisationCv(BaseModel):
     # Compétences réelles mais hors sujet pour CETTE offre (noms exacts),
     # retirées du rendu (ex. PHP/Symfony pour un poste 100 % Python).
     hidden_skills: list[str] = Field(default_factory=list)
+    # Projets réels mais hors sujet pour CETTE offre (ids exacts), retirés du
+    # rendu : le CV patron porte tous les projets, le CV envoyé n'en montre
+    # que les plus pertinents.
+    hidden_projects: list[str] = Field(default_factory=list)
 
 
 class AgentOutput(BaseModel):

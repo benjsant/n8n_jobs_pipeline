@@ -75,6 +75,11 @@ chiffré n'est fourni, ne pas en inventer)
   PHP · Symfony · Bootstrap · Git · PostgreSQL.
 
 **Projets**
+- Job Hunter (juin 2026, en cours) : pipeline de candidature assisté par IA,
+  en production quotidienne chez le candidat : 8 workflows n8n, agent LangGraph
+  groundé (registre INSEE), déduplication sémantique pgvector, scoring hybride
+  LLM, rendu CV/lettres PDF. Python · n8n · LangGraph · FastAPI · PostgreSQL ·
+  Docker. Plus de 110 tests, CI.
 - InfiniDex (2026, en cours) : agent LLM multi-provider à 9 outils sans
   LangChain, streaming SSE, ETL Prefect (572 Pokémon, 168 000+ fusions). Python ·
   FastAPI · Next.js · PostgreSQL · Prefect · Docker.
@@ -217,8 +222,9 @@ sans balises Markdown. Schéma exact :
     "highlight_skills": ["nom EXACT d'une compétence du candidat", "..."],
     "highlight_projects": ["id EXACT d'un projet du candidat", "..."],
     "highlight_experiences": ["id EXACT d'une expérience du candidat", "..."],
-    "hidden_sections": ["summary|skills|experiences|projects|education|certifications|languages — à masquer, optionnel"],
-    "hidden_skills": ["nom EXACT d'une compétence du candidat HORS SUJET pour cette offre, à retirer du CV — optionnel"]
+    "hidden_sections": ["summary|skills|experiences|projects|education|certifications|languages|interests — à masquer, optionnel"],
+    "hidden_skills": ["nom EXACT d'une compétence du candidat HORS SUJET pour cette offre, à retirer du CV — optionnel"],
+    "hidden_projects": ["id EXACT d'un projet du candidat HORS SUJET pour cette offre, à retirer du CV — optionnel"]
   },
   "objet_email": "Ligne d'objet pour l'email de candidature",
   "langue": "fr | en"
@@ -241,14 +247,23 @@ mettre en avant / masquer — il n'invente rien, et toi non plus) :
 - `highlight_projects` / `highlight_experiences` : uniquement des **ids exacts**
   de projets / expériences fournis en entrée.
 - `hidden_sections` : sous-ensemble de
-  `summary, skills, experiences, projects, education, certifications, languages`.
+  `summary, skills, experiences, projects, education, certifications, languages,
+  interests`.
 - `hidden_skills` : **noms exacts** de compétences du candidat à retirer du CV
   parce qu'elles sont hors sujet pour CETTE offre (ex. PHP/Symfony/React pour un
   poste 100 % Python backend ; Django pour un poste data sans web). Le CV doit
   rester ciblé : un recruteur Python n'a pas besoin de voir la stack front.
   Ne masque JAMAIS une compétence demandée par l'offre, ni Python/Git/Docker/
-  Linux (socle transverse). Dans le doute, laisse visible. Masquer n'est pas
-  mentir : les compétences restent réelles, elles sont juste hors sujet ici.
+  Linux (socle transverse), ni une techno citée dans ton `cv_title`, ton
+  `summary` ou tes `highlight_skills`. Masque AVEC PARCIMONIE : au plus un
+  tiers des compétences (au-delà, le surplus est ignoré). Dans le doute,
+  laisse visible. Masquer n'est pas mentir : les compétences restent réelles,
+  elles sont juste hors sujet ici.
+- `hidden_projects` : **ids exacts** de projets à retirer du CV pour CETTE
+  offre. Le CV patron porte tous les projets du candidat ; le CV envoyé doit en
+  montrer **au moins 3** (masque au plus un projet sur quatre ; au-delà, le
+  surplus est ignoré). Masque le projet le moins parlant pour le poste, jamais
+  un projet directement lié aux technologies ou au métier de l'offre.
 - `summary` : reformulation du résumé existant orientée vers l'offre, sans
   ajouter de faits nouveaux. **Le candidat est junior** : ne jamais écrire
   « expérimenté », « senior », « expert » ni surévaluer l'ancienneté.
