@@ -1,14 +1,14 @@
 {
   "education": [
     {
-      "id": "formation-developpeur-ia",
+      "id": "certification-developpeur-ia",
       "degree": "Certification Développeur IA - RNCP niveau 6 (bac+3/4)",
       "school": "Simplon, Lille",
       "location": "",
       "start": "2025",
       "end": "2026",
-      "date": "2025-26",
-      "details": "Certification obtenue en mars 2026."
+      "date": "2025-26 · obtenue en mars 2026",
+      "details": ""
     },
     {
       "id": "licence-pro-sio",

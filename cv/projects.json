@@ -1,6 +1,21 @@
 {
   "projects": [
     {
+      "id": "job-hunter",
+      "name": "Job Hunter - pipeline de candidature assisté par IA",
+      "period": "Juin 2026 - en cours",
+      "description": "Système de recherche d'emploi auto-hébergé, en production quotidienne : collecte multi-API (8 workflows n8n), déduplication sémantique (pgvector), scoring hybride LLM, agent LangGraph groundé (registre INSEE) et génération de CV/lettres PDF ciblés par offre. Plus de 110 tests, CI GitHub Actions.",
+      "tech": [
+        "Python",
+        "n8n",
+        "LangGraph",
+        "FastAPI",
+        "PostgreSQL/pgvector",
+        "Docker"
+      ],
+      "url": "https://github.com/benjsant/n8n_jobs_pipeline"
+    },
+    {
       "id": "infinidex",
       "name": "InfiniDex - Pokédex augmenté par IA",
       "period": "Avril 2026 - en cours",
