@@ -22,6 +22,9 @@ candidatures/
 *.pdf
 !docs/**/*.pdf
 
+# Feuille de route perso (destinée au portfolio, pas à ce dépôt)
+PISTES-PROJETS.md
+
 # Système
 .DS_Store
 Thumbs.db
