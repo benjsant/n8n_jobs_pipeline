@@ -318,6 +318,15 @@ variante ATS strictement noir/blanc si un parser très ancien le justifie (trivi
     CDI/CDD/Alternance, rome M1810 à affiner, exclusions : commercial pur,
     call-center non technique). Les 5 profils dev restent actifs : élargir,
     pas remplacer. Assemblage lettre vérifié en PDF réel.
+38. **Zones resserrées : 2 ancres** (2026-07-09, correction utilisateur : le
+    rayon 50 km était trop large). Chaque profil métier est décliné en 2
+    variantes (cross join dans le seed) : **Valenciennes 20 km** (INSEE 59606)
+    et **Lille 5 km autour de la gare Lille Flandres** (INSEE 59350,
+    lat/long ~50.6366/3.0709). 12 profils actifs au total. Migration jouée sur
+    la base réelle (UPDATE des 6 existants -> suffixe « (Valenciennes) » +
+    rayon 20, puis seed pour les 6 variantes Lille). La dédup absorbe les
+    recouvrements. Les offres déjà en base collectées à 50 km peuvent être
+    purgées depuis l'interface si elles polluent.
 
 ## ⏳ En attente de l'utilisateur
 
