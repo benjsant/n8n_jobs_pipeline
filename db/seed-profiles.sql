@@ -52,3 +52,18 @@ VALUES
    'Commercial ; helpdesk/support ; postes exigeant plusieurs années d''expérience ; senior ; lead.',
    50, true)
 ON CONFLICT (name) DO NOTHING;
+
+-- Élargissement 2026-07-09 : postes du numérique HORS développement (support,
+-- technicien, exploitation, données, tests, outils). Seuil plus bas (50) et
+-- CDD accepté. rome_codes M1810 = production/exploitation de SI (LBA ; à
+-- affiner si besoin). Les profils dev restent actifs en parallèle.
+INSERT INTO search_profiles
+  (name, keywords, location_insee, location_label, latitude, longitude, rome_codes, radius_km, contract_types, seniority, must_have, exclusions, score_threshold, active)
+VALUES
+  ('Employé du numérique (support, données, tests)',
+   'technicien informatique support numérique',
+   '59606', 'Valenciennes', 50.358, 3.523, 'M1810', 50, 'CDI,CDD,Alternance', 'Junior',
+   'Poste du secteur numérique accessible à un profil technique junior : support/assistance utilisateur, technicien informatique, exploitation, traitement ou contrôle de données, tests logiciels, administration d''outils, back-office numérique. Toute base technique (Windows/Linux, bureautique, bases de données) valorisée.',
+   'commercial pur ; centre d''appels sans dimension technique ; postes 5 ans et plus ; senior ; manager ; câblage/fibre terrain.',
+   50, true)
+ON CONFLICT (name) DO NOTHING;

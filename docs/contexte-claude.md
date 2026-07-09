@@ -308,6 +308,16 @@ variante ATS strictement noir/blanc si un parser très ancien le justifie (trivi
     Python. Chaîne complète : schema.py, prompt, render-payloads (+ nœud 02
     régénéré), templates, validateur test_deepseek, cassette. Le CV racine
     (`CV_Benjamin_Santrisse.pdf`) a été régénéré (certification mars 2026).
+37. **Élargissement hors développement** (2026-07-09, demande utilisateur :
+    marché dev bouché, ras-le-bol exprimé). 6ᵉ template de lettre
+    `employe-numerique` (corps figé : culture technique au service d'une
+    équipe, stages CAF = environnement structuré, capacités support/données/
+    tests/outils SANS prétendre à une expérience support) + règle de choix
+    dans le prompt (poste numérique non-développeur) + 6ᵉ profil de recherche
+    actif « Employé du numérique (support, données, tests) » (seuil 50,
+    CDI/CDD/Alternance, rome M1810 à affiner, exclusions : commercial pur,
+    call-center non technique). Les 5 profils dev restent actifs : élargir,
+    pas remplacer. Assemblage lettre vérifié en PDF réel.
 
 ## ⏳ En attente de l'utilisateur
 

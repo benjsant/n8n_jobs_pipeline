@@ -207,7 +207,7 @@ sans balises Markdown. Schéma exact :
   ],
   "conseils": "2-4 phrases : comment se préparer à CETTE offre / candidature (ce qu'il faudrait apprendre ou mettre en avant). Conseils au candidat, sans inventer de compétence qu'il aurait déjà.",
   "lettre": {
-    "template": "ia-junior | backend | frontend | alternance | candidature-spontanee",
+    "template": "ia-junior | backend | frontend | alternance | candidature-spontanee | employe-numerique",
     "accroche": "2-3 phrases : pourquoi CETTE entreprise (élément concret réel). SEUL texte que tu rédiges pour la lettre — le reste du corps est figé."
   },
   "adaptation_cv": "Note courte : quelles compétences/projets mettre en avant en haut du CV pour CETTE offre, quels mots-clés ATS ajouter",
@@ -260,10 +260,13 @@ mettre en avant / masquer — il n'invente rien, et toi non plus) :
   expériences (ids) disponibles : choisis EXCLUSIVEMENT parmi eux.
 
 **Règles pour `lettre`** (corps figé, assemblage déterministe — cf. §5) :
-- `template` : choisis le modèle le plus adapté à l'offre parmi les 5 valeurs
+- `template` : choisis le modèle le plus adapté à l'offre parmi les 6 valeurs
   exactes. `alternance` si le contrat est une alternance/apprentissage ;
-  `candidature-spontanee` s'il n'y a pas d'offre précise ; sinon `ia-junior`,
-  `backend` ou `frontend` selon le cœur du poste.
+  `candidature-spontanee` s'il n'y a pas d'offre précise ; `employe-numerique`
+  si le poste relève du numérique SANS être un poste de développeur (support /
+  assistance utilisateur, technicien informatique, exploitation, traitement ou
+  contrôle de données, tests/QA, administration d'outils, back-office) ; sinon
+  `ia-junior`, `backend` ou `frontend` selon le cœur du poste.
 - `accroche` : 2-3 phrases, le **seul** texte que tu écris pour la lettre. Elle
   dit pourquoi CETTE entreprise, avec un élément concret réel tiré des données
   fournies. Le reste du corps est figé et assemblé hors de toi — ne le rédige pas,

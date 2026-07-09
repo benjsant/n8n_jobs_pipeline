@@ -76,7 +76,7 @@ t("extractSubject isole l'objet", () => {
   assert.equal(extractSubject("pas d'objet"), "");
 });
 
-t("les 5 templates s'assemblent sans placeholder résiduel ni [Accroche]", () => {
+t("tous les templates s'assemblent sans placeholder résiduel ni [Accroche]", () => {
   for (const name of TEMPLATES) {
     const { subject, body } = fillTemplate(tpl(name), {
       accroche: "Accroche.",

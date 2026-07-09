@@ -15,6 +15,7 @@ export const TEMPLATES = [
   "frontend",
   "alternance",
   "candidature-spontanee",
+  "employe-numerique",
 ];
 
 const LETTERS_DIR = process.env.LETTERS_DIR || "/assets/letters";

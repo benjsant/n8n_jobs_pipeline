@@ -10,7 +10,8 @@ from typing import Literal, TypedDict
 
 from pydantic import BaseModel, Field
 
-TEMPLATES = ("ia-junior", "backend", "frontend", "alternance", "candidature-spontanee")
+TEMPLATES = ("ia-junior", "backend", "frontend", "alternance", "candidature-spontanee",
+             "employe-numerique")
 RECOMMANDATIONS = ("postuler", "postuler_si_peu_options", "ne_pas_postuler")
 
 

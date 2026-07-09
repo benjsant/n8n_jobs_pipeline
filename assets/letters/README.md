@@ -20,6 +20,7 @@ invention. (L'expéditeur, l'objet et la signature sont mis en page par
 | `frontend.md` | poste front-end (UI, frameworks JS, design system) |
 | `alternance.md` | contrat d'alternance / apprentissage |
 | `candidature-spontanee.md` | pas d'offre publiée, on vise l'entreprise |
+| `employe-numerique.md` | poste du numérique hors développement (support, technicien, données, tests, outils, back-office) |
 
 En cas d'offre hybride, prendre le modèle dominant et adapter.
 
