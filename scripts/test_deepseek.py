@@ -45,7 +45,7 @@ REQUIRED_KEYS = {
     "langue": str,
 }
 ALLOWED_TEMPLATES = {"ia-junior", "backend", "frontend", "alternance", "candidature-spontanee",
-                     "employe-numerique"}
+                     "employe-numerique", "php-symfony"}
 SUBSCORES = ("skills_score", "experience_score", "location_score", "salary_score")
 ALLOWED_RECO = {"postuler", "postuler_si_peu_options", "ne_pas_postuler"}
 ALLOWED_HIDDEN = {"summary", "skills", "experiences", "projects", "education",

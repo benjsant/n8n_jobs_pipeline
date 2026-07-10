@@ -340,6 +340,16 @@ variante ATS strictement noir/blanc si un parser très ancien le justifie (trivi
     (line-height 1.38, marges) : 3 projets + intérêts = 1 page, patron 4
     projets = 2 pages. CV racine local régénéré (1 page, Job Hunter en tête).
 
+40. **Template lettre `php-symfony`** (2026-07-09, sur offre réelle HDFID dont
+    le cœur est PHP Symfony 7 + MySQL). 7ᵉ template : corps figé menant avec le
+    socle PHP/Symfony du candidat (stages CAF du Nord), positionné HONNÊTEMENT
+    comme une base à réactualiser (jamais « maîtrise Symfony 7 »), Python/IA en
+    curiosité secondaire. Câblé partout (letter-template.mjs, schema.py, prompt
+    + règle de choix, validateur, README). Sur HDFID, l'agent le choisit,
+    titre CV « Développeur Web Symfony / PHP », met PHP/Symfony/MySQL/JS en
+    avant et masque l'IA (score 72-75). Comble le manque : un profil de
+    recherche « Dev PHP / Symfony » existait sans template dédié.
+
 ## ⏳ En attente de l'utilisateur
 
 - **Clés externes** uniquement — c'est le **seul vrai blocage** restant pour un

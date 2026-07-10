@@ -21,6 +21,7 @@ invention. (L'expéditeur, l'objet et la signature sont mis en page par
 | `alternance.md` | contrat d'alternance / apprentissage |
 | `candidature-spontanee.md` | pas d'offre publiée, on vise l'entreprise |
 | `employe-numerique.md` | poste du numérique hors développement (support, technicien, données, tests, outils, back-office) |
+| `php-symfony.md` | poste dont le cœur est PHP/Symfony (+ MySQL, éventuellement JS front) |
 
 En cas d'offre hybride, prendre le modèle dominant et adapter.
 

@@ -11,7 +11,7 @@ from typing import Literal, TypedDict
 from pydantic import BaseModel, Field
 
 TEMPLATES = ("ia-junior", "backend", "frontend", "alternance", "candidature-spontanee",
-             "employe-numerique")
+             "employe-numerique", "php-symfony")
 RECOMMANDATIONS = ("postuler", "postuler_si_peu_options", "ne_pas_postuler")
 
 

@@ -16,6 +16,7 @@ export const TEMPLATES = [
   "alternance",
   "candidature-spontanee",
   "employe-numerique",
+  "php-symfony",
 ];
 
 const LETTERS_DIR = process.env.LETTERS_DIR || "/assets/letters";
