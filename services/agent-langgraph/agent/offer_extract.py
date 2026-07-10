@@ -12,6 +12,7 @@ import html
 import json
 import os
 import re
+from datetime import datetime, timezone
 
 import httpx
 
@@ -19,6 +20,66 @@ from .graph import _llm_json, run_agent
 
 _UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"
 _RENDER_URL = os.environ.get("RENDER_API_URL", "http://render:8000")
+_OUTPUT_DIR = os.environ.get("OUTPUT_DIR", "/output")
+
+
+def _write_dossier(app_id: str, out: dict, *, offer: dict | None = None,
+                   company: dict | None = None) -> None:
+    """Sauvegarde le DOSSIER de candidature à côté du CV/lettre : le lien (preuve),
+    le bloc d'infos de l'offre et le bloc entreprise, + le récap de l'agent. Sert
+    de trace durable (les offres disparaissent des jobboards) et de base de prépa
+    d'entretien. Best-effort : n'interrompt jamais la génération si l'écriture échoue.
+    """
+    offer = offer or {}
+    pc = out.get("personnalisation_cv") or {}
+    lettre = out.get("lettre") or {}
+    dossier = {
+        "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        # Le lien, gardé comme clé / preuve de l'offre d'origine.
+        "url": offer.get("url", ""),
+        # Bloc d'infos de l'offre.
+        "offre": {
+            "titre": offer.get("title", ""),
+            "entreprise": offer.get("company", "") or (company or {}).get("name", ""),
+            "lieu": offer.get("location", ""),
+            "description": offer.get("description", ""),
+        },
+        # Bloc entreprise : texte fourni (offre) ou fiche (spontanée, grounded).
+        "entreprise": (
+            {k: company.get(k, "") for k in ("name", "sector", "website", "ai_summary",
+                                             "apply_url", "phone", "email")}
+            if company else {"infos": offer.get("company_info", "")}
+        ),
+        # Récap de l'agent (ce qui a été décidé et généré).
+        "analyse": {
+            "score": out.get("score", 0),
+            "recommandation": out.get("recommandation", ""),
+            "cv_title": pc.get("cv_title", ""),
+            "objet_email": out.get("objet_email", ""),
+            "template": lettre.get("template", ""),
+            "accroche": lettre.get("accroche", ""),
+            "matching_skills": out.get("matching_skills", []),
+            "missing_skills": out.get("missing_skills", []),
+        },
+    }
+    try:
+        folder = os.path.join(_OUTPUT_DIR, f"app-{re.sub(r'[^A-Za-z0-9_-]+', '_', app_id)}")
+        os.makedirs(folder, exist_ok=True)
+        with open(os.path.join(folder, "dossier.json"), "w", encoding="utf-8") as fh:
+            json.dump(dossier, fh, ensure_ascii=False, indent=2)
+    except Exception:
+        pass
+
+
+def read_dossier(app_id: str) -> dict | None:
+    """Relit le dossier d'une candidature générée (None si absent)."""
+    safe = re.sub(r"[^A-Za-z0-9_-]+", "_", app_id)
+    path = os.path.join(_OUTPUT_DIR, f"app-{safe}", "dossier.json")
+    try:
+        with open(path, encoding="utf-8") as fh:
+            return json.load(fh)
+    except Exception:
+        return None
 
 
 def _page_text(url: str, timeout: float = 15.0) -> str:
@@ -63,11 +124,12 @@ def _deliver_discord(cv_path: str, letter_path: str, out: dict, offer: dict) -> 
     if not webhook:
         return False
     pc = out.get("personnalisation_cv") or {}
+    lien = f"\n🔗 {offer['url']}" if offer.get("url") else ""
     content = (
         f"🎯 **Candidature prête : {offer.get('company', '') or 'Entreprise'}**\n"
         f"📌 {pc.get('cv_title', '') or offer.get('title', '')}\n"
         f"📨 Objet : {out.get('objet_email', '')}\n"
-        f"⭐ Score {out.get('score', 0)} ({out.get('recommandation', '')})\n"
+        f"⭐ Score {out.get('score', 0)} ({out.get('recommandation', '')}){lien}\n"
         f"📎 CV + lettre en pièces jointes, à relire avant envoi."
     )
     files = []
@@ -151,6 +213,7 @@ def generate_spontaneous(company: dict, ctx: dict) -> dict:
         timeout=120,
     ).json()
     discord_ok = _deliver_spontaneous_discord(cv.get("cv_path", ""), lt.get("letter_path", ""), out, company)
+    _write_dossier(app_id, out, offer=offer, company=company)
     return {
         "app_id": app_id,
         "cv_title": pc.get("cv_title", ""),
@@ -196,6 +259,7 @@ def generate_application(offer: dict, ctx: dict) -> dict:
         timeout=120,
     ).json()
     discord_ok = _deliver_discord(cv.get("cv_path", ""), lt.get("letter_path", ""), out, offer)
+    _write_dossier(app_id, out, offer=offer)
     return {
         "app_id": app_id,
         "cv_title": pc.get("cv_title", ""),

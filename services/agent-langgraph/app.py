@@ -32,6 +32,7 @@ from agent.offer_extract import (
     generate_application,
     generate_spontaneous,
     reanalyze_offer,
+    read_dossier,
 )
 from agent.schema import AgentOutput, InterviewPrep, Offer
 
@@ -153,9 +154,22 @@ def history() -> dict:
         app_id = os.path.basename(d)[len("app-"):]
         cv = os.path.exists(os.path.join(d, "cv.pdf"))
         letter = os.path.exists(os.path.join(d, "lettre.pdf"))
+        dossier = os.path.exists(os.path.join(d, "dossier.json"))
         if cv or letter:
-            items.append({"app_id": app_id, "cv": cv, "letter": letter, "mtime": int(os.path.getmtime(d))})
+            items.append({"app_id": app_id, "cv": cv, "letter": letter,
+                          "dossier": dossier, "mtime": int(os.path.getmtime(d))})
     return {"items": items[:20]}
+
+
+@app.get("/dossier/{app_id}")
+def dossier(app_id: str) -> dict:
+    """Dossier d'une candidature générée : lien (preuve), bloc offre, bloc entreprise."""
+    if "/" in app_id or ".." in app_id:
+        raise HTTPException(status_code=400, detail="identifiant non autorisé")
+    d = read_dossier(app_id)
+    if d is None:
+        raise HTTPException(status_code=404, detail="dossier introuvable")
+    return d
 
 
 @app.get("/files/{app_id}/{name}")

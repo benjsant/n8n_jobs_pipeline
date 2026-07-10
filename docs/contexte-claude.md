@@ -350,6 +350,17 @@ variante ATS strictement noir/blanc si un parser très ancien le justifie (trivi
     avant et masque l'IA (score 72-75). Comble le manque : un profil de
     recherche « Dev PHP / Symfony » existait sans template dédié.
 
+41. **Dossier de candidature** (2026-07-09, idée utilisateur). Chaque génération
+    (offre ou spontanée) écrit `output/app-<id>/dossier.json` : **lien** de l'offre
+    (preuve/référence), **bloc offre** (titre/entreprise/lieu/description collée),
+    **bloc entreprise** (`company_info` collé, ou fiche grounded en spontané) et
+    récap agent (score, template, cv_title, accroche, matching/missing). Route
+    `GET /dossier/{app_id}`, indicateur dans `/history`, bouton « Dossier » qui
+    déplie dans l'interface, + champ **infos entreprise** à l'étape 2 (coller le
+    « Qui sont-ils ? »). Le lien est aussi ajouté au récap Discord. ⚠️ A nécessité
+    de passer le montage `./output` de l'agent en **écriture** (était `:ro`).
+    Motivation : les offres disparaissent des jobboards ; trace + prépa entretien.
+
 ## ⏳ En attente de l'utilisateur
 
 - **Clés externes** uniquement — c'est le **seul vrai blocage** restant pour un

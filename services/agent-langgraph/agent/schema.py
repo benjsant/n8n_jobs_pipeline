@@ -22,6 +22,7 @@ class Offer(BaseModel):
     location: str = ""
     description: str = ""
     company_info: str = ""
+    url: str = ""  # lien de l'offre (conservé comme preuve/référence dans le dossier)
     spontaneous: bool = False
 
 

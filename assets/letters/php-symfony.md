@@ -28,7 +28,7 @@ Mes réalisations récentes le montrent concrètement :
 • InfiniDex : application web complète (back-end FastAPI, front Next.js, base PostgreSQL) avec pipeline de données automatisé et déploiement Docker.
 • PredictionDex : API de bout en bout avec interface, tests et mise en production automatisée.
 
-Concrètement, je sais concevoir des applications web, modéliser des données, construire des API robustes et documenter mon code, avec le souci des tests et de la maintenabilité : des produits réellement déployés, pas des démos. Mon appétence pour les nouvelles technologies (Python, IA appliquée) rejoint votre ouverture à des outils comme la Power Platform, et j'aime travailler sur plusieurs langages et environnements.
+Concrètement, je sais concevoir des applications web, modéliser des données, construire des API robustes et documenter mon code, avec le souci des tests et de la maintenabilité : des produits réellement déployés, pas des démos. Mon appétence pour les nouvelles technologies (Python, IA appliquée) rejoint votre ouverture aux nouveaux outils et environnements, et j'aime travailler sur plusieurs langages.
 
 Disponible immédiatement et mobile sur les métropoles lilloise et valenciennoise (télétravail possible), je serais ravi d'échanger avec vous. Vous trouverez l'ensemble de mes réalisations sur mon portfolio : benjamin-santrisse.vercel.app
 

@@ -97,6 +97,7 @@
           <label>Entreprise</label><input x-model="offer.company" />
           <label>Lieu</label><input x-model="offer.location" />
           <label>Description / missions</label><textarea x-model="offer.description"></textarea>
+          <label>Infos entreprise (optionnel : colle le « Qui sont-ils ? » ou le secteur)</label><textarea x-model="offer.company_info" style="min-height:70px"></textarea>
           <div style="margin-top:14px">
             <button @click="generate()" :disabled="generating || !offer.title">
               <span x-show="!generating">Générer CV + lettre → Discord</span><span x-show="generating">Génération…</span>
@@ -137,6 +138,31 @@
           <b x-text="h.app_id"></b>
           <template x-if="h.cv"><a class="dl" :href="'files/'+h.app_id+'/cv.pdf'" target="_blank">CV</a></template>
           <template x-if="h.letter"><a class="dl" :href="'files/'+h.app_id+'/lettre.pdf'" target="_blank">Lettre</a></template>
+          <template x-if="h.dossier"><button class="act" @click="toggleDossier(h)"><span x-show="!h._open">Dossier</span><span x-show="h._open">Masquer</span></button></template>
+          <div class="prep" x-show="h._dossier" x-cloak>
+            <template x-if="h._dossier">
+              <div>
+                <template x-if="h._dossier.url">
+                  <p class="kv"><b>🔗 Offre :</b> <a :href="h._dossier.url" target="_blank" x-text="h._dossier.url"></a></p>
+                </template>
+                <h4>Offre</h4>
+                <p class="kv"><b x-text="h._dossier.offre.titre"></b> · <span x-text="h._dossier.offre.entreprise"></span><span x-show="h._dossier.offre.lieu"> · </span><span x-text="h._dossier.offre.lieu"></span></p>
+                <p class="a" x-show="h._dossier.offre.description" x-text="h._dossier.offre.description"></p>
+                <h4>Entreprise</h4>
+                <template x-if="h._dossier.entreprise.ai_summary || h._dossier.entreprise.sector">
+                  <div>
+                    <p class="a" x-show="h._dossier.entreprise.sector"><b>Secteur :</b> <span x-text="h._dossier.entreprise.sector"></span></p>
+                    <p class="a" x-show="h._dossier.entreprise.ai_summary" x-text="h._dossier.entreprise.ai_summary"></p>
+                    <p class="a" x-show="h._dossier.entreprise.website"><span x-text="h._dossier.entreprise.website"></span></p>
+                  </div>
+                </template>
+                <p class="a" x-show="h._dossier.entreprise.infos" x-text="h._dossier.entreprise.infos"></p>
+                <h4>Analyse</h4>
+                <p class="a">Score <b x-text="h._dossier.analyse.score"></b> (<span x-text="h._dossier.analyse.recommandation"></span>) · CV : <span x-text="h._dossier.analyse.cv_title"></span> · lettre : <span x-text="h._dossier.analyse.template"></span></p>
+                <p class="a" x-show="h._dossier.analyse.accroche"><b>Accroche :</b> <span x-text="h._dossier.analyse.accroche"></span></p>
+              </div>
+            </template>
+          </div>
         </div>
       </template>
     </div>
@@ -327,7 +353,14 @@
         offers:[], counts:{}, offErr:'', offFilter:'new', purgeDays:30, purgeMsg:'', purgeBusy:false,
         filters:[{v:'new',label:'Nouvelles'},{v:'selected',label:'Retenues'},{v:'applied',label:'Postulées'},{v:'ignored',label:'Ignorées'},{v:'',label:'Toutes'}],
         async loadStatus(){ try { this.st = await (await fetch('status')).json(); } catch(e){} },
-        async loadHistory(){ try { this.history = (await (await fetch('history')).json()).items || []; } catch(e){} },
+        async loadHistory(){ try { this.history = ((await (await fetch('history')).json()).items || []).map(h=>({...h,_open:false,_dossier:null})); } catch(e){} },
+        async toggleDossier(h){
+          h._open = !h._open;
+          if (h._open && !h._dossier){
+            try { h._dossier = await (await fetch('dossier/'+encodeURIComponent(h.app_id))).json(); }
+            catch(e){ h._open=false; }
+          } else if (!h._open){ h._dossier = null; }
+        },
         async loadOffers(){
           this.offErr='';
           try {
@@ -453,7 +486,7 @@
           this.error=''; this.result=null; this.loading=true;
           try {
             const d = await (await fetch('offer/extract',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:this.url})})).json();
-            this.offer = { title:d.title||'', company:d.company||'', location:d.location||'', description:d.description||'' };
+            this.offer = { title:d.title||'', company:d.company||'', location:d.location||'', description:d.description||'', company_info:'', url:this.url };
             if (!d.title && !d.company && !d.description) this.error = "Extraction vide : remplis les champs à l'étape 2.";
           } catch(e){ this.error = "Erreur d'extraction : " + e; }
           this.loading=false;

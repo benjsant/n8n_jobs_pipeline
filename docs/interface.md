@@ -52,6 +52,18 @@ just ui-stop       # ou : docker compose down
 La page affiche aussi l'**état des services** (agent / rendu / Discord) et
 l'**historique** des candidatures générées (avec liens de téléchargement).
 
+> **Dossier de candidature** : chaque génération enregistre, à côté du CV et de
+> la lettre, un `dossier.json` qui conserve le **lien de l'offre** (comme preuve /
+> référence), le **bloc d'infos de l'offre** (missions collées) et le **bloc
+> entreprise** (le « Qui sont-ils ? » que tu peux coller à l'étape 2, ou la fiche
+> grounded en spontané). Le bouton **Dossier** de l'historique le déplie. Utile
+> car les offres disparaissent des jobboards, et pour préparer l'entretien.
+
+> **Pages dynamiques** (Welcome to the Jungle, LinkedIn…) : si « Extraire »
+> revient vide, **colle directement** le texte du poste dans le champ description
+> (et le « Qui sont-ils ? » dans le champ infos entreprise). L'URL n'a pas besoin
+> de fonctionner ; elle est quand même conservée dans le dossier comme référence.
+
 ## Trier les offres collectées (postulé / ignoré)
 
 La page liste aussi les **offres collectées en base**, filtrables par statut
@@ -156,8 +168,9 @@ crée comme d'habitude.
 | GET | `/status` | état agent / render / Discord |
 | POST | `/offer/extract` `{ url }` | extraction des champs de l'offre |
 | POST | `/offer/generate` | génère CV + lettre, livre sur Discord |
-| GET | `/history` | candidatures générées |
+| GET | `/history` | candidatures générées (+ présence d'un dossier) |
 | GET | `/files/{app_id}/{cv.pdf\|lettre.pdf}` | télécharge un PDF |
+| GET | `/dossier/{app_id}` | dossier de la candidature : lien (preuve), bloc offre, bloc entreprise, analyse |
 | GET | `/offers` `?status=&limit=` | offres en base + compteurs par statut (503 si base absente) |
 | POST | `/offers/status` `{ hash, status }` | bascule le statut (`ignored`, `applied`, `selected`, `reviewed`) |
 | POST | `/offers/reanalyze` `{ hash }` | relance le scoring de l'agent et met à jour le score |

@@ -148,8 +148,9 @@ services:
     volumes:
       - ./prompts:/prompts:ro
       - ./cv:/cv:ro
-      # PDF générés par le service render, lus par l'agent pour la livraison Discord.
-      - ./output:/output:ro
+      # PDF générés par le service render (lus pour la livraison Discord) + dossier
+      # de candidature (dossier.json : lien, bloc offre, bloc entreprise) écrit ici.
+      - ./output:/output
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import urllib.request;urllib.request.urlopen('http://localhost:8001/health')\""]
       interval: 30s
