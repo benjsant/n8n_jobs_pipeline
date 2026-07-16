@@ -1,3 +1,11 @@
+# Rotation des logs Docker (audit 2026-07 : aucune rotation = les logs json
+# croissent sans limite ; classique VPS plein au bout de six mois).
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
   postgres:
     # Image pgvector (= postgres:16 + extension vector) requise par la dédup
@@ -6,6 +14,8 @@ services:
     image: pgvector/pgvector:pg16
     container_name: job-hunter-db
     restart: unless-stopped
+    logging: *logging
+    mem_limit: 512m
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -30,6 +40,8 @@ services:
     image: docker.n8n.io/n8nio/n8n:latest
     container_name: job-hunter-n8n
     restart: unless-stopped
+    logging: *logging
+    mem_limit: 768m
     ports:
       # Publié sur 127.0.0.1 par défaut (local only). BIND_HOST=0.0.0.0 pour
       # rouvrir (ou l'IP WireGuard sur VPS). Port INTERNE n8n = 5678.
@@ -56,6 +68,16 @@ services:
       # Jeton de la mini-interface : les workflows 02/06 l'envoient au service agent.
       UI_TOKEN: ${UI_TOKEN:-}
       N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY}
+      # --- Rétention des exécutions (audit 2026-07 : l'historique d'exécutions
+      #     pesait 85 % de la base, ~135 Ko par run). On ne stocke que les
+      #     ÉCHECS, purgés au bout de 7 jours ; le suivi quotidien des succès
+      #     passe déjà par Discord jobs-log. Pour rejouer visuellement un run
+      #     réussi dans l'UI : repasser SAVE_ON_SUCCESS à "all" le temps du
+      #     débogage. ---
+      EXECUTIONS_DATA_SAVE_ON_SUCCESS: none
+      EXECUTIONS_DATA_SAVE_ON_ERROR: all
+      EXECUTIONS_DATA_PRUNE: "true"
+      EXECUTIONS_DATA_MAX_AGE: "168"
       # --- Authentification basique de l'UI ---
       N8N_BASIC_AUTH_ACTIVE: "true"
       N8N_BASIC_AUTH_USER: ${N8N_BASIC_AUTH_USER}
@@ -103,6 +125,8 @@ services:
     build: ./services/jobspy
     container_name: job-hunter-jobspy
     restart: unless-stopped
+    logging: *logging
+    mem_limit: 512m
     # Pas de port exposé vers l'hôte : seul n8n l'appelle, via http://jobspy:8000
     expose:
       - "8000"
@@ -119,6 +143,8 @@ services:
     build: ./services/agent-langgraph
     container_name: job-hunter-agent
     restart: unless-stopped
+    logging: *logging
+    mem_limit: 512m
     environment:
       DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY}
       DEEPSEEK_BASE_URL: ${DEEPSEEK_BASE_URL:-https://api.deepseek.com}
@@ -163,6 +189,8 @@ services:
     build: ./services/embeddings
     container_name: job-hunter-embeddings
     restart: unless-stopped
+    logging: *logging
+    mem_limit: 640m
     # Pas de port exposé vers l'hôte : seul n8n l'appelle, via http://embeddings:8002
     expose:
       - "8002"
@@ -176,6 +204,9 @@ services:
     build: ./cv
     container_name: job-hunter-render
     restart: unless-stopped
+    logging: *logging
+    # Chromium (rendu PDF) + build Astro : le plus gourmand de la stack.
+    mem_limit: 768m
     # Rendu CV (Astro) + lettre en PDF. Lancé en serveur HTTP, pas en one-shot.
     command: ["node", "server.mjs"]
     environment:
@@ -205,6 +236,8 @@ services:
     image: alpine:3.20
     container_name: job-hunter-cleanup
     restart: unless-stopped
+    logging: *logging
+    mem_limit: 32m
     environment:
       OUTPUT_RETENTION_DAYS: ${OUTPUT_RETENTION_DAYS:-21}
     volumes:
@@ -228,6 +261,9 @@ services:
     container_name: job-hunter-metabase
     profiles: ["metabase"]
     restart: unless-stopped
+    logging: *logging
+    # JVM : Metabase a besoin de ~1 Go, c'est pour ça qu'il est opt-in.
+    mem_limit: 1536m
     depends_on:
       postgres:
         condition: service_healthy
