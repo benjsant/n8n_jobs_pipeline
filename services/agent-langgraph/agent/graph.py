@@ -48,7 +48,15 @@ ACCROCHE_TASK = (
 
 
 def build_user_message(offer: dict, cv_index: str) -> str:
-    """Contexte offre + valeurs CV disponibles (commun aux nœuds LLM)."""
+    """Contexte CV + offre (commun aux nœuds LLM).
+
+    ORDRE VOLONTAIRE (audit 2026-07) : le bloc STABLE (cv_index, identique pour
+    toutes les offres) vient EN PREMIER, le contenu variable (l'offre) ensuite.
+    DeepSeek applique un cache de préfixe automatique facturé ~10x moins cher :
+    avec ce préfixe byte-identique (system prompt + cv_index), les appels
+    analyze/accroche d'une même candidature ET les candidatures successives
+    réutilisent le cache. Ne pas réintervertir.
+    """
     desc = offer.get("description", "")
     if offer.get("spontaneous"):
         desc = (
@@ -56,11 +64,11 @@ def build_user_message(offer: dict, cv_index: str) -> str:
             'template "candidature-spontanee". Infos connues: ' + desc
         )
     return (
+        "VALEURS DISPONIBLES POUR personnalisation_cv (choisis EXCLUSIVEMENT parmi "
+        f"elles, ids/noms exacts):\n{cv_index}\n\n"
         f"Offre: {offer.get('title', '')} chez {offer.get('company', '')}\n\n"
         f"Description:\n{desc}\n\n"
-        f"Infos entreprise:\n{offer.get('company_info') or 'Non fournies'}\n\n"
-        "VALEURS DISPONIBLES POUR personnalisation_cv (choisis EXCLUSIVEMENT parmi "
-        f"elles, ids/noms exacts):\n{cv_index}"
+        f"Infos entreprise:\n{offer.get('company_info') or 'Non fournies'}"
     )
 
 

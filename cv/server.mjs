@@ -29,9 +29,29 @@ const OUTPUT_DIR = process.env.OUTPUT_DIR || "/output";
 const PORT = Number(process.env.PORT || 8000);
 const DIST_HTML = resolve(HERE, "dist", "index.html");
 
-// --- Navigateur partagé (lancé paresseusement, réutilisé) ---
+// --- Navigateur partagé : lancé paresseusement, réutilisé, et FERMÉ après
+// inactivité (audit 2026-07 : Chromium résident pesait 200-400 Mo pour quelques
+// rendus par jour). Relance paresseuse au rendu suivant (~1-2 s, imperceptible).
+// BROWSER_IDLE_MS=0 pour l'ancien comportement (résident en permanence). ---
+const BROWSER_IDLE_MS = Number(process.env.BROWSER_IDLE_MS ?? 10 * 60 * 1000);
 let browserPromise = null;
-const getBrowser = () => (browserPromise ??= chromium.launch());
+let idleTimer = null;
+const getBrowser = () => {
+  if (idleTimer) { clearTimeout(idleTimer); idleTimer = null; }
+  return (browserPromise ??= chromium.launch());
+};
+// Appelé après chaque rendu : programme la fermeture si rien ne suit.
+const releaseBrowser = () => {
+  if (BROWSER_IDLE_MS <= 0 || !browserPromise) return;
+  if (idleTimer) clearTimeout(idleTimer);
+  idleTimer = setTimeout(async () => {
+    const p = browserPromise;
+    browserPromise = null;
+    idleTimer = null;
+    try { (await p).close(); } catch { /* déjà fermé/crashé : rien à faire */ }
+  }, BROWSER_IDLE_MS);
+  idleTimer.unref?.(); // ne bloque pas l'arrêt du process
+};
 
 // --- Sérialisation : Astro build mute dist/, on évite les builds concurrents ---
 let queue = Promise.resolve();
@@ -67,6 +87,7 @@ async function htmlToPdf({ url, html, outPath }) {
     });
   } finally {
     await page.close();
+    releaseBrowser();
   }
 }
 

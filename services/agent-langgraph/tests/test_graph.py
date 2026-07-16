@@ -1,5 +1,6 @@
 """Tests du graphe (LLM + recherche web mockés, aucune clé ni réseau requis)."""
 import json
+import os.path
 
 import pytest
 
@@ -135,6 +136,20 @@ def test_message_spontane(monkeypatch):
     msg = G.build_user_message({"title": "Candidature spontanée", "company": "Acme",
                                 "description": "", "spontaneous": True}, "idx")
     assert "candidature-spontanee" in msg.lower()
+
+
+def test_message_prefixe_stable_en_premier():
+    """Cache de préfixe DeepSeek (audit 2026-07) : le bloc STABLE (cv_index)
+    doit précéder le contenu VARIABLE (l'offre). Deux offres différentes
+    doivent partager un préfixe commun byte-identique couvrant le cv_index."""
+    idx = '{"skills": ["Python", "FastAPI"]}'
+    m1 = G.build_user_message({"title": "Dev IA", "company": "Acme", "description": "a"}, idx)
+    m2 = G.build_user_message({"title": "Dev Go", "company": "Umbrella", "description": "b"}, idx)
+    # Le cv_index apparaît avant l'offre dans le message.
+    assert m1.index(idx) < m1.index("Offre:")
+    # Préfixe commun entre deux offres : il couvre au moins tout le bloc cv_index.
+    common = os.path.commonprefix([m1, m2])
+    assert idx in common
 
 
 def test_sanitize_personalisation_bornes():
