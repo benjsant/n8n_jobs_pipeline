@@ -69,4 +69,4 @@ START → analyze → research → accroche → judge ⇄ (retry max 3) → vali
 
 ---
 
-Code source : [github.com/benjsant/n8n_jobs_pipeline](https://github.com/benjsant/n8n_jobs_pipeline)
+Code source : [github.com/benjsant/job_hunter](https://github.com/benjsant/job_hunter)

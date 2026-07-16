@@ -119,7 +119,7 @@ variante ATS strictement noir/blanc si un parser très ancien le justifie (trivi
 4. **Secrets** : `.env` jamais commité (gitignoré, vérifié). Les secrets locaux
    (clé de chiffrement, mots de passe) sont **générés** dans `.env`, pas inventés.
    Les clés externes restent vides tant que l'utilisateur ne les fournit pas.
-5. **Dépôt public** : `github.com/benjsant/n8n_jobs_pipeline`. Donc vigilance
+5. **Dépôt public** : `github.com/benjsant/job_hunter`. Donc vigilance
    accrue : rien de sensible dans les fichiers suivis.
 6. **PostgreSQL = seule source de vérité** (décision V2, 2026-06-10). Tables
    métier : `offers`, `companies`, `applications`, `generated_documents`,

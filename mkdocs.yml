@@ -1,7 +1,7 @@
 site_name: Job Hunter
 site_description: Assistant de recherche d'emploi semi-automatique (collecte, scoring, CV + lettre par IA, garde-fous anti-invention).
 site_author: Benjamin Santrisse
-repo_url: https://github.com/benjsant/n8n_jobs_pipeline
+repo_url: https://github.com/benjsant/job_hunter
 repo_name: benjsant/n8n_jobs_pipeline
 docs_dir: docs
 site_dir: site

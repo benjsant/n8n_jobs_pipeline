@@ -16,7 +16,7 @@ quand tu veux candidater, tu la coupes après.
     téléchargement direct depuis la page).
 
 ```bash
-git clone https://github.com/benjsant/n8n_jobs_pipeline
+git clone https://github.com/benjsant/job_hunter
 cd n8n_jobs_pipeline
 cp .env.example .env      # puis remplir DEEPSEEK_API_KEY (+ DISCORD_WEBHOOK_ALERTS)
 ```

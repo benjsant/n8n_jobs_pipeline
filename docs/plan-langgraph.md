@@ -319,7 +319,7 @@ Ressources externes utiles :
 - LangGraph docs : https://langchain-ai.github.io/langgraph/
 - DeepSeek API : https://api-docs.deepseek.com/
 - Le system prompt actuel à découper : `prompts/agent-system-prompt.md` (11 KB)
-- Repo : https://github.com/benjsant/n8n_jobs_pipeline
+- Repo : https://github.com/benjsant/job_hunter
 
 ---
 
