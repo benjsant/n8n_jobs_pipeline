@@ -4,7 +4,7 @@
       "id": "job-hunter",
       "name": "Job Hunter - pipeline de candidature assisté par IA",
       "period": "Juin 2026 - en cours",
-      "description": "Système de recherche d'emploi auto-hébergé, en production quotidienne : collecte multi-API (8 workflows n8n), déduplication sémantique (pgvector), scoring hybride LLM, agent LangGraph groundé (registre INSEE) et génération de CV/lettres PDF ciblés par offre. Plus de 110 tests, CI GitHub Actions.",
+      "description": "Système de recherche d'emploi assisté par IA que j'utilise au quotidien : collecte multi-API (8 workflows n8n), déduplication sémantique (pgvector), scoring hybride LLM, agent LangGraph groundé (registre INSEE) et génération de CV/lettres PDF ciblés par offre. Plus de 110 tests, CI GitHub Actions.",
       "tech": [
         "Python",
         "n8n",
@@ -13,7 +13,7 @@
         "PostgreSQL/pgvector",
         "Docker"
       ],
-      "url": "https://github.com/benjsant/n8n_jobs_pipeline"
+      "url": "https://github.com/benjsant/job_hunter"
     },
     {
       "id": "infinidex",
@@ -42,7 +42,7 @@
         "PostgreSQL",
         "Docker"
       ],
-      "url": "https://github.com/benjsant/lets-go-predictiondex"
+      "url": "https://github.com/benjsant/predictiondex"
     },
     {
       "id": "audiomancy",

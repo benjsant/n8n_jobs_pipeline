@@ -57,7 +57,7 @@ export function buildLetterHtml(data = {}) {
       * { box-sizing: border-box; }
       html, body { margin: 0; padding: 0; }
       body { font-family: "Inter","Helvetica Neue",Arial,sans-serif; color: #1f2329; font-size: 11pt; line-height: 1.5; }
-      .page { width: 210mm; min-height: 297mm; padding: 22mm 24mm; margin: 0 auto; background: #fff; }
+      .page { width: 210mm; padding: 18mm 22mm; margin: 0 auto; background: #fff; }
       .sender .sname { font-weight: 600; }
       .sender div { line-height: 1.45; }
       .recipient { margin-top: 30px; text-align: right; }
@@ -65,7 +65,7 @@ export function buildLetterHtml(data = {}) {
       .subject { margin-top: 26px; font-weight: 600; }
       .body { margin-top: 16px; }
       .body p { margin: 0 0 11px; text-align: justify; }
-      .sign { margin-top: 24px; }
+      .sign { margin-top: 18px; }
       @page { size: A4; margin: 0; }
       @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
     </style>

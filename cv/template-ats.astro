@@ -91,6 +91,7 @@ if (!isHidden("languages") && languages.length) {
 // ── Contact (texte à plat, séparateur sobre " | ") ─────────────────────
 const strip = (u) => String(u || "").replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "");
 const contacts = [
+  { label: "Téléphone", value: profile.phone },
   { label: "Email", value: profile.email },
   { label: "Portfolio", value: strip(profile.links?.portfolio) },
   { label: "LinkedIn", value: strip(profile.links?.linkedin) },
