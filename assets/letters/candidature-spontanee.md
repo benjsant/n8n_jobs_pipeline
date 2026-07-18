@@ -20,13 +20,15 @@ valeurs, secteur, réputation technique). Sans fiche de poste, le choix de CETTE
 entreprise doit être limpide. Si un lien réel existe (ex. stages passés à la CAF
 du Nord), l'exploiter. SEULE partie à rédiger.]
 
-Développeur Python spécialisé en backend et en IA appliquée, je conçois et déploie des applications complètes, du code jusqu'à la mise en production. Mes réalisations en témoignent :
+Développeur Python spécialisé en backend et en IA appliquée, je mène des projets complets, du code aux tests et à l'intégration continue. Mes réalisations en témoignent :
 
 • InfiniDex : agent LLM à 9 outils et pipeline ETL Prefect automatisé sur 168 000 entrées (FastAPI, PostgreSQL, Docker).
 • PredictionDex : pipeline MLOps de bout en bout (XGBoost, MLflow, FastAPI), avec promotion automatique en production.
 • Audiomancy : projet en équipe, agent conversationnel et stack de monitoring (Prometheus, Grafana).
 
-Concrètement, je sais construire des APIs robustes, automatiser des pipelines de données et intégrer des modèles d'IA dans des produits réellement déployés, pas des démos. Issu d'une reconversion validée par une certification Développeur IA RNCP niveau 6, j'apporte un socle technique solide, beaucoup d'autonomie et l'envie de m'investir durablement. Convaincu que mon profil pourrait apporter de la valeur à {{entreprise.nom}}, je me permets de vous adresser ma candidature.
+Concrètement, je sais construire des APIs robustes, automatiser des pipelines de données et intégrer des modèles d'IA dans des projets complets et fonctionnels, pas de simples démos. Issu d'une reconversion validée par une certification Développeur IA RNCP niveau 6, j'apporte un socle technique solide, beaucoup d'autonomie et l'envie de m'investir durablement. Convaincu que mon profil pourrait apporter de la valeur à {{entreprise.nom}}, je me permets de vous adresser ma candidature.
+
+Si vous hésitez sur un profil en reconversion, je suis également ouvert à une période d'immersion professionnelle (PMSMP, dispositif France Travail) : une à deux semaines en conditions réelles, sans coût ni engagement pour votre structure, pour juger mon travail sur pièces.
 
 Disponible immédiatement et mobile sur les métropoles lilloise et valenciennoise (télétravail possible), je serais ravi d'échanger avec vous, que ce soit pour un poste actuellement ouvert ou à venir. Mon portfolio présente l'ensemble de mes projets : benjamin-santrisse.vercel.app
 

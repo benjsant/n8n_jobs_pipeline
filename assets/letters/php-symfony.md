@@ -21,14 +21,14 @@ Madame, Monsieur,
 élément concret ({{entreprise.element_concret}} : mission, produit, contexte,
 stack). C'est la SEULE partie à rédiger.]
 
-Développeur web de formation, j'ai construit un socle PHP / Symfony lors de mes stages à la CAF du Nord (développement d'interfaces web et d'une plateforme de gestion interne, avec MySQL et Git), que je souhaite aujourd'hui réactualiser et approfondir sur une stack moderne. Ma reconversion, validée par une certification Développeur IA RNCP niveau 6, m'a surtout appris à monter vite en compétence et à livrer des applications complètes, du code jusqu'à la mise en production.
+Développeur web de formation, j'ai construit un socle PHP / Symfony lors de mes stages à la CAF du Nord (développement d'interfaces web et d'une plateforme de gestion interne, avec MySQL et Git), que je souhaite aujourd'hui réactualiser et approfondir sur une stack moderne. Ma reconversion, validée par une certification Développeur IA RNCP niveau 6, m'a surtout appris à monter vite en compétence et à livrer des applications complètes, du code aux tests et à l'intégration continue.
 
 Mes réalisations récentes le montrent concrètement :
 
 • InfiniDex : application web complète (back-end FastAPI, front Next.js, base PostgreSQL) avec pipeline de données automatisé et déploiement Docker.
-• PredictionDex : API de bout en bout avec interface, tests et mise en production automatisée.
+• PredictionDex : API de bout en bout avec interface, tests et promotion automatisée du modèle (MLflow).
 
-Concrètement, je sais concevoir des applications web, modéliser des données, construire des API robustes et documenter mon code, avec le souci des tests et de la maintenabilité : des produits réellement déployés, pas des démos. Mon appétence pour les nouvelles technologies (Python, IA appliquée) rejoint votre ouverture aux nouveaux outils et environnements, et j'aime travailler sur plusieurs langages.
+Concrètement, je sais concevoir des applications web, modéliser des données, construire des API robustes et documenter mon code, avec le souci des tests et de la maintenabilité : des projets complets et fonctionnels, pas de simples démos. Mon appétence pour les nouvelles technologies (Python, IA appliquée) rejoint votre ouverture aux nouveaux outils et environnements, et j'aime travailler sur plusieurs langages.
 
 Disponible immédiatement et mobile sur les métropoles lilloise et valenciennoise (télétravail possible), je serais ravi d'échanger avec vous. Vous trouverez l'ensemble de mes réalisations sur mon portfolio : benjamin-santrisse.vercel.app
 

@@ -25,7 +25,7 @@ Développeur Python orienté backend et IA, je dispose aussi d'une vraie expéri
 • Audiomancy : application web en équipe, avec interface Next.js et agent conversationnel.
 • Mon portfolio : développé en Astro et TypeScript, soigné côté performance et accessibilité.
 
-Mon cœur de métier reste le backend et l'IA, mais ma double compétence (PHP/Symfony, JavaScript/React) me permet de m'adapter vite à une stack front et de contribuer utilement côté interface, sur des produits réellement déployés, pas des démos. Issu d'une reconversion validée par une certification Développeur IA RNCP niveau 6, j'apporte autonomie, rigueur et soin du détail.
+Mon cœur de métier reste le backend et l'IA, mais ma double compétence (PHP/Symfony, JavaScript/React) me permet de m'adapter vite à une stack front et de contribuer utilement côté interface, sur des projets complets et fonctionnels, pas de simples démos. Issu d'une reconversion validée par une certification Développeur IA RNCP niveau 6, j'apporte autonomie, rigueur et soin du détail.
 
 Disponible immédiatement et mobile sur les métropoles lilloise et valenciennoise (télétravail possible), je serais ravi d'échanger avec vous. Vous trouverez l'ensemble de mes réalisations sur mon portfolio : benjamin-santrisse.vercel.app
 
