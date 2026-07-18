@@ -73,6 +73,27 @@
         360,
         300
       ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Dégraissage (audit 2026-07) : les offres ignorées gardent sinon leur\n-- description complète + vecteur 384d pour toujours. On vide les champs\n-- lourds au-delà de 90 jours ; la ligne reste (traçabilité du hash de dédup).\nUPDATE offers\nSET embedding = NULL, description = ''\nWHERE status = 'ignored'\n  AND created_at < now() - interval '90 days'\n  AND (embedding IS NOT NULL OR description <> '');",
+        "options": {}
+      },
+      "id": "a7000000-0000-4000-8000-000000000099",
+      "name": "Purge offres ignorées",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        -80,
+        480
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "REMPLACER",
+          "name": "Postgres job-hunter"
+        }
+      }
     }
   ],
   "connections": {
@@ -81,6 +102,11 @@
         [
           {
             "node": "Stats de la semaine",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Purge offres ignorées",
             "type": "main",
             "index": 0
           }

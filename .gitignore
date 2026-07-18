@@ -8,6 +8,7 @@
 *.db
 data/
 exports/
+backups/
 
 # Exports/blueprints bruts fournis (données perso, clés Make/Airtable) — local only
 private/

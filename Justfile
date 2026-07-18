@@ -63,6 +63,24 @@ schema:
 seed:
     docker compose exec -T postgres psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" < db/seed-profiles.sql
 
+# Sauvegarde compressée de la base dans ./backups (rotation : 7 plus récentes).
+# À lancer à la main ou via cron. backups/ est gitignoré (données perso).
+backup:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    mkdir -p backups
+    out="backups/dump-$(date +%F-%H%M).sql.gz"
+    docker compose exec -T postgres pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" | gzip > "$out"
+    ls -1t backups/dump-*.sql.gz | tail -n +8 | xargs -r rm --
+    echo "✅ $out ($(du -h "$out" | cut -f1)) — $(ls backups/dump-*.sql.gz | wc -l) sauvegarde(s) conservée(s)"
+
+# Libère le cache de build Docker et les images orphelines (audit 2026-07 :
+# le cache s'accumule à chaque rebuild). Sans -a : n'efface pas les images taguées.
+prune:
+    docker builder prune -f
+    docker image prune -f
+    docker system df
+
 # Déploie les exports workflows/*.json dans n8n en une commande : associe la
 # credential Postgres réelle (les JSON portent REMPLACER), importe, réactive
 # (un import désactive les workflows) et redémarre n8n. Idempotent.
